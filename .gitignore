@@ -34,5 +34,8 @@
 # Other compilation products
 build/
 
+# Logs
+*.log
+
 # Editor configs
 .vscode
