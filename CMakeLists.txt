@@ -1,7 +1,10 @@
 cmake_minimum_required (VERSION 3.7)
 project (studious-octo-enigma)
+find_package(Vulkan REQUIRED)
 include_directories (${CMAKE_HOME_DIRECTORY}/src)
+include_directories(${Vulkan_INCLUDE_DIRS}/vulkan)
 add_executable (
     main
     src/main.cpp
+    src/VulkanApplication.cpp
 )
