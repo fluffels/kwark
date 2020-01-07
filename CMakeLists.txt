@@ -10,3 +10,7 @@ add_executable (
     src/main.cpp
     src/VulkanApplication.cpp
 )
+target_link_libraries(
+    main
+    ${Vulkan_LIBRARIES}
+)

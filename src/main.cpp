@@ -6,5 +6,6 @@ INITIALIZE_EASYLOGGINGPP
 int
 main() {
     LOG(INFO) << "Initializing...";
+    VulkanApplication vk;
     return 0;
 }
