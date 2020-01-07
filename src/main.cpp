@@ -3,9 +3,15 @@ INITIALIZE_EASYLOGGINGPP
 
 #include "VulkanApplication.h"
 
+using std::exception;
+
 int
 main() {
     LOG(INFO) << "Initializing...";
-    VulkanApplication vk;
+    try {
+        VulkanApplication vk;
+    } catch (exception e) {
+        LOG(ERROR) << e.what();
+    }
     return 0;
 }
