@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Other compilation products
+build/
+
+# Editor configs
+.vscode
