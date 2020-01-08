@@ -14,16 +14,6 @@ VulkanApplication::
     vkDestroyInstance(_instance, nullptr);
 }
 
-const char**
-stringVectorToC(const vector<string>& v) {
-    auto count = v.size();
-    auto strings = new const char*[count];
-    for (unsigned i = 0; i < count; i++) {
-        strings[i] = v[i].c_str();
-    }
-    return strings;
-}
-
 uint32_t VulkanApplication::
 getEnabledLayerCount() {
     return (uint32_t)_enabledLayers.size();

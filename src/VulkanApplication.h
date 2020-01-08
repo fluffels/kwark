@@ -7,6 +7,8 @@
 
 #include "easylogging++.h"
 
+#include "util.h"
+
 using std::runtime_error;
 using std::string;
 using std::vector;

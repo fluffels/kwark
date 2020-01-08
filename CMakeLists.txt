@@ -9,6 +9,7 @@ add_executable (
     WIN32
     lib/easylogging++.cc
     src/main.cpp
+    src/util.cpp
     src/VulkanApplication.cpp
     src/WindowsVulkanApplication.cpp
 )
