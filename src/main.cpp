@@ -12,12 +12,12 @@ const int HEIGHT = 480;
 
 LRESULT
 WindowProc(
-    HWND    hWnd,
-    UINT    Msg,
+    HWND    window,
+    UINT    message,
     WPARAM  wParam,
     LPARAM  lParam
 ) {
-    return 0;
+    return DefWindowProc(window, message, wParam, lParam);
 }
 
 int
@@ -34,31 +34,42 @@ WinMain(
         LOG(ERROR) << e.what();
     }
     
-    WNDCLASSA windowClassProperties = {};
+    WNDCLASSEX windowClassProperties = {};
+    windowClassProperties.cbSize = sizeof(windowClassProperties);
     windowClassProperties.style = CS_HREDRAW | CS_VREDRAW;
     windowClassProperties.lpfnWndProc = WindowProc;
     windowClassProperties.hInstance = instance;
     windowClassProperties.lpszClassName = "MainWindowClass";
-    ATOM windowClass = RegisterClassA(&windowClassProperties);
+    ATOM windowClass = RegisterClassEx(&windowClassProperties);
     if (!windowClass) {
         LOG(ERROR) << "could not create window class";
     }
 
-    auto window = CreateWindowA(
+    HWND window = CreateWindowEx(
+        0,
         "MainWindowClass",
         "studious-octo-enigma",
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
+        WIDTH,
+        HEIGHT,
         NULL,
         NULL,
         instance,
         NULL
     );
-    if (!window) {
+    if (window == NULL) {
         LOG(ERROR) << "could not create window";
     }
-    return 0;
+
+    MSG msg;
+    BOOL result = GetMessage(&msg, (HWND) NULL, 0, 0);
+    while ((result != 0) && (result != -1)) { 
+        TranslateMessage(&msg); 
+        DispatchMessage(&msg); 
+        result = GetMessage(&msg, (HWND) NULL, 0, 0);
+    } 
+
+    return 0; 
 }
