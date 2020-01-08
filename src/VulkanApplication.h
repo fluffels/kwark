@@ -17,6 +17,10 @@ class VulkanApplication {
         ~VulkanApplication();
     
     private:
+        vector<string> ENABLED_LAYERS;
+        uint32_t _enabledLayerCount;
+        const char** _layerNames;
+
         VkInstance _instance;
         VkPhysicalDevice _physicalDevice;
         uint32_t _gfxQueueIndex;

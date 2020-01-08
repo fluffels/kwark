@@ -1,9 +1,16 @@
 #include "VulkanApplication.h"
 
 VulkanApplication::
-VulkanApplication() {
+VulkanApplication():
+        ENABLED_LAYERS({ "VK_LAYER_LUNARG_standard_validation" }) {
     vkEnumerateInstanceVersion(&_version);
     logVersion(_version);
+
+    _enabledLayerCount = (uint32_t)ENABLED_LAYERS.size();
+    _layerNames = new const char*[_enabledLayerCount];
+    for (unsigned i = 0; i < _enabledLayerCount; i++) {
+        _layerNames[i] = ENABLED_LAYERS[i].c_str();
+    }
 
     initVkInstance();
     initPhysicalDevice();
@@ -31,6 +38,8 @@ initVkInstance() {
     VkInstanceCreateInfo instanceCreateInfo = {};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &applicationCreateInfo;
+    instanceCreateInfo.enabledLayerCount = _enabledLayerCount;
+    instanceCreateInfo.ppEnabledLayerNames = _layerNames;
 
     checkSuccess(
         vkCreateInstance(&instanceCreateInfo, nullptr, &_instance),
@@ -87,10 +96,13 @@ initPhysicalDevice() {
 
 void VulkanApplication::
 initDeviceAndQueues() {
+    float queuePriority = 1.f;
+
     VkDeviceQueueCreateInfo gfxQueueCreateInfo = {};
     gfxQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     gfxQueueCreateInfo.queueCount = 1;
     gfxQueueCreateInfo.queueFamilyIndex = _gfxQueueIndex;
+    gfxQueueCreateInfo.pQueuePriorities = &queuePriority;
 
     vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     queueCreateInfos.push_back(gfxQueueCreateInfo);
@@ -101,6 +113,8 @@ initDeviceAndQueues() {
         queueCreateInfos.size()
     );
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+    deviceCreateInfo.enabledLayerCount = _enabledLayerCount;
+    deviceCreateInfo.ppEnabledLayerNames = _layerNames;
 
     checkSuccess(
         vkCreateDevice(_physicalDevice, &deviceCreateInfo, nullptr, &_device),
