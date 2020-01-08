@@ -13,10 +13,9 @@ using std::vector;
 
 class VulkanApplication {
     public:
-        VulkanApplication();
-        ~VulkanApplication();
+        virtual ~VulkanApplication();
     
-    private:
+    protected:
         vector<string> ENABLED_LAYERS;
         uint32_t _enabledLayerCount;
         const char** _layerNames;
@@ -31,10 +30,18 @@ class VulkanApplication {
         VkQueue _gfxQueue;
         VkDevice _device;
         uint32_t _version;
+        VkSurfaceKHR _surface;
+
+        /**
+         * The constructor is protected to prevent direct instantiation of this
+         * class. Before the class can be fully initialized, _surface must be
+         * set by the subclass corresponding to the correct OS.
+         */
+        VulkanApplication();
 
         void checkSuccess(VkResult result, const string& errorMessage);
 
-        void initVkInstance();
+        void initVulkanInstance();
         void initPhysicalDevice();
         void initDeviceAndQueues();
 

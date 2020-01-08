@@ -10,6 +10,7 @@ add_executable (
     lib/easylogging++.cc
     src/main.cpp
     src/VulkanApplication.cpp
+    src/WindowsVulkanApplication.cpp
 )
 target_link_libraries(
     main

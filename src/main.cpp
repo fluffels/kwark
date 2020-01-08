@@ -3,7 +3,7 @@
 #include "easylogging++.h"
 INITIALIZE_EASYLOGGINGPP
 
-#include "VulkanApplication.h"
+#include "WindowsVulkanApplication.h"
 
 using std::exception;
 
@@ -33,12 +33,7 @@ WinMain(
     LPSTR commandLine,
     int showCommand
 ) {
-    LOG(INFO) << "Initializing...";
-    try {
-        VulkanApplication vk;
-    } catch (exception e) {
-        LOG(ERROR) << e.what();
-    }
+    LOG(INFO) << "Starting...";
     
     WNDCLASSEX windowClassProperties = {};
     windowClassProperties.cbSize = sizeof(windowClassProperties);
@@ -67,6 +62,12 @@ WinMain(
     );
     if (window == NULL) {
         LOG(ERROR) << "could not create window";
+    }
+
+    try {
+        WindowsVulkanApplication vk(instance, window);
+    } catch (exception e) {
+        LOG(ERROR) << e.what();
     }
 
     MSG msg;

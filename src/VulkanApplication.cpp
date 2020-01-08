@@ -18,10 +18,6 @@ VulkanApplication():
     for (unsigned i = 0; i < _enabledExtensionCount; i++) {
         _extensionNames[i] = ENABLED_EXTENSIONS[i].c_str();
     }
-
-    initVkInstance();
-    initPhysicalDevice();
-    initDeviceAndQueues();
 }
 
 VulkanApplication::
@@ -41,7 +37,7 @@ checkSuccess(VkResult result, const string& errorMessage) {
 }
 
 void VulkanApplication::
-initVkInstance() {
+initVulkanInstance() {
     VkApplicationInfo applicationCreateInfo = {};
     applicationCreateInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 
