@@ -20,6 +20,7 @@ class VulkanApplication {
         VkInstance _instance;
         VkPhysicalDevice _physicalDevice;
         uint32_t _gfxQueueIndex;
+        VkQueue _gfxQueue;
         VkDevice _device;
         uint32_t _version;
 
@@ -27,7 +28,7 @@ class VulkanApplication {
 
         void initVkInstance();
         void initPhysicalDevice();
-        void initDevice();
+        void initDeviceAndQueues();
 
         void logVersion(uint32_t version);
 };

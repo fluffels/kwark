@@ -7,7 +7,7 @@ VulkanApplication() {
 
     initVkInstance();
     initPhysicalDevice();
-    initDevice();
+    initDeviceAndQueues();
 }
 
 VulkanApplication::
@@ -86,7 +86,7 @@ initPhysicalDevice() {
 }
 
 void VulkanApplication::
-initDevice() {
+initDeviceAndQueues() {
     VkDeviceQueueCreateInfo gfxQueueCreateInfo = {};
     gfxQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     gfxQueueCreateInfo.queueCount = 1;
@@ -106,8 +106,10 @@ initDevice() {
         vkCreateDevice(_physicalDevice, &deviceCreateInfo, nullptr, &_device),
         "could not create device"
     );
-
     LOG(INFO) << "created device";
+
+    vkGetDeviceQueue(_device, _gfxQueueIndex, 0, &_gfxQueue);
+    LOG(INFO) << "retrieved gfx queue";
 }
 
 void VulkanApplication::
