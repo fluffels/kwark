@@ -15,16 +15,15 @@ class VulkanApplication {
     public:
         virtual ~VulkanApplication();
 
-        virtual uint32_t getEnabledExtensionCount() = 0;
-        virtual const char** getEnabledExtensions() = 0;
+        uint32_t getEnabledExtensionCount();
+        const char** getEnabledExtensions();
 
-        virtual uint32_t getEnabledLayerCount();
-        virtual const char** getEnabledLayers();
+        uint32_t getEnabledLayerCount();
+        const char** getEnabledLayers();
     
     protected:
-        vector<string> ENABLED_LAYERS;
-        uint32_t _enabledLayerCount;
-        const char** _layerNames;
+        vector<string> _enabledExtensions;
+        vector<string> _enabledLayers;
 
         VkInstance _instance;
         VkPhysicalDevice _physicalDevice;
@@ -47,5 +46,5 @@ class VulkanApplication {
         void initPhysicalDevice();
         void initDeviceAndQueues();
 
-        void logVersion(uint32_t version);
+        void checkVersion(uint32_t version);
 };

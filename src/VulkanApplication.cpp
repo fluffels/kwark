@@ -2,33 +2,46 @@
 
 VulkanApplication::
 VulkanApplication():
-        ENABLED_LAYERS({ "VK_LAYER_LUNARG_standard_validation" }) {
+        _enabledExtensions({ "VK_KHR_surface" }),
+        _enabledLayers({ "VK_LAYER_LUNARG_standard_validation" }) {
     vkEnumerateInstanceVersion(&_version);
-    logVersion(_version);
-
-    _enabledLayerCount = (uint32_t)ENABLED_LAYERS.size();
-    _layerNames = new const char*[_enabledLayerCount];
-    for (unsigned i = 0; i < _enabledLayerCount; i++) {
-        _layerNames[i] = ENABLED_LAYERS[i].c_str();
-    }
+    checkVersion(_version);
 }
 
 VulkanApplication::
 ~VulkanApplication() {
-    delete[] _layerNames;
-
     vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
 }
 
+const char**
+stringVectorToC(const vector<string>& v) {
+    auto count = v.size();
+    auto strings = new const char*[count];
+    for (unsigned i = 0; i < count; i++) {
+        strings[i] = v[i].c_str();
+    }
+    return strings;
+}
+
 uint32_t VulkanApplication::
 getEnabledLayerCount() {
-    return _enabledLayerCount;
+    return (uint32_t)_enabledLayers.size();
 }
 
 const char** VulkanApplication::
 getEnabledLayers() {
-    return _layerNames;
+    return stringVectorToC(_enabledLayers);
+}
+
+uint32_t VulkanApplication::
+getEnabledExtensionCount() {
+    return (uint32_t)_enabledExtensions.size();
+}
+
+const char** VulkanApplication::
+getEnabledExtensions() {
+    return stringVectorToC(_enabledExtensions);
 }
 
 void VulkanApplication::
@@ -46,15 +59,25 @@ initVulkanInstance() {
     VkInstanceCreateInfo instanceCreateInfo = {};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &applicationCreateInfo;
-    instanceCreateInfo.enabledLayerCount = _enabledLayerCount;
-    instanceCreateInfo.ppEnabledLayerNames = _layerNames;
+
+    instanceCreateInfo.enabledLayerCount = getEnabledLayerCount();
+    auto enabledLayerNames = getEnabledLayers();
+    instanceCreateInfo.ppEnabledLayerNames = enabledLayerNames;
+
     instanceCreateInfo.enabledExtensionCount = getEnabledExtensionCount();
-    instanceCreateInfo.ppEnabledExtensionNames = getEnabledExtensions();
+    auto enabledExtensionNames = getEnabledExtensions();
+    instanceCreateInfo.ppEnabledExtensionNames = enabledExtensionNames;
+    
+    auto result = vkCreateInstance(&instanceCreateInfo, nullptr, &_instance);
+
+    delete[] enabledLayerNames;
+    delete[] enabledExtensionNames;
 
     checkSuccess(
-        vkCreateInstance(&instanceCreateInfo, nullptr, &_instance),
+        result,
         "could not create vk instance"
     );
+    LOG(INFO) << "created instance";
 }
 
 void VulkanApplication::
@@ -123,11 +146,16 @@ initDeviceAndQueues() {
         queueCreateInfos.size()
     );
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-    deviceCreateInfo.enabledLayerCount = _enabledLayerCount;
-    deviceCreateInfo.ppEnabledLayerNames = _layerNames;
+
+    auto result = vkCreateDevice(
+        _physicalDevice,
+        &deviceCreateInfo,
+        nullptr,
+        &_device
+    );
 
     checkSuccess(
-        vkCreateDevice(_physicalDevice, &deviceCreateInfo, nullptr, &_device),
+        result,
         "could not create device"
     );
     LOG(INFO) << "created device";
@@ -137,8 +165,16 @@ initDeviceAndQueues() {
 }
 
 void VulkanApplication::
-logVersion(uint32_t version) {
-    LOG(INFO) << "Instance version: " << VK_VERSION_MAJOR(version) << "."
-                                      << VK_VERSION_MINOR(version) << "."
-                                      << VK_VERSION_PATCH(version);
+checkVersion(uint32_t version) {
+    auto major = VK_VERSION_MAJOR(version);
+    auto minor = VK_VERSION_MINOR(version);
+    auto patch = VK_VERSION_PATCH(version);
+
+    LOG(INFO) << "Instance version: " << major << "."
+                                      << minor << "."
+                                      << patch;
+    
+    if ((major < 1) || (minor < 1) || (patch < 126)) {
+        throw runtime_error("you need at least Vulkan 1.1.126");
+    }
 }
