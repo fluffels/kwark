@@ -7,11 +7,13 @@ VulkanApplication() {
 
     initVkInstance();
     initPhysicalDevice();
+    initDevice();
 }
 
 VulkanApplication::
 ~VulkanApplication() {
-
+    vkDestroyDevice(_device, nullptr);
+    vkDestroyInstance(_instance, nullptr);
 }
 
 void VulkanApplication::
@@ -68,15 +70,42 @@ initPhysicalDevice() {
             queueFamilyPropertySets.data()
         );
 
-        for (auto queueFamilyProperties: queueFamilyPropertySets) {
+        for (uint32_t index = 0; index < queueFamilyPropertyCount; index++) {
+            auto queueFamilyProperties = queueFamilyPropertySets[index];
             if (queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 _physicalDevice = physicalDevice;
+                _gfxQueueIndex = index;
                 LOG(INFO) << "selected physical device "
                           << deviceProperties.deviceName;
                 return;
             }
         }
     }
+
+    throw runtime_error("no suitable physical device found");
+}
+
+void VulkanApplication::
+initDevice() {
+    VkDeviceQueueCreateInfo gfxQueueCreateInfo = {};
+    gfxQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    gfxQueueCreateInfo.queueCount = 1;
+    gfxQueueCreateInfo.queueFamilyIndex = _gfxQueueIndex;
+
+    vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    queueCreateInfos.push_back(gfxQueueCreateInfo);
+
+    VkDeviceCreateInfo deviceCreateInfo = {};
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+    checkSuccess(
+        vkCreateDevice(_physicalDevice, &deviceCreateInfo, nullptr, &_device),
+        "could not create device"
+    );
+
+    LOG(INFO) << "created device";
 }
 
 void VulkanApplication::
