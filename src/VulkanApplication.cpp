@@ -97,7 +97,9 @@ initDevice() {
 
     VkDeviceCreateInfo deviceCreateInfo = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
+    deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(
+        queueCreateInfos.size()
+    );
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 
     checkSuccess(
