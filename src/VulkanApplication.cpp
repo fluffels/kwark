@@ -19,6 +19,8 @@ VulkanApplication():
 
 VulkanApplication::
 ~VulkanApplication() {
+    delete[] _layerNames;
+
     vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
 }
