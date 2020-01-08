@@ -6,9 +6,11 @@ include_directories (${CMAKE_HOME_DIRECTORY}/lib)
 include_directories(${Vulkan_INCLUDE_DIRS}/vulkan)
 add_executable (
     main
+    WIN32
     lib/easylogging++.cc
     src/main.cpp
     src/VulkanApplication.cpp
+    src/Win32VulkanApplication.cpp
 )
 target_link_libraries(
     main
