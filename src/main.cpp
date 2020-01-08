@@ -17,6 +17,12 @@ WindowProc(
     WPARAM  wParam,
     LPARAM  lParam
 ) {
+    switch (message) {
+        case WM_DESTROY:
+            PostQuitMessage(0);
+        case WM_KEYDOWN:
+            if (wParam == VK_ESCAPE) PostQuitMessage(0);
+    }
     return DefWindowProc(window, message, wParam, lParam);
 }
 
