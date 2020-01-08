@@ -67,6 +67,7 @@ WinMain(
     try {
         WindowsVulkanApplication vk(instance, window);
     } catch (exception e) {
+        PostQuitMessage(-1);
         LOG(ERROR) << e.what();
     }
 

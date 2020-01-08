@@ -2,8 +2,7 @@
 
 VulkanApplication::
 VulkanApplication():
-        ENABLED_LAYERS({ "VK_LAYER_LUNARG_standard_validation" }),
-        ENABLED_EXTENSIONS({ "VK_KHR_surface" }) {
+        ENABLED_LAYERS({ "VK_LAYER_LUNARG_standard_validation" }) {
     vkEnumerateInstanceVersion(&_version);
     logVersion(_version);
 
@@ -12,21 +11,24 @@ VulkanApplication():
     for (unsigned i = 0; i < _enabledLayerCount; i++) {
         _layerNames[i] = ENABLED_LAYERS[i].c_str();
     }
-
-    _enabledExtensionCount = (uint32_t)ENABLED_EXTENSIONS.size();
-    _extensionNames = new const char*[_enabledExtensionCount];
-    for (unsigned i = 0; i < _enabledExtensionCount; i++) {
-        _extensionNames[i] = ENABLED_EXTENSIONS[i].c_str();
-    }
 }
 
 VulkanApplication::
 ~VulkanApplication() {
     delete[] _layerNames;
-    delete[] _extensionNames;
 
     vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
+}
+
+uint32_t VulkanApplication::
+getEnabledLayerCount() {
+    return _enabledLayerCount;
+}
+
+const char** VulkanApplication::
+getEnabledLayers() {
+    return _layerNames;
 }
 
 void VulkanApplication::
@@ -46,8 +48,8 @@ initVulkanInstance() {
     instanceCreateInfo.pApplicationInfo = &applicationCreateInfo;
     instanceCreateInfo.enabledLayerCount = _enabledLayerCount;
     instanceCreateInfo.ppEnabledLayerNames = _layerNames;
-    instanceCreateInfo.enabledExtensionCount = _enabledExtensionCount;
-    instanceCreateInfo.ppEnabledExtensionNames = _extensionNames;
+    instanceCreateInfo.enabledExtensionCount = getEnabledExtensionCount();
+    instanceCreateInfo.ppEnabledExtensionNames = getEnabledExtensions();
 
     checkSuccess(
         vkCreateInstance(&instanceCreateInfo, nullptr, &_instance),
