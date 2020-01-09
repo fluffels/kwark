@@ -31,11 +31,14 @@ class VulkanApplication {
 
         VkInstance _instance;
         VkPhysicalDevice _physicalDevice;
-        uint32_t _gfxQueueIndex;
+        uint32_t _gfxFamily;
         VkQueue _gfxQueue;
+        uint32_t _presentFamily;
+        VkQueue _presentQueue;
         VkDevice _device;
         uint32_t _version;
         VkSurfaceKHR _surface;
+        VkSwapchainKHR _swapChain;
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
@@ -43,4 +46,5 @@ class VulkanApplication {
         void initVulkanInstance();
         void initPhysicalDevice();
         void initDeviceAndQueues();
+        void initSwapChain();
 };

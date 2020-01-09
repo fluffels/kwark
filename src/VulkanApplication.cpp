@@ -18,6 +18,7 @@ VulkanApplication(const Platform& platform):
     _surface = platform.getSurface(_instance);
     initPhysicalDevice();
     initDeviceAndQueues();
+    initSwapChain();
 }
 
 VulkanApplication::
@@ -115,6 +116,9 @@ initPhysicalDevice() {
     );
 
     for (auto physicalDevice: physicalDevices) {
+        bool hasGraphicsQueue = false;
+        VkBool32 hasPresentQueue = false;
+
         VkPhysicalDeviceProperties deviceProperties = {};
         vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 
@@ -133,12 +137,25 @@ initPhysicalDevice() {
         for (uint32_t index = 0; index < queueFamilyPropertyCount; index++) {
             auto queueFamilyProperties = queueFamilyPropertySets[index];
             if (queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                _physicalDevice = physicalDevice;
-                _gfxQueueIndex = index;
-                LOG(INFO) << "selected physical device "
-                          << deviceProperties.deviceName;
-                return;
+                hasGraphicsQueue = true;
+                _gfxFamily = index;
             }
+            vkGetPhysicalDeviceSurfaceSupportKHR(
+                physicalDevice,
+                index,
+                _surface,
+                &hasPresentQueue
+            );
+            if (hasPresentQueue) {
+                _presentFamily = index;
+            }
+        }
+
+        if (hasGraphicsQueue && hasPresentQueue) {
+            _physicalDevice = physicalDevice;
+            LOG(INFO) << "selected physical device "
+                      << deviceProperties.deviceName;
+            return;
         }
     }
 
@@ -149,14 +166,21 @@ void VulkanApplication::
 initDeviceAndQueues() {
     float queuePriority = 1.f;
 
+    vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+
     VkDeviceQueueCreateInfo gfxQueueCreateInfo = {};
     gfxQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     gfxQueueCreateInfo.queueCount = 1;
-    gfxQueueCreateInfo.queueFamilyIndex = _gfxQueueIndex;
+    gfxQueueCreateInfo.queueFamilyIndex = _gfxFamily;
     gfxQueueCreateInfo.pQueuePriorities = &queuePriority;
-
-    vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     queueCreateInfos.push_back(gfxQueueCreateInfo);
+
+    VkDeviceQueueCreateInfo presentQueueCreateInfo = {};
+    presentQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    presentQueueCreateInfo.queueCount = 1;
+    presentQueueCreateInfo.queueFamilyIndex = _presentFamily;
+    presentQueueCreateInfo.pQueuePriorities = &queuePriority;
+    queueCreateInfos.push_back(presentQueueCreateInfo);
 
     VkDeviceCreateInfo deviceCreateInfo = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -178,6 +202,34 @@ initDeviceAndQueues() {
     );
     LOG(INFO) << "created device";
 
-    vkGetDeviceQueue(_device, _gfxQueueIndex, 0, &_gfxQueue);
+    vkGetDeviceQueue(_device, _gfxFamily, 0, &_gfxQueue);
     LOG(INFO) << "retrieved gfx queue";
+    vkGetDeviceQueue(_device, _presentFamily, 0, &_presentQueue);
+    LOG(INFO) << "retrieved gfx queue";
+}
+
+void VulkanApplication::
+initSwapChain() {
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    auto result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+        _physicalDevice,
+        _surface,
+        &surfaceCapabilities
+    );
+    checkSuccess(result, "could not query surface capabilities");
+
+    VkSwapchainCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.surface = _surface;
+    createInfo.minImageCount = surfaceCapabilities.minImageCount;
+    createInfo.imageExtent = surfaceCapabilities.currentExtent;
+    createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+    result = vkCreateSwapchainKHR(
+        _device,
+        &createInfo,
+        nullptr,
+        &_swapChain
+    );
+    checkSuccess(result, "could not create swap chain");
 }
