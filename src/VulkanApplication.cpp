@@ -1,15 +1,28 @@
 #include "VulkanApplication.h"
 
 VulkanApplication::
-VulkanApplication():
+VulkanApplication(const Platform& platform):
         _enabledExtensions({ VK_KHR_SURFACE_EXTENSION_NAME }),
         _enabledLayers({ "VK_LAYER_LUNARG_standard_validation" }) {
+    auto platformRequiredExtensions = platform.getExtensions();
+    _enabledExtensions.insert(
+        _enabledExtensions.end(),
+        platformRequiredExtensions.begin(),
+        platformRequiredExtensions.end()
+    );
+
     vkEnumerateInstanceVersion(&_version);
     checkVersion(_version);
+
+    initVulkanInstance();
+    _surface = platform.getSurface(_instance);
+    initPhysicalDevice();
+    initDeviceAndQueues();
 }
 
 VulkanApplication::
 ~VulkanApplication() {
+    vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
 }

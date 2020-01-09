@@ -3,7 +3,8 @@
 #include "easylogging++.h"
 INITIALIZE_EASYLOGGINGPP
 
-#include "WindowsVulkanApplication.h"
+#include "VulkanApplication.h"
+#include "Win32.h"
 
 using std::exception;
 
@@ -65,7 +66,8 @@ WinMain(
     }
 
     try {
-        WindowsVulkanApplication vk(instance, window);
+        Win32 platform(instance, window);
+        VulkanApplication vk(platform);
     } catch (exception e) {
         PostQuitMessage(-1);
         LOG(ERROR) << e.what();

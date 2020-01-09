@@ -7,6 +7,7 @@
 
 #include "easylogging++.h"
 
+#include "Platform.h"
 #include "util.h"
 
 using std::runtime_error;
@@ -15,6 +16,7 @@ using std::vector;
 
 class VulkanApplication {
     public:
+        VulkanApplication(const Platform&);
         virtual ~VulkanApplication();
 
         uint32_t getEnabledExtensionCount();
@@ -34,13 +36,6 @@ class VulkanApplication {
         VkDevice _device;
         uint32_t _version;
         VkSurfaceKHR _surface;
-
-        /**
-         * The constructor is protected to prevent direct instantiation of this
-         * class. Before the class can be fully initialized, _surface must be
-         * set by the subclass corresponding to the correct OS.
-         */
-        VulkanApplication();
 
         void checkSuccess(VkResult result, const string& errorMessage);
 

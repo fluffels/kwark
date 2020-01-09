@@ -11,7 +11,7 @@ add_executable (
     src/main.cpp
     src/util.cpp
     src/VulkanApplication.cpp
-    src/WindowsVulkanApplication.cpp
+    src/Win32.cpp
 )
 target_link_libraries(
     main
