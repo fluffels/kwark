@@ -55,6 +55,21 @@ checkSuccess(VkResult result, const string& errorMessage) {
 }
 
 void VulkanApplication::
+checkVersion(uint32_t version) {
+    auto major = VK_VERSION_MAJOR(version);
+    auto minor = VK_VERSION_MINOR(version);
+    auto patch = VK_VERSION_PATCH(version);
+
+    LOG(INFO) << "Instance version: " << major << "."
+                                      << minor << "."
+                                      << patch;
+    
+    if ((major < 1) || (minor < 1) || (patch < 126)) {
+        throw runtime_error("you need at least Vulkan 1.1.126");
+    }
+}
+
+void VulkanApplication::
 initVulkanInstance() {
     VkApplicationInfo applicationCreateInfo = {};
     applicationCreateInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -165,19 +180,4 @@ initDeviceAndQueues() {
 
     vkGetDeviceQueue(_device, _gfxQueueIndex, 0, &_gfxQueue);
     LOG(INFO) << "retrieved gfx queue";
-}
-
-void VulkanApplication::
-checkVersion(uint32_t version) {
-    auto major = VK_VERSION_MAJOR(version);
-    auto minor = VK_VERSION_MINOR(version);
-    auto patch = VK_VERSION_PATCH(version);
-
-    LOG(INFO) << "Instance version: " << major << "."
-                                      << minor << "."
-                                      << patch;
-    
-    if ((major < 1) || (minor < 1) || (patch < 126)) {
-        throw runtime_error("you need at least Vulkan 1.1.126");
-    }
 }

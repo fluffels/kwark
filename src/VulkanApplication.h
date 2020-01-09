@@ -38,10 +38,9 @@ class VulkanApplication {
         VkSurfaceKHR _surface;
 
         void checkSuccess(VkResult result, const string& errorMessage);
+        void checkVersion(uint32_t version);
 
         void initVulkanInstance();
         void initPhysicalDevice();
         void initDeviceAndQueues();
-
-        void checkVersion(uint32_t version);
 };
