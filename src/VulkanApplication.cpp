@@ -2,7 +2,7 @@
 
 VulkanApplication::
 VulkanApplication():
-        _enabledExtensions({ "VK_KHR_surface" }),
+        _enabledExtensions({ VK_KHR_SURFACE_EXTENSION_NAME }),
         _enabledLayers({ "VK_LAYER_LUNARG_standard_validation" }) {
     vkEnumerateInstanceVersion(&_version);
     checkVersion(_version);

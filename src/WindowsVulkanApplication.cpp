@@ -5,7 +5,7 @@ WindowsVulkanApplication(HINSTANCE hinstance, HWND hwnd):
         _hinstance(hinstance),
         _hwnd(hwnd),
         VulkanApplication() {
-    _enabledExtensions.push_back("VK_KHR_win32_surface");
+    _enabledExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 
     initVulkanInstance();
     initSurface();
