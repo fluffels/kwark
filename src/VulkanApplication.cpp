@@ -218,6 +218,21 @@ initSwapChain() {
     );
     checkSuccess(result, "could not query surface capabilities");
 
+    uint32_t surfaceFormatCount = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(
+        _physicalDevice,
+        _surface,
+        &surfaceFormatCount,
+        nullptr
+    );
+    vector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(
+        _physicalDevice,
+        _surface,
+        &surfaceFormatCount,
+        surfaceFormats.data()
+    );
+
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = _surface;
