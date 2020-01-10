@@ -205,7 +205,7 @@ initDeviceAndQueues() {
     vkGetDeviceQueue(_device, _gfxFamily, 0, &_gfxQueue);
     LOG(INFO) << "retrieved gfx queue";
     vkGetDeviceQueue(_device, _presentFamily, 0, &_presentQueue);
-    LOG(INFO) << "retrieved gfx queue";
+    LOG(INFO) << "retrieved present queue";
 }
 
 void VulkanApplication::
