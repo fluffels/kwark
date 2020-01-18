@@ -39,6 +39,8 @@ class VulkanApplication {
         uint32_t _version;
         VkSurfaceKHR _surface;
         VkSwapchainKHR _swapChain;
+        vector<VkImage> _swapImages;
+        VkCommandPool _presentCommandPool;
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
@@ -47,4 +49,5 @@ class VulkanApplication {
         void initPhysicalDevice();
         void initDeviceAndQueues();
         void initSwapChain();
+        void present();
 };

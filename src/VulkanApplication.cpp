@@ -19,6 +19,7 @@ VulkanApplication(const Platform& platform):
     initPhysicalDevice();
     initDeviceAndQueues();
     initSwapChain();
+    present();
 }
 
 VulkanApplication::
@@ -317,5 +318,149 @@ initSwapChain() {
     );
     checkSuccess(result, "could not create swap chain");
 
+    uint32_t swapImageCount = 0;
+    vkGetSwapchainImagesKHR(
+        _device,
+        _swapChain,
+        &swapImageCount,
+        nullptr
+    );
+    _swapImages.resize(swapImageCount);
+    result = vkGetSwapchainImagesKHR(
+        _device,
+        _swapChain,
+        &swapImageCount,
+        _swapImages.data()
+    );
+    checkSuccess(
+        result,
+        "could not fetch swap images"
+    );
+
     LOG(INFO) << "created swap chain";
+}
+
+void VulkanApplication::
+present() {
+    VkSemaphore semaphore;
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    vkCreateSemaphore(
+        _device,
+        &semaphoreCreateInfo,
+        nullptr,
+        &semaphore
+    );
+
+    uint32_t imageIndex = 0;
+    VkResult result = vkAcquireNextImageKHR(
+        _device,
+        _swapChain,
+        0,
+        semaphore,
+        VK_NULL_HANDLE,
+        &imageIndex
+    );
+    checkSuccess(
+        result,
+        "could not acquire swap chain image"
+    );
+
+    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    commandPoolCreateInfo.queueFamilyIndex = _presentFamily;
+    result = vkCreateCommandPool(
+        _device,
+        &commandPoolCreateInfo,
+        nullptr,
+        &_presentCommandPool
+    );
+    checkSuccess(
+        result,
+        "could not create presentation queue command pool"
+    );
+
+    VkCommandBuffer commandBuffer;
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+    commandBufferAllocateInfo.sType = 
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandBufferAllocateInfo.commandPool = _presentCommandPool;
+    commandBufferAllocateInfo.commandBufferCount = 1;
+    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    result = vkAllocateCommandBuffers(
+        _device,
+        &commandBufferAllocateInfo,
+        &commandBuffer
+    );
+    checkSuccess(
+        result,
+        "could not create command buffer for presentation"
+    );
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    checkSuccess(
+        result,
+        "could not begin command"
+    );
+
+    VkImageMemoryBarrier imageBarrier = {};
+    imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imageBarrier.image = _swapImages[imageIndex];
+    imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    imageBarrier.srcQueueFamilyIndex = 0;
+    imageBarrier.dstQueueFamilyIndex = _presentFamily;
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        0,
+        0,
+        nullptr,
+        0,
+        nullptr,
+        1,
+        &imageBarrier
+    );
+
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submit = {};
+    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit.commandBufferCount = 1;
+    submit.pCommandBuffers = &commandBuffer;
+    vkQueueSubmit(
+        _presentQueue,
+        1,
+        &submit,
+        VK_NULL_HANDLE
+    );
+
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = &_swapChain;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &semaphore;
+    presentInfo.pImageIndices = &imageIndex;
+    result = vkQueuePresentKHR(
+        _presentQueue,
+        &presentInfo
+    );
+    checkSuccess(
+        result,
+        "could not enqueue image for presentation"
+    );
+
+    vkFreeCommandBuffers(
+        _device,
+        _presentCommandPool,
+        1,
+        &commandBuffer
+    );
+    vkDestroySemaphore(_device, semaphore, nullptr);
+    vkDestroyCommandPool(_device, _presentCommandPool, nullptr);
 }
