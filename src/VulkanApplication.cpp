@@ -412,6 +412,9 @@ present() {
     imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     imageBarrier.srcQueueFamilyIndex = 0;
     imageBarrier.dstQueueFamilyIndex = _presentFamily;
+    imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageBarrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+    imageBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
     vkCmdPipelineBarrier(
         commandBuffer,
