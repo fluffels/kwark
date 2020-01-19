@@ -410,7 +410,7 @@ present() {
     imageBarrier.image = _swapImages[imageIndex];
     imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    imageBarrier.srcQueueFamilyIndex = 0;
+    imageBarrier.srcQueueFamilyIndex = _presentFamily;
     imageBarrier.dstQueueFamilyIndex = _presentFamily;
     imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     imageBarrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
