@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.7)
+set (CMAKE_CXX_STANDARD 17)
 project (studious-octo-enigma)
 find_package(Vulkan REQUIRED)
 include_directories (${CMAKE_HOME_DIRECTORY}/src)
@@ -7,7 +8,8 @@ include_directories(${Vulkan_INCLUDE_DIRS}/vulkan)
 add_executable (
     main
     WIN32
-    lib/easylogging++.cc
+    src/easylogging++.cc
+    src/FileSystem.cpp
     src/main.cpp
     src/util.cpp
     src/VulkanApplication.cpp
