@@ -14,11 +14,11 @@ VulkanApplication(const Platform& platform):
     vkEnumerateInstanceVersion(&_version);
     checkVersion(_version);
 
-    initVulkanInstance();
+    createVulkanInstance();
     _surface = platform.getSurface(_instance);
-    initPhysicalDevice();
-    initDeviceAndQueues();
-    initSwapChain();
+    createPhysicalDevice();
+    createDeviceAndQueues();
+    createSwapChain();
     // present();
 }
 
@@ -73,7 +73,7 @@ checkVersion(uint32_t version) {
 }
 
 void VulkanApplication::
-initVulkanInstance() {
+createVulkanInstance() {
     VkApplicationInfo applicationCreateInfo = {};
     applicationCreateInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 
@@ -102,7 +102,7 @@ initVulkanInstance() {
 }
 
 void VulkanApplication::
-initPhysicalDevice() {
+createPhysicalDevice() {
     uint32_t physicalDeviceCount = 0;
     checkSuccess(
         vkEnumeratePhysicalDevices(_instance, &physicalDeviceCount, nullptr),
@@ -191,7 +191,7 @@ initPhysicalDevice() {
 }
 
 void VulkanApplication::
-initDeviceAndQueues() {
+createDeviceAndQueues() {
     float queuePriority = 1.f;
 
     vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -241,7 +241,7 @@ initDeviceAndQueues() {
 }
 
 void VulkanApplication::
-initSwapChain() {
+createSwapChain() {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     auto result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
         _physicalDevice,

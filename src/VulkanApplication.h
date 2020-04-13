@@ -42,12 +42,13 @@ class VulkanApplication {
         vector<VkImage> _swapImages;
         VkCommandPool _presentCommandPool;
 
+        void createVulkanInstance();
+        void createPhysicalDevice();
+        void createDeviceAndQueues();
+        void createSwapChain();
+
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
 
-        void initVulkanInstance();
-        void initPhysicalDevice();
-        void initDeviceAndQueues();
-        void initSwapChain();
         void present();
 };
