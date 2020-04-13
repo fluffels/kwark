@@ -19,7 +19,7 @@ VulkanApplication(const Platform& platform):
     initPhysicalDevice();
     initDeviceAndQueues();
     initSwapChain();
-    present();
+    // present();
 }
 
 VulkanApplication::
@@ -435,6 +435,8 @@ present() {
     submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit.commandBufferCount = 1;
     submit.pCommandBuffers = &commandBuffer;
+    submit.waitSemaphoreCount = 1;
+    submit.pWaitSemaphores = &semaphore;
     vkQueueSubmit(
         _presentQueue,
         1,
