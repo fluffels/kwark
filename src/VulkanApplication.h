@@ -39,13 +39,17 @@ class VulkanApplication {
         uint32_t _version;
         VkSurfaceKHR _surface;
         VkSwapchainKHR _swapChain;
+        VkFormat _swapImageFormat;
+        VkColorSpaceKHR _swapImageColorSpace;
         vector<VkImage> _swapImages;
         VkCommandPool _presentCommandPool;
+        VkRenderPass _renderPass;
 
         void createVulkanInstance();
         void createPhysicalDevice();
         void createDeviceAndQueues();
         void createSwapChain();
+        void createRenderPass();
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
