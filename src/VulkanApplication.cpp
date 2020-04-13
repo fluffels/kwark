@@ -19,12 +19,18 @@ VulkanApplication(const Platform& platform):
     createPhysicalDevice();
     createDeviceAndQueues();
     createSwapChain();
-    // present();
     createRenderPass();
+    createFramebuffers();
 }
 
 VulkanApplication::
 ~VulkanApplication() {
+    for (auto framebuffer: _framebuffers) {
+        vkDestroyFramebuffer(_device, framebuffer, nullptr);
+    }
+    for (auto imageView: _swapImageViews) {
+        vkDestroyImageView(_device, imageView, nullptr);
+    }
     vkDestroyRenderPass(_device, _renderPass, nullptr);
     vkDestroySwapchainKHR(_device, _swapChain, nullptr);
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
@@ -307,6 +313,8 @@ createSwapChain() {
         }
     }
 
+    _swapChainExtent = surfaceCapabilities.currentExtent;
+
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = _surface;
@@ -330,6 +338,7 @@ createSwapChain() {
         &_swapChain
     );
     checkSuccess(result, "could not create swap chain");
+    LOG(INFO) << "created swap chain";
 
     uint32_t swapImageCount = 0;
     vkGetSwapchainImagesKHR(
@@ -349,8 +358,46 @@ createSwapChain() {
         result,
         "could not fetch swap images"
     );
+    LOG(INFO) << "fetched swap images";
 
-    LOG(INFO) << "created swap chain";
+    for (auto image: _swapImages) {
+        VkImageViewCreateInfo imageViewCreateInfo = {};
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.image = image;
+        imageViewCreateInfo.format = _swapImageFormat;
+        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewCreateInfo.subresourceRange.aspectMask =
+            VK_IMAGE_ASPECT_COLOR_BIT;
+        imageViewCreateInfo.subresourceRange.layerCount =
+            VK_REMAINING_ARRAY_LAYERS;
+        imageViewCreateInfo.subresourceRange.levelCount =
+            VK_REMAINING_MIP_LEVELS;
+        imageViewCreateInfo.components.a =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.b =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.g =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.r =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        VkImageView imageView = {};
+        result = vkCreateImageView(
+            _device,
+            &imageViewCreateInfo,
+            nullptr,
+            &imageView
+        );
+
+        checkSuccess(
+            result,
+            "could not create swap image view"
+        );
+
+        _swapImageViews.push_back(imageView);
+
+        LOG(INFO) << "created swap image view";
+    }
 }
 
 void VulkanApplication::
@@ -399,6 +446,38 @@ createRenderPass() {
     );
 
     LOG(INFO) << "created render pass";
+}
+
+void VulkanApplication::
+createFramebuffers() {
+    for (auto imageView: _swapImageViews) {
+        VkFramebufferCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        createInfo.attachmentCount = 1;
+        createInfo.pAttachments = &imageView;
+        createInfo.renderPass = _renderPass;
+        createInfo.height = _swapChainExtent.height;
+        createInfo.width = _swapChainExtent.width;
+        createInfo.layers = 1;
+
+        VkFramebuffer framebuffer;
+        
+        VkResult result = vkCreateFramebuffer(
+            _device,
+            &createInfo,
+            nullptr,
+            &framebuffer
+        );
+
+        checkSuccess(
+            result,
+            "could not create framebuffer"
+        );
+
+        LOG(INFO) << "created framebuffer";
+
+        _framebuffers.push_back(framebuffer);
+    }
 }
 
 void VulkanApplication::
