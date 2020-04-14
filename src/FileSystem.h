@@ -7,4 +7,4 @@
 
 #include "easylogging++.h"
 
-static std::vector<char> readFile(const std::filesystem::path&);
+std::vector<char> readFile(const std::filesystem::path&);

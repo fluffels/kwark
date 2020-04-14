@@ -7,6 +7,7 @@
 
 #include "easylogging++.h"
 
+#include "FileSystem.h"
 #include "Platform.h"
 #include "util.h"
 
@@ -54,6 +55,8 @@ class VulkanApplication {
         void createSwapChain();
         void createRenderPass();
         void createFramebuffers();
+        VkShaderModule createShaderModule(const string&);
+        VkShaderModule createShaderModule(const vector<char>& code);
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);

@@ -33,6 +33,7 @@
 
 # Other compilation products
 build/
+*.spv
 
 # Logs
 *.log

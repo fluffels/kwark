@@ -21,6 +21,8 @@ VulkanApplication(const Platform& platform):
     createSwapChain();
     createRenderPass();
     createFramebuffers();
+    auto vertexShader = createShaderModule("shaders/default.vert.spv");
+    vkDestroyShaderModule(_device, vertexShader, nullptr);
 }
 
 VulkanApplication::
@@ -478,6 +480,36 @@ createFramebuffers() {
 
         _framebuffers.push_back(framebuffer);
     }
+}
+
+VkShaderModule VulkanApplication::
+createShaderModule(const string& path) {
+    auto code = readFile(path);
+    auto result = createShaderModule(code);
+    return result;
+}
+
+VkShaderModule VulkanApplication::
+createShaderModule(const vector<char>& code) {
+    VkShaderModule shaderModule;
+
+    VkShaderModuleCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = code.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+    auto result = vkCreateShaderModule(
+        _device,
+        &createInfo,
+        nullptr,
+        &shaderModule
+    );
+
+    checkSuccess(
+        result,
+        "could not create shader module"
+    );
+
+    return shaderModule;
 }
 
 void VulkanApplication::

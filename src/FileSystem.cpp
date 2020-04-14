@@ -1,6 +1,6 @@
 #include "FileSystem.h"
 
-static std::vector<char>
+std::vector<char>
 readFile(const std::filesystem::path& path) {
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {
