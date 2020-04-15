@@ -22,6 +22,8 @@ VulkanApplication(const Platform& platform):
     createRenderPass();
     createFramebuffers();
     auto vertexShader = createShaderModule("shaders/default.vert.spv");
+    auto fragmentShader = createShaderModule("shaders/default.frag.spv");
+    vkDestroyShaderModule(_device, fragmentShader, nullptr);
     vkDestroyShaderModule(_device, vertexShader, nullptr);
 }
 
