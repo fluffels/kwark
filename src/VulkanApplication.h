@@ -10,6 +10,7 @@
 #include "FileSystem.h"
 #include "Platform.h"
 #include "util.h"
+#include "Vertex.h"
 
 using std::runtime_error;
 using std::string;
@@ -48,6 +49,7 @@ class VulkanApplication {
         VkCommandPool _presentCommandPool;
         VkRenderPass _renderPass;
         vector<VkFramebuffer> _framebuffers;
+        VkPipeline _pipeline;
 
         void createVulkanInstance();
         void createPhysicalDevice();
@@ -57,6 +59,7 @@ class VulkanApplication {
         void createFramebuffers();
         VkShaderModule createShaderModule(const string&);
         VkShaderModule createShaderModule(const vector<char>& code);
+        void createPipeline(VkShaderModule*, VkShaderModule*);
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);

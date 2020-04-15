@@ -514,6 +514,82 @@ createShaderModule(const vector<char>& code) {
     return shaderModule;
 }
 
+void VulkanApplication::createPipeline(
+    VkShaderModule* vertexShaderModule,
+    VkShaderModule* fragmentShaderModule
+) {
+    vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos;
+    if (vertexShaderModule != nullptr) {
+        VkPipelineShaderStageCreateInfo vertexShaderStageCreateInfo = {};
+        vertexShaderStageCreateInfo.sType =
+            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertexShaderStageCreateInfo.stage =
+            VK_SHADER_STAGE_VERTEX_BIT;
+        vertexShaderStageCreateInfo.module = *vertexShaderModule;
+        vertexShaderStageCreateInfo.pName = "main";
+        shaderStageCreateInfos.push_back(vertexShaderStageCreateInfo);
+    }
+    if (fragmentShaderModule != nullptr) {
+        VkPipelineShaderStageCreateInfo fragmentShaderStageCreateInfo = {};
+        fragmentShaderStageCreateInfo.sType =
+            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragmentShaderStageCreateInfo.stage =
+            VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragmentShaderStageCreateInfo.module = *fragmentShaderModule;
+        fragmentShaderStageCreateInfo.pName = "main";
+    }
+
+    auto inputBindingDescription = Vertex::getInputBindingDescription();
+    auto inputAttributeDescriptions = Vertex::getInputAttributeDescriptions();
+
+    VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+    vertexInputState.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputState.vertexBindingDescriptionCount =
+        (uint32_t)inputAttributeDescriptions.size();
+    vertexInputState.pVertexBindingDescriptions =
+        &inputBindingDescription;
+    vertexInputState.vertexAttributeDescriptionCount = 1;
+    vertexInputState.pVertexAttributeDescriptions =
+        inputAttributeDescriptions.data();
+    
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo;
+    inputAssemblyStateCreateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyStateCreateInfo.topology =
+        VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+    
+    const VkPipelineTessellationStateCreateInfo*     pTessellationState;
+    const VkPipelineViewportStateCreateInfo*         pViewportState;
+    const VkPipelineRasterizationStateCreateInfo*    pRasterizationState;
+    const VkPipelineMultisampleStateCreateInfo*      pMultisampleState;
+    const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState;
+    const VkPipelineColorBlendStateCreateInfo*       pColorBlendState;
+    const VkPipelineDynamicStateCreateInfo*          pDynamicState;
+
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
+    pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineCreateInfo.stageCount = (uint32_t)shaderStageCreateInfos.size();
+    pipelineCreateInfo.pStages = shaderStageCreateInfos.data();
+    pipelineCreateInfo.pVertexInputState = &vertexInputState;
+    pipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
+    auto result = vkCreateGraphicsPipelines(
+        _device,
+        VK_NULL_HANDLE,
+        1,
+        &pipelineCreateInfo,
+        nullptr,
+        &_pipeline
+    );
+
+    checkSuccess(
+        result,
+        "could not create pipeline"
+    );
+
+    LOG(INFO) << "created pipeline";
+}
+
 void VulkanApplication::
 present() {
     VkSemaphore semaphore;

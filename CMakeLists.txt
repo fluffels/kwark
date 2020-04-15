@@ -3,6 +3,7 @@ set (CMAKE_CXX_STANDARD 17)
 
 project (studious-octo-enigma)
 
+find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
 
 set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/Bin/glslangValidator.exe")
@@ -20,6 +21,7 @@ add_custom_target(Shaders DEPENDS ${SPIRV_FILES})
 
 include_directories (${CMAKE_HOME_DIRECTORY}/src)
 include_directories (${CMAKE_HOME_DIRECTORY}/lib)
+include_directories(${glm_INCLUDE_DIRS})
 include_directories(${Vulkan_INCLUDE_DIRS}/vulkan)
 add_executable (
     main
@@ -29,6 +31,7 @@ add_executable (
     src/main.cpp
     src/FileSystem.cpp
     src/util.cpp
+    src/Vertex.cpp
     src/VulkanApplication.cpp
     src/Win32.cpp
 )
