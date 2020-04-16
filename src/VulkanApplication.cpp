@@ -520,6 +520,24 @@ void VulkanApplication::createPipeline(
     VkShaderModule& vertexShaderModule,
     VkShaderModule& fragmentShaderModule
 ) {
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+    pipelineLayoutCreateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutCreateInfo.setLayoutCount = 0;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+
+    VkPipelineLayout layout = {};
+    auto result = vkCreatePipelineLayout(
+        _device,
+        &pipelineLayoutCreateInfo,
+        nullptr,
+        &layout
+    );
+    checkSuccess(
+        result,
+        "could not create pipeline layout"
+    );
+
     vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos;
     if (vertexShaderModule != nullptr) {
         VkPipelineShaderStageCreateInfo vertexShaderStageCreateInfo = {};
@@ -573,18 +591,36 @@ void VulkanApplication::createPipeline(
     viewport.x = 0.f;
     viewport.y = 0.f;
 
+    VkRect2D scissor = {};
+    scissor.offset = {0, 0};
+    scissor.extent = _swapChainExtent;
+
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
     viewportStateCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportStateCreateInfo.viewportCount = 1;
     viewportStateCreateInfo.pViewports = &viewport;
-    viewportStateCreateInfo.scissorCount = 0;
+    viewportStateCreateInfo.scissorCount = 1;
+    viewportStateCreateInfo.pScissors = &scissor;
 
-    const VkPipelineRasterizationStateCreateInfo*    pRasterizationState;
-    const VkPipelineMultisampleStateCreateInfo*      pMultisampleState;
-    const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState;
-    const VkPipelineColorBlendStateCreateInfo*       pColorBlendState;
-    const VkPipelineDynamicStateCreateInfo*          pDynamicState;
+    VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo = {};
+    rasterizationStateCreateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizationStateCreateInfo.frontFace =
+        VK_FRONT_FACE_CLOCKWISE;
+    rasterizationStateCreateInfo.cullMode =
+        VK_CULL_MODE_BACK_BIT;
+    rasterizationStateCreateInfo.lineWidth = 1.f;
+
+    VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo = {};
+    multisampleStateCreateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampleStateCreateInfo.rasterizationSamples =
+        VK_SAMPLE_COUNT_1_BIT;
+
+    // VkPipelineDepthStencilStateCreateInfo*
+    // VkPipelineColorBlendStateCreateInfo*
+    // VkPipelineDynamicStateCreateInfo*
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -593,7 +629,11 @@ void VulkanApplication::createPipeline(
     pipelineCreateInfo.pVertexInputState = &vertexInputState;
     pipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
     pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
-    auto result = vkCreateGraphicsPipelines(
+    pipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
+    pipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
+    pipelineCreateInfo.renderPass = _renderPass;
+    pipelineCreateInfo.layout = layout;
+    result = vkCreateGraphicsPipelines(
         _device,
         VK_NULL_HANDLE,
         1,
@@ -601,6 +641,8 @@ void VulkanApplication::createPipeline(
         nullptr,
         &_pipeline
     );
+
+    vkDestroyPipelineLayout(_device, layout, nullptr);
 
     checkSuccess(
         result,
