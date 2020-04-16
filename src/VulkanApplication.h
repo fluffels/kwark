@@ -59,7 +59,7 @@ class VulkanApplication {
         void createFramebuffers();
         VkShaderModule createShaderModule(const string&);
         VkShaderModule createShaderModule(const vector<char>& code);
-        void createPipeline(VkShaderModule*, VkShaderModule*);
+        void createPipeline(VkShaderModule&, VkShaderModule&);
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
