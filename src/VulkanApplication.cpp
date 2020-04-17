@@ -771,6 +771,7 @@ present() {
     imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     imageBarrier.image = _swapImages[imageIndex];
     imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     imageBarrier.srcQueueFamilyIndex = _presentFamily;
     imageBarrier.dstQueueFamilyIndex = _presentFamily;
