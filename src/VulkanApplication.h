@@ -26,6 +26,8 @@ class VulkanApplication {
 
         uint32_t getEnabledLayerCount();
         const char** getEnabledLayers();
+
+        void present();
     
     protected:
         vector<string> _enabledExtensions;
@@ -46,12 +48,15 @@ class VulkanApplication {
         VkColorSpaceKHR _swapImageColorSpace;
         vector<VkImage> _swapImages;
         vector<VkImageView> _swapImageViews;
+        VkCommandPool _graphicsCommandPool;
         VkCommandPool _presentCommandPool;
         VkRenderPass _renderPass;
         vector<VkFramebuffer> _framebuffers;
         VkPipeline _pipeline;
         VkBuffer _vertexBuffer;
-        vector<VkCommandBuffer> _commandBuffers;
+        vector<VkCommandBuffer> _swapCommandBuffers;
+        VkSemaphore _imageReady;
+        VkSemaphore _presentReady;
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
@@ -65,10 +70,12 @@ class VulkanApplication {
         VkShaderModule createShaderModule(const string&);
         VkShaderModule createShaderModule(const vector<char>& code);
         void createPipeline(VkShaderModule&, VkShaderModule&);
+        void createGraphicsCommandPool();
+        void createPresentCommandPool();
+        void createSwapCommandBuffers();
+        void createSemaphores();
 
         void loadVertexBuffer();
 
         void recordCommandBuffers();
-
-        void present();
 };

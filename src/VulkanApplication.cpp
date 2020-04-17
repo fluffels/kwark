@@ -21,17 +21,34 @@ VulkanApplication(const Platform& platform):
     createSwapChain();
     createRenderPass();
     createFramebuffers();
+
     auto vertexShader = createShaderModule("shaders/default.vert.spv");
     auto fragmentShader = createShaderModule("shaders/default.frag.spv");
     createPipeline(vertexShader, fragmentShader);
     vkDestroyShaderModule(_device, fragmentShader, nullptr);
     vkDestroyShaderModule(_device, vertexShader, nullptr);
+
     loadVertexBuffer();
-    present();
+
+    createGraphicsCommandPool();
+    createSwapCommandBuffers();
+    recordCommandBuffers();
+
+    createSemaphores();
 }
 
 VulkanApplication::
 ~VulkanApplication() {
+    vkDestroySemaphore(_device, _imageReady, nullptr);
+    vkDestroySemaphore(_device, _presentReady, nullptr);
+    for (auto commandBuffer: _swapCommandBuffers) {
+        vkFreeCommandBuffers(
+            _device,
+            _graphicsCommandPool,
+            (uint32_t)_swapCommandBuffers.size(),
+            _swapCommandBuffers.data()
+        );
+    }
     vkDestroyBuffer(_device, _vertexBuffer, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
     for (auto framebuffer: _framebuffers) {
@@ -560,6 +577,7 @@ void VulkanApplication::createPipeline(
             VK_SHADER_STAGE_FRAGMENT_BIT;
         fragmentShaderStageCreateInfo.module = fragmentShaderModule;
         fragmentShaderStageCreateInfo.pName = "main";
+        shaderStageCreateInfos.push_back(fragmentShaderStageCreateInfo);
     }
 
     auto inputBindingDescription = Vertex::getInputBindingDescription();
@@ -656,6 +674,66 @@ void VulkanApplication::createPipeline(
 }
 
 void VulkanApplication::
+createGraphicsCommandPool() {
+    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    commandPoolCreateInfo.queueFamilyIndex = _gfxFamily;
+    auto result = vkCreateCommandPool(
+        _device,
+        &commandPoolCreateInfo,
+        nullptr,
+        &_graphicsCommandPool
+    );
+    checkSuccess(
+        result,
+        "could not create graphics queue command pool"
+    );
+    LOG(INFO) << "created graphics queue command pool";
+}
+
+void VulkanApplication::
+createPresentCommandPool() {
+    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    commandPoolCreateInfo.queueFamilyIndex = _presentFamily;
+    auto result = vkCreateCommandPool(
+        _device,
+        &commandPoolCreateInfo,
+        nullptr,
+        &_presentCommandPool
+    );
+    checkSuccess(
+        result,
+        "could not create presentation queue command pool"
+    );
+    LOG(INFO) << "created presentation queue command pool";
+}
+
+void VulkanApplication::
+createSwapCommandBuffers() {
+    _swapCommandBuffers.resize(_swapImages.size());
+
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+    commandBufferAllocateInfo.sType = 
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandBufferAllocateInfo.commandPool = _graphicsCommandPool;
+    commandBufferAllocateInfo.commandBufferCount = (uint32_t)_swapImages.size();
+    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    auto result = vkAllocateCommandBuffers(
+        _device,
+        &commandBufferAllocateInfo,
+        _swapCommandBuffers.data()
+    );
+
+    checkSuccess(
+        result,
+        "could not create command buffers for swap images"
+    );
+
+    LOG(INFO) << "created command buffers for swap images";
+}
+
+void VulkanApplication::
 loadVertexBuffer() {
     float vertices[] = {
         -1.f, 0.f, 0.f,
@@ -688,39 +766,94 @@ loadVertexBuffer() {
 
 void VulkanApplication::
 recordCommandBuffers() {
-    vkCmdBindPipeline(
-        _commandBuffers[0],
-        VK_PIPELINE_BIND_POINT_GRAPHICS,
-        _pipeline
-    );
+    for (size_t swapIndex = 0; swapIndex < _swapImages.size(); swapIndex++) {
+        auto commandBuffer = _swapCommandBuffers[swapIndex];
 
-    vkCmdDraw(
-        _commandBuffers[0],
-        3,
-        0,
-        0,
-        0
-    );
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        auto result = vkBeginCommandBuffer(
+            commandBuffer,
+            &beginInfo
+        );
+        checkSuccess(
+            result,
+            "could not begin command"
+        );
+
+        VkClearValue clearValue = {};
+        clearValue.color = {1.f, 0, 0, 1.f};
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.clearValueCount = 1;
+        renderPassBeginInfo.pClearValues = &clearValue;
+        renderPassBeginInfo.framebuffer = _framebuffers[swapIndex];
+        renderPassBeginInfo.renderArea.extent = _swapChainExtent;
+        renderPassBeginInfo.renderArea.offset = {0, 0};
+        renderPassBeginInfo.renderPass = _renderPass;
+
+        vkCmdBeginRenderPass(
+            commandBuffer,
+            &renderPassBeginInfo,
+            VK_SUBPASS_CONTENTS_INLINE
+        );
+
+        vkCmdBindPipeline(
+            commandBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            _pipeline
+        );
+
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(
+            commandBuffer,
+            0, 1,
+            &_vertexBuffer,
+            offsets
+        );
+        vkCmdDraw(
+            commandBuffer,
+            3, 1,
+            0, 0
+        );
+
+        vkCmdEndRenderPass(commandBuffer);
+
+        result = vkEndCommandBuffer(commandBuffer);
+        checkSuccess(
+            result,
+            "could not record command buffer"
+        );
+    }
 }
 
 void VulkanApplication::
-present() {
-    VkSemaphore semaphore;
+createSemaphores() {
     VkSemaphoreCreateInfo semaphoreCreateInfo = {};
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     vkCreateSemaphore(
         _device,
         &semaphoreCreateInfo,
         nullptr,
-        &semaphore
+        &_imageReady
     );
 
+    vkCreateSemaphore(
+        _device,
+        &semaphoreCreateInfo,
+        nullptr,
+        &_presentReady
+    );
+}
+
+void VulkanApplication::
+present() {
     uint32_t imageIndex = 0;
     VkResult result = vkAcquireNextImageKHR(
         _device,
         _swapChain,
-        0,
-        semaphore,
+        std::numeric_limits<uint64_t>::max(),
+        _imageReady,
         VK_NULL_HANDLE,
         &imageIndex
     );
@@ -729,109 +862,22 @@ present() {
         "could not acquire swap chain image"
     );
 
-    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
-    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    commandPoolCreateInfo.queueFamilyIndex = _presentFamily;
-    result = vkCreateCommandPool(
-        _device,
-        &commandPoolCreateInfo,
-        nullptr,
-        &_presentCommandPool
-    );
-    checkSuccess(
-        result,
-        "could not create presentation queue command pool"
-    );
-
-    VkCommandBuffer commandBuffer;
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-    commandBufferAllocateInfo.sType = 
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    commandBufferAllocateInfo.commandPool = _presentCommandPool;
-    commandBufferAllocateInfo.commandBufferCount = 1;
-    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    result = vkAllocateCommandBuffers(
-        _device,
-        &commandBufferAllocateInfo,
-        &commandBuffer
-    );
-    checkSuccess(
-        result,
-        "could not create command buffer for presentation"
-    );
-
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
-    checkSuccess(
-        result,
-        "could not begin command"
-    );
-
-    VkImageMemoryBarrier imageBarrier = {};
-    imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    imageBarrier.image = _swapImages[imageIndex];
-    imageBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    imageBarrier.srcQueueFamilyIndex = _presentFamily;
-    imageBarrier.dstQueueFamilyIndex = _presentFamily;
-    imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    imageBarrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-    imageBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-
-/*
-    VkClearAttachment clearAttachment = {};
-    clearAttachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    clearAttachment.clearValue = {1.f, 0.f, 0.f, 1.f};
-    clearAttachment.colorAttachment = 0;
-    VkClearRect rect = {};
-    rect.baseArrayLayer = 0;
-    rect.layerCount = 1;
-    rect.rect.offset = {0, 0};
-    rect.rect.extent = _swapChainExtent;
-    vkCmdClearAttachments(
-        commandBuffer,
-        1,
-        &clearAttachment,
-        1,
-        &rect
-    );
-*/
-
-    vkCmdPipelineBarrier(
-        commandBuffer,
-        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-        0,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        1,
-        &imageBarrier
-    );
-
-    vkEndCommandBuffer(commandBuffer);
-
-    VkSubmitInfo submit = {};
-    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit.commandBufferCount = 1;
-    submit.pCommandBuffers = &commandBuffer;
-    submit.waitSemaphoreCount = 1;
-    submit.pWaitSemaphores = &semaphore;
-    vkQueueSubmit(
-        _presentQueue,
-        1,
-        &submit,
-        VK_NULL_HANDLE
-    );
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &_swapCommandBuffers[imageIndex];
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &_imageReady;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &_presentReady;
+    vkQueueSubmit(_gfxQueue, 1, &submitInfo, nullptr);
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &_swapChain;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &semaphore;
+    presentInfo.pWaitSemaphores = &_presentReady;
     presentInfo.pImageIndices = &imageIndex;
     result = vkQueuePresentKHR(
         _presentQueue,
@@ -841,13 +887,5 @@ present() {
         result,
         "could not enqueue image for presentation"
     );
-
-    vkFreeCommandBuffers(
-        _device,
-        _presentCommandPool,
-        1,
-        &commandBuffer
-    );
-    vkDestroySemaphore(_device, semaphore, nullptr);
-    vkDestroyCommandPool(_device, _presentCommandPool, nullptr);
+    LOG(INFO) << "enqueued image for presentation";
 }

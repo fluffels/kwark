@@ -21,8 +21,10 @@ WindowProc(
     switch (message) {
         case WM_DESTROY:
             PostQuitMessage(0);
+            break;
         case WM_KEYDOWN:
             if (wParam == VK_ESCAPE) PostQuitMessage(0);
+            break;
     }
     return DefWindowProc(window, message, wParam, lParam);
 }
@@ -65,21 +67,37 @@ WinMain(
         LOG(ERROR) << "could not create window";
     }
 
+    int errorCode = 0;
     try {
         Win32 platform(instance, window);
         VulkanApplication vk(platform);
+
+        BOOL done = false;
+        while (!done) {
+            MSG msg;
+            BOOL messageAvailable; 
+            do {
+                messageAvailable = PeekMessage(
+                    &msg,
+                    (HWND)nullptr,
+                    0, 0,
+                    PM_REMOVE
+                );
+                TranslateMessage(&msg); 
+                if (msg.message == WM_QUIT) {
+                    done = true;
+                    errorCode = (int)msg.wParam;
+                }
+                DispatchMessage(&msg); 
+            } while(!done && messageAvailable);
+
+            if (!done) {
+                vk.present();
+            }
+        } 
     } catch (exception e) {
-        PostQuitMessage(-1);
         LOG(ERROR) << e.what();
     }
 
-    MSG msg;
-    BOOL result = GetMessage(&msg, (HWND) NULL, 0, 0);
-    while ((result != 0) && (result != -1)) { 
-        TranslateMessage(&msg); 
-        DispatchMessage(&msg); 
-        result = GetMessage(&msg, (HWND) NULL, 0, 0);
-    } 
-
-    return 0; 
+    return errorCode; 
 }
