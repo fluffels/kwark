@@ -26,10 +26,12 @@ VulkanApplication(const Platform& platform):
     createPipeline(vertexShader, fragmentShader);
     vkDestroyShaderModule(_device, fragmentShader, nullptr);
     vkDestroyShaderModule(_device, vertexShader, nullptr);
+    loadVertexBuffer();
 }
 
 VulkanApplication::
 ~VulkanApplication() {
+    vkDestroyBuffer(_device, _vertexBuffer, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
     for (auto framebuffer: _framebuffers) {
         vkDestroyFramebuffer(_device, framebuffer, nullptr);
@@ -650,6 +652,37 @@ void VulkanApplication::createPipeline(
     );
 
     LOG(INFO) << "created pipeline";
+}
+
+void VulkanApplication::
+loadVertexBuffer() {
+    float vertices[] = {
+        -1.f, 0.f, 0.f,
+        0.f, 1.f, 0.f,
+        1.f, 0.f, 0.f
+    };
+
+    VkBufferCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    createInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    createInfo.queueFamilyIndexCount = 1;
+    createInfo.pQueueFamilyIndices = &_gfxFamily;
+    createInfo.size = sizeof(vertices);
+
+    auto result = vkCreateBuffer(
+        _device,
+        &createInfo,
+        nullptr,
+        &_vertexBuffer
+    );
+
+    checkSuccess(
+        result,
+        "could not create vertex buffer"
+    );
+
+    LOG(INFO) << "created vertex buffer";
 }
 
 void VulkanApplication::

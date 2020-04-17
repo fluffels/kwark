@@ -50,6 +50,10 @@ class VulkanApplication {
         VkRenderPass _renderPass;
         vector<VkFramebuffer> _framebuffers;
         VkPipeline _pipeline;
+        VkBuffer _vertexBuffer;
+
+        void checkSuccess(VkResult result, const string& errorMessage);
+        void checkVersion(uint32_t version);
 
         void createVulkanInstance();
         void createPhysicalDevice();
@@ -61,8 +65,7 @@ class VulkanApplication {
         VkShaderModule createShaderModule(const vector<char>& code);
         void createPipeline(VkShaderModule&, VkShaderModule&);
 
-        void checkSuccess(VkResult result, const string& errorMessage);
-        void checkVersion(uint32_t version);
+        void loadVertexBuffer();
 
         void present();
 };
