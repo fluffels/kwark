@@ -27,6 +27,7 @@ VulkanApplication(const Platform& platform):
     vkDestroyShaderModule(_device, fragmentShader, nullptr);
     vkDestroyShaderModule(_device, vertexShader, nullptr);
     loadVertexBuffer();
+    present();
 }
 
 VulkanApplication::
@@ -770,7 +771,6 @@ present() {
     VkImageMemoryBarrier imageBarrier = {};
     imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     imageBarrier.image = _swapImages[imageIndex];
-    imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     imageBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     imageBarrier.srcQueueFamilyIndex = _presentFamily;
@@ -778,6 +778,25 @@ present() {
     imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     imageBarrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
     imageBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+
+/*
+    VkClearAttachment clearAttachment = {};
+    clearAttachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    clearAttachment.clearValue = {1.f, 0.f, 0.f, 1.f};
+    clearAttachment.colorAttachment = 0;
+    VkClearRect rect = {};
+    rect.baseArrayLayer = 0;
+    rect.layerCount = 1;
+    rect.rect.offset = {0, 0};
+    rect.rect.extent = _swapChainExtent;
+    vkCmdClearAttachments(
+        commandBuffer,
+        1,
+        &clearAttachment,
+        1,
+        &rect
+    );
+*/
 
     vkCmdPipelineBarrier(
         commandBuffer,
