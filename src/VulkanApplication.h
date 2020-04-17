@@ -51,6 +51,7 @@ class VulkanApplication {
         vector<VkFramebuffer> _framebuffers;
         VkPipeline _pipeline;
         VkBuffer _vertexBuffer;
+        vector<VkCommandBuffer> _commandBuffers;
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
@@ -66,6 +67,8 @@ class VulkanApplication {
         void createPipeline(VkShaderModule&, VkShaderModule&);
 
         void loadVertexBuffer();
+
+        void recordCommandBuffers();
 
         void present();
 };

@@ -686,6 +686,23 @@ loadVertexBuffer() {
 }
 
 void VulkanApplication::
+recordCommandBuffers() {
+    vkCmdBindPipeline(
+        _commandBuffers[0],
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        _pipeline
+    );
+
+    vkCmdDraw(
+        _commandBuffers[0],
+        3,
+        0,
+        0,
+        0
+    );
+}
+
+void VulkanApplication::
 present() {
     VkSemaphore semaphore;
     VkSemaphoreCreateInfo semaphoreCreateInfo = {};
