@@ -62,6 +62,7 @@ class VulkanApplication {
         void checkVersion(uint32_t version);
 
         void createVulkanInstance();
+        void createDebugCallback();
         void createPhysicalDevice();
         void createDeviceAndQueues();
         void createSwapChain();

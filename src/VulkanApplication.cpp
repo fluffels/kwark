@@ -1,8 +1,32 @@
 #include "VulkanApplication.h"
 
+static VKAPI_ATTR VkBool32 VKAPI_CALL
+debugCallback(
+    VkDebugReportFlagsEXT flags,
+    VkDebugReportObjectTypeEXT objType,
+    uint64_t obj,
+    size_t location,
+    int32_t code,
+    const char *layerPrefix,
+    const char *msg,
+    void *userData
+) {
+    if (flags == VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+        LOG(ERROR) << "[" << layerPrefix << "] " << msg;
+    } else if (flags == VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+        LOG(WARNING) << "[" << layerPrefix << "] " << msg;
+    } else {
+        LOG(DEBUG) << "[" << layerPrefix << "] " << msg;
+    }
+    return VK_FALSE;
+}
+
 VulkanApplication::
 VulkanApplication(const Platform& platform):
-        _enabledExtensions({ VK_KHR_SURFACE_EXTENSION_NAME }),
+        _enabledExtensions({
+            VK_KHR_SURFACE_EXTENSION_NAME,
+            VK_EXT_DEBUG_REPORT_EXTENSION_NAME
+        }),
         _enabledLayers({ "VK_LAYER_LUNARG_standard_validation" }) {
     auto platformRequiredExtensions = platform.getExtensions();
     _enabledExtensions.insert(
@@ -15,6 +39,7 @@ VulkanApplication(const Platform& platform):
     checkVersion(_version);
 
     createVulkanInstance();
+    createDebugCallback();
     _surface = platform.getSurface(_instance);
     createPhysicalDevice();
     createDeviceAndQueues();
@@ -133,6 +158,35 @@ createVulkanInstance() {
         "could not create vk instance"
     );
     LOG(INFO) << "created instance";
+}
+
+void VulkanApplication::
+createDebugCallback() {
+    VkDebugReportCallbackEXT callbackDebug;
+    VkDebugReportCallbackCreateInfoEXT debugReportCallbackCreateInfo = {};
+    debugReportCallbackCreateInfo.sType =
+        VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+    debugReportCallbackCreateInfo.flags =
+        VK_DEBUG_REPORT_ERROR_BIT_EXT |
+        VK_DEBUG_REPORT_WARNING_BIT_EXT |
+        VK_DEBUG_REPORT_DEBUG_BIT_EXT;
+    debugReportCallbackCreateInfo.pfnCallback = debugCallback;
+    auto create =
+        (PFN_vkCreateDebugReportCallbackEXT)
+        vkGetInstanceProcAddr(_instance, "vkCreateDebugReportCallbackEXT");
+    if (create == nullptr) {
+        LOG(WARNING) << "couldn't load debug callback creation function";
+    } else {
+        checkSuccess(
+            create(
+                _instance,
+                &debugReportCallbackCreateInfo,
+                nullptr,
+                &callbackDebug
+            ),
+            "couldn't create debug callback"
+        );
+    }
 }
 
 void VulkanApplication::
