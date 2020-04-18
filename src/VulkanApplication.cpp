@@ -654,6 +654,7 @@ void VulkanApplication::createPipeline(
     pipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
     pipelineCreateInfo.renderPass = _renderPass;
     pipelineCreateInfo.layout = layout;
+    pipelineCreateInfo.subpass = 0;
     result = vkCreateGraphicsPipelines(
         _device,
         VK_NULL_HANDLE,
