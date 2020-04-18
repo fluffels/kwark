@@ -489,7 +489,7 @@ createRenderPass() {
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     attachmentDescriptions.push_back(colorAttachment);
 
     vector<VkAttachmentReference> colorAttachmentReferences;
@@ -504,14 +504,22 @@ createRenderPass() {
     subpass.pColorAttachments = colorAttachmentReferences.data();
     subpassDescriptions.push_back(subpass);
 
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     createInfo.attachmentCount = (uint32_t)attachmentDescriptions.size();
     createInfo.pAttachments = attachmentDescriptions.data();
     createInfo.subpassCount = (uint32_t)subpassDescriptions.size();
     createInfo.pSubpasses = subpassDescriptions.data();
-    createInfo.dependencyCount = 0;
-    createInfo.pDependencies = nullptr;
+    createInfo.dependencyCount = 1;
+    createInfo.pDependencies = &dependency;
 
     VkResult result = vkCreateRenderPass(
         _device,
@@ -640,19 +648,17 @@ void VulkanApplication::createPipeline(
     VkPipelineVertexInputStateCreateInfo vertexInputState = {};
     vertexInputState.sType =
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputState.vertexBindingDescriptionCount =
-        (uint32_t)inputAttributeDescriptions.size();
-    vertexInputState.pVertexBindingDescriptions =
-        &inputBindingDescription;
-    vertexInputState.vertexAttributeDescriptionCount = 1;
-    vertexInputState.pVertexAttributeDescriptions =
-        inputAttributeDescriptions.data();
+    vertexInputState.vertexBindingDescriptionCount = 0;
+    vertexInputState.pVertexBindingDescriptions = nullptr;
+    vertexInputState.vertexAttributeDescriptionCount = 0;
+    vertexInputState.pVertexAttributeDescriptions = nullptr;
     
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo = {};
     inputAssemblyStateCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyStateCreateInfo.topology =
         VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+    inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
     
     // VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo = {};
     // tessellationStateCreateInfo.sType =
@@ -686,15 +692,24 @@ void VulkanApplication::createPipeline(
     rasterizationStateCreateInfo.cullMode =
         VK_CULL_MODE_BACK_BIT;
     rasterizationStateCreateInfo.lineWidth = 1.f;
+    rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+    rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
+    rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
 
     VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo = {};
     multisampleStateCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampleStateCreateInfo.rasterizationSamples =
         VK_SAMPLE_COUNT_1_BIT;
+    multisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
+    multisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampleStateCreateInfo.minSampleShading = 1.0f; // Optional
+    multisampleStateCreateInfo.pSampleMask = nullptr; // Optional
+    multisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // Optional
+    multisampleStateCreateInfo.alphaToOneEnable = VK_FALSE; // Optional
 
     // VkPipelineDepthStencilStateCreateInfo*
-    // VkPipelineColorBlendStateCreateInfo*
     // VkPipelineDynamicStateCreateInfo*
 
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
@@ -862,8 +877,7 @@ recordCommandBuffers() {
             "could not begin command"
         );
 
-        VkClearValue clearValue = {};
-        clearValue.color = {1.f, 0, 0, 1.f};
+        VkClearValue clearValue = {1.0f, 0.0f, 0.0f, 1.0f};
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -886,13 +900,13 @@ recordCommandBuffers() {
             _pipeline
         );
 
-        VkDeviceSize offsets[] = {0};
+        /*VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(
             commandBuffer,
             0, 1,
             &_vertexBuffer,
             offsets
-        );
+        );*/
         vkCmdDraw(
             commandBuffer,
             3, 1,
@@ -950,6 +964,10 @@ present() {
     submitInfo.pCommandBuffers = &_swapCommandBuffers[imageIndex];
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = &_imageReady;
+    VkPipelineStageFlags waitStages[] = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
+    submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = &_presentReady;
     vkQueueSubmit(_gfxQueue, 1, &submitInfo, nullptr);
