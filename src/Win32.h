@@ -6,8 +6,8 @@
 
 #include <windows.h>
 
-#include <vulkan.h>
-#include <vulkan_win32.h>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
 
 #include "Platform.h"
 

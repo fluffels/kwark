@@ -3,6 +3,7 @@ set (CMAKE_CXX_STANDARD 17)
 
 project (studious-octo-enigma)
 
+find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
 
@@ -21,14 +22,15 @@ add_custom_target(Shaders DEPENDS ${SPIRV_FILES})
 
 include_directories (${CMAKE_HOME_DIRECTORY}/src)
 include_directories (${CMAKE_HOME_DIRECTORY}/lib)
+include_directories(${glfw3_INCLUDE_DIRS})
 include_directories(${glm_INCLUDE_DIRS})
-include_directories(${Vulkan_INCLUDE_DIRS}/vulkan)
+include_directories(${Vulkan_INCLUDE_DIRS})
 add_executable (
     main
     WIN32
     Shaders
     src/easylogging++.cc
-    src/main.cpp
+    src/MainGLFW.cpp
     src/FileSystem.cpp
     src/util.cpp
     src/Vertex.cpp
@@ -38,4 +40,5 @@ add_executable (
 target_link_libraries(
     main
     ${Vulkan_LIBRARIES}
+    ${glfw3_LIBRARIES}
 )

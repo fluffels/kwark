@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <vulkan.h>
+#include <vulkan/vulkan.h>
 
 using std::string;
 using std::vector;

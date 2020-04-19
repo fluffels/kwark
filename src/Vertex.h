@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "vulkan.h"
+#include "vulkan/vulkan.h"
 
 #include <glm/glm.hpp>
 
