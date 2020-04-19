@@ -842,7 +842,12 @@ createClearCommandBuffer() {
             vkBeginCommandBuffer(commandBuffer, &beginInfo),
             "could not begin clear command buffer"
         );
-        VkClearColorValue color = { 1, 0, 1, 1 };
+        VkClearColorValue color = { };
+        if (imageIndex % 2 == 0) {
+            color = { 1, 0, 1, 1};
+        } else {
+            color = { 0, 1, 1, 1};
+        }
         VkImageSubresourceRange range = {};
         range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         range.levelCount = 1;
