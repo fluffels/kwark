@@ -30,7 +30,7 @@ add_executable (
     WIN32
     Shaders
     src/easylogging++.cc
-    src/MainGLFW.cpp
+    src/MainWin32.cpp
     src/FileSystem.cpp
     src/util.cpp
     src/Vertex.cpp

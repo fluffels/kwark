@@ -57,6 +57,7 @@ VulkanApplication(const Platform& platform):
 
     createGraphicsCommandPool();
     createSwapCommandBuffers();
+    createClearCommandBuffer();
     recordCommandBuffers();
 
     createSemaphores();
@@ -406,10 +407,12 @@ createSwapChain() {
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     createInfo.presentMode = presentMode;
-    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    // createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.preTransform = surfaceCapabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.clipped = VK_FALSE;
+    // createInfo.queueFamilyIndexCount = 1;
+    // createInfo.pQueueFamilyIndices = &_presentFamily;
 
     result = vkCreateSwapchainKHR(
         _device,
@@ -488,8 +491,10 @@ createRenderPass() {
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     attachmentDescriptions.push_back(colorAttachment);
 
     vector<VkAttachmentReference> colorAttachmentReferences;
@@ -806,6 +811,55 @@ createPresentCommandPool() {
 }
 
 void VulkanApplication::
+createClearCommandBuffer() {
+    _clearCommandBuffers.resize(_swapImages.size());
+
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+    commandBufferAllocateInfo.sType =
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandBufferAllocateInfo.commandPool = _graphicsCommandPool;
+    commandBufferAllocateInfo.commandBufferCount = _swapImages.size();
+    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    auto result = vkAllocateCommandBuffers(
+        _device,
+        &commandBufferAllocateInfo,
+        _clearCommandBuffers.data()
+    );
+
+    checkSuccess(
+        result,
+        "could not allocate clear command buffers"
+    );
+
+    LOG(INFO) << "allocated clear command buffers";
+
+    for (int imageIndex = 0; imageIndex < _swapImages.size(); imageIndex++) {
+        VkCommandBuffer commandBuffer = _clearCommandBuffers[imageIndex];
+
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        checkSuccess(
+            vkBeginCommandBuffer(commandBuffer, &beginInfo),
+            "could not begin clear command buffer"
+        );
+        VkClearColorValue color = { 1, 0, 1, 1 };
+        VkImageSubresourceRange range = {};
+        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        range.levelCount = 1;
+        range.layerCount = 1;
+        vkCmdClearColorImage(
+            commandBuffer,
+            _swapImages[imageIndex],
+            VK_IMAGE_LAYOUT_GENERAL,
+            &color,
+            1,
+            &range
+        );
+        vkEndCommandBuffer(commandBuffer);
+    }
+}
+
+void VulkanApplication::
 createSwapCommandBuffers() {
     _swapCommandBuffers.resize(_swapImages.size());
 
@@ -961,7 +1015,7 @@ present() {
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &_swapCommandBuffers[imageIndex];
+    submitInfo.pCommandBuffers = &_clearCommandBuffers[imageIndex];
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = &_imageReady;
     VkPipelineStageFlags waitStages[] = {
