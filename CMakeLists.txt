@@ -28,7 +28,6 @@ add_executable (
     WIN32
     Shaders
     src/easylogging++.cc
-    src/MainWin32.cpp
     src/main.cpp
     src/FileSystem.cpp
     src/util.cpp
