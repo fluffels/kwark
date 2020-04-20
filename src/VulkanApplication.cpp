@@ -47,11 +47,11 @@ VulkanApplication(const Platform& platform):
     createRenderPass();
     createFramebuffers();
 
-    /*auto vertexShader = createShaderModule("shaders/default.vert.spv");
+    auto vertexShader = createShaderModule("shaders/default.vert.spv");
     auto fragmentShader = createShaderModule("shaders/default.frag.spv");
     createPipeline(vertexShader, fragmentShader);
     vkDestroyShaderModule(_device, fragmentShader, nullptr);
-    vkDestroyShaderModule(_device, vertexShader, nullptr);*/
+    vkDestroyShaderModule(_device, vertexShader, nullptr);
 
     // loadVertexBuffer();
 
@@ -76,7 +76,7 @@ VulkanApplication::
         );
     }
     //vkDestroyBuffer(_device, _vertexBuffer, nullptr);
-    //vkDestroyPipeline(_device, _pipeline, nullptr);
+    vkDestroyPipeline(_device, _pipeline, nullptr);
     for (auto framebuffer: _framebuffers) {
         vkDestroyFramebuffer(_device, framebuffer, nullptr);
     }
@@ -663,7 +663,7 @@ void VulkanApplication::createPipeline(
     inputAssemblyStateCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyStateCreateInfo.topology =
-        VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
     
     // VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo = {};
@@ -938,7 +938,7 @@ recordCommandBuffers() {
         );
 
         VkClearValue clearValue;
-        clearValue.color = {1.f, 0, 0, 1.f};
+        clearValue.color = {0, 0.1f, 0.1f, 1.f};
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -955,11 +955,11 @@ recordCommandBuffers() {
             VK_SUBPASS_CONTENTS_INLINE
         );
 
-        /*vkCmdBindPipeline(
+        vkCmdBindPipeline(
             commandBuffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _pipeline
-        );*/
+        );
 
         /*VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(
@@ -968,11 +968,11 @@ recordCommandBuffers() {
             &_vertexBuffer,
             offsets
         );*/
-        /*vkCmdDraw(
+        vkCmdDraw(
             commandBuffer,
             3, 1,
             0, 0
-        );*/
+        );
 
         vkCmdEndRenderPass(commandBuffer);
 
