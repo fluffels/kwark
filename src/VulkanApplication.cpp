@@ -501,6 +501,7 @@ createRenderPass() {
     VkAttachmentReference colorAttachmentReference = {};
     colorAttachmentReference.attachment = 0;
     colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachmentReferences.push_back(colorAttachmentReference);
 
     vector<VkSubpassDescription> subpassDescriptions;
     VkSubpassDescription subpass = {};
