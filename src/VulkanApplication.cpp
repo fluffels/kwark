@@ -47,13 +47,13 @@ VulkanApplication(const Platform& platform):
     createRenderPass();
     createFramebuffers();
 
-    auto vertexShader = createShaderModule("shaders/default.vert.spv");
+    /*auto vertexShader = createShaderModule("shaders/default.vert.spv");
     auto fragmentShader = createShaderModule("shaders/default.frag.spv");
     createPipeline(vertexShader, fragmentShader);
     vkDestroyShaderModule(_device, fragmentShader, nullptr);
-    vkDestroyShaderModule(_device, vertexShader, nullptr);
+    vkDestroyShaderModule(_device, vertexShader, nullptr);*/
 
-    loadVertexBuffer();
+    // loadVertexBuffer();
 
     createGraphicsCommandPool();
     createSwapCommandBuffers();
@@ -75,8 +75,8 @@ VulkanApplication::
             _swapCommandBuffers.data()
         );
     }
-    vkDestroyBuffer(_device, _vertexBuffer, nullptr);
-    vkDestroyPipeline(_device, _pipeline, nullptr);
+    //vkDestroyBuffer(_device, _vertexBuffer, nullptr);
+    //vkDestroyPipeline(_device, _pipeline, nullptr);
     for (auto framebuffer: _framebuffers) {
         vkDestroyFramebuffer(_device, framebuffer, nullptr);
     }
@@ -955,11 +955,11 @@ recordCommandBuffers() {
             VK_SUBPASS_CONTENTS_INLINE
         );
 
-        vkCmdBindPipeline(
+        /*vkCmdBindPipeline(
             commandBuffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _pipeline
-        );
+        );*/
 
         /*VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(
@@ -968,11 +968,11 @@ recordCommandBuffers() {
             &_vertexBuffer,
             offsets
         );*/
-        vkCmdDraw(
+        /*vkCmdDraw(
             commandBuffer,
             3, 1,
             0, 0
-        );
+        );*/
 
         vkCmdEndRenderPass(commandBuffer);
 
