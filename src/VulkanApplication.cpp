@@ -366,7 +366,7 @@ createSwapChain() {
     _swapImageColorSpace = surfaceFormats[0].colorSpace;
     for (auto format: surfaceFormats) {
         if ((format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) &&
-                (format.format == VK_FORMAT_B8G8R8_SRGB)) {
+                (format.format == VK_FORMAT_B8G8R8A8_SRGB)) {
             _swapImageFormat = format.format;
             _swapImageColorSpace = format.colorSpace;
             break;
@@ -936,7 +936,8 @@ recordCommandBuffers() {
             "could not begin command"
         );
 
-        VkClearValue clearValue = {1.0f, 0.0f, 0.0f, 1.0f};
+        VkClearValue clearValue;
+        clearValue.color = {1.f, 0, 0, 1.f};
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1020,7 +1021,7 @@ present() {
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &_clearCommandBuffers[imageIndex];
+    submitInfo.pCommandBuffers = &_swapCommandBuffers[imageIndex];
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = &_imageReady;
     VkPipelineStageFlags waitStages[] = {
