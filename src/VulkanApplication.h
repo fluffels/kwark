@@ -56,6 +56,8 @@ class VulkanApplication {
         VkCommandPool _presentCommandPool;
         VkRenderPass _renderPass;
         vector<VkFramebuffer> _framebuffers;
+        VkShaderModule _vertexShader;
+        VkShaderModule _fragmentShader;
         VkPipeline _pipeline;
         VkBuffer _vertexBuffer;
         vector<VkCommandBuffer> _clearCommandBuffers;
@@ -85,8 +87,9 @@ class VulkanApplication {
         void checkSurfaceCapabilities();
 
         void destroyFramebuffers();
+        void destroySwapchain(VkSwapchainKHR&);
 
-        void getSwapImages();
+        void getSwapImagesAndImageViews();
 
         void loadVertexBuffer();
 

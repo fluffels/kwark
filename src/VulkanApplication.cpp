@@ -46,14 +46,13 @@ VulkanApplication(const Platform& platform):
     checkSurfaceCapabilities();
     createDeviceAndQueues();
     createSwapChain();
+    getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();
 
-    auto vertexShader = createShaderModule("shaders/default.vert.spv");
-    auto fragmentShader = createShaderModule("shaders/default.frag.spv");
-    createPipeline(vertexShader, fragmentShader);
-    vkDestroyShaderModule(_device, fragmentShader, nullptr);
-    vkDestroyShaderModule(_device, vertexShader, nullptr);
+    _vertexShader = createShaderModule("shaders/default.vert.spv");
+    _fragmentShader = createShaderModule("shaders/default.frag.spv");
+    createPipeline(_vertexShader, _fragmentShader);
 
     // loadVertexBuffer();
 
@@ -79,12 +78,14 @@ VulkanApplication::
     }
     //vkDestroyBuffer(_device, _vertexBuffer, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
+    vkDestroyShaderModule(_device, _fragmentShader, nullptr);
+    vkDestroyShaderModule(_device, _vertexShader, nullptr);
     destroyFramebuffers();
     for (auto imageView: _swapImageViews) {
         vkDestroyImageView(_device, imageView, nullptr);
     }
     vkDestroyRenderPass(_device, _renderPass, nullptr);
-    vkDestroySwapchainKHR(_device, _swapChain, nullptr);
+    destroySwapchain(_swapChain);
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
@@ -371,65 +372,6 @@ createSwapChain() {
     );
     checkSuccess(result, "could not create swap chain");
     LOG(INFO) << "created swap chain";
-
-    uint32_t swapImageCount = 0;
-    vkGetSwapchainImagesKHR(
-        _device,
-        _swapChain,
-        &swapImageCount,
-        nullptr
-    );
-    _swapImages.resize(swapImageCount);
-    result = vkGetSwapchainImagesKHR(
-        _device,
-        _swapChain,
-        &swapImageCount,
-        _swapImages.data()
-    );
-    checkSuccess(
-        result,
-        "could not fetch swap images"
-    );
-    LOG(INFO) << "fetched swap images";
-
-    for (auto image: _swapImages) {
-        VkImageViewCreateInfo imageViewCreateInfo = {};
-        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        imageViewCreateInfo.image = image;
-        imageViewCreateInfo.format = _swapImageFormat;
-        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageViewCreateInfo.subresourceRange.aspectMask =
-            VK_IMAGE_ASPECT_COLOR_BIT;
-        imageViewCreateInfo.subresourceRange.layerCount =
-            VK_REMAINING_ARRAY_LAYERS;
-        imageViewCreateInfo.subresourceRange.levelCount =
-            VK_REMAINING_MIP_LEVELS;
-        imageViewCreateInfo.components.a =
-            VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.b =
-            VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.g =
-            VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.r =
-            VK_COMPONENT_SWIZZLE_IDENTITY;
-
-        VkImageView imageView = {};
-        result = vkCreateImageView(
-            _device,
-            &imageViewCreateInfo,
-            nullptr,
-            &imageView
-        );
-
-        checkSuccess(
-            result,
-            "could not create swap image view"
-        );
-
-        _swapImageViews.push_back(imageView);
-
-        LOG(INFO) << "created swap image view";
-    }
 }
 
 void VulkanApplication::
@@ -1018,11 +960,74 @@ destroyFramebuffers() {
     for (auto framebuffer: _framebuffers) {
         vkDestroyFramebuffer(_device, framebuffer, nullptr);
     }
+    _framebuffers.clear();
 }
 
 void VulkanApplication::
-getSwapImages() {
+destroySwapchain(VkSwapchainKHR& target) {
+    vkDestroySwapchainKHR(_device, target, nullptr);
+}
 
+void VulkanApplication::
+getSwapImagesAndImageViews() {
+    uint32_t swapImageCount = 0;
+    vkGetSwapchainImagesKHR(
+        _device,
+        _swapChain,
+        &swapImageCount,
+        nullptr
+    );
+    _swapImages.resize(swapImageCount);
+    auto result = vkGetSwapchainImagesKHR(
+        _device,
+        _swapChain,
+        &swapImageCount,
+        _swapImages.data()
+    );
+    checkSuccess(
+        result,
+        "could not fetch swap images"
+    );
+    LOG(INFO) << "fetched swap images";
+
+    for (auto image: _swapImages) {
+        VkImageViewCreateInfo imageViewCreateInfo = {};
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.image = image;
+        imageViewCreateInfo.format = _swapImageFormat;
+        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewCreateInfo.subresourceRange.aspectMask =
+            VK_IMAGE_ASPECT_COLOR_BIT;
+        imageViewCreateInfo.subresourceRange.layerCount =
+            VK_REMAINING_ARRAY_LAYERS;
+        imageViewCreateInfo.subresourceRange.levelCount =
+            VK_REMAINING_MIP_LEVELS;
+        imageViewCreateInfo.components.a =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.b =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.g =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.r =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        VkImageView imageView = {};
+        result = vkCreateImageView(
+            _device,
+            &imageViewCreateInfo,
+            nullptr,
+            &imageView
+        );
+
+        checkSuccess(
+            result,
+            "could not create swap image view"
+        );
+
+        _swapImageViews.push_back(imageView);
+
+        LOG(INFO) << "created swap image view";
+    }
 }
 
 void VulkanApplication::
@@ -1085,7 +1090,7 @@ resizeSwapChainIfNecessary() {
     
     _surfaceCapabilities = newSurfaceCapabilities;
     checkSurfaceCapabilities();
-    
+
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.oldSwapchain = _swapChain;
@@ -1109,6 +1114,15 @@ resizeSwapChainIfNecessary() {
     checkSuccess(result, "could not resize swap chain");
     LOG(INFO) << "swap chain resized";
 
-    getSwapImages();
     destroyFramebuffers();
+    _swapImages.clear();
+    _swapImageViews.clear();
+    destroySwapchain(createInfo.oldSwapchain);
+
+    getSwapImagesAndImageViews();
+    createFramebuffers();
+    createRenderPass();
+    createPipeline(_vertexShader, _fragmentShader);
+    createSwapCommandBuffers();
+    recordCommandBuffers();
 }
