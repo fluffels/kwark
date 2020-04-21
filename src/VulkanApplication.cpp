@@ -345,7 +345,6 @@ createDeviceAndQueues() {
 
 void VulkanApplication::
 createSwapChain() {
-
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = _surface;
