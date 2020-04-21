@@ -1056,5 +1056,4 @@ present() {
         result,
         "could not enqueue image for presentation"
     );
-    LOG(INFO) << "enqueued image for presentation";
 }
