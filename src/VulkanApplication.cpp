@@ -42,6 +42,7 @@ VulkanApplication(const Platform& platform):
     createDebugCallback();
     _surface = platform.getSurface(_instance);
     createPhysicalDevice();
+    _surfaceCapabilities = getSurfaceCapabilities();
     createDeviceAndQueues();
     createSwapChain();
     createRenderPass();
@@ -108,6 +109,20 @@ getEnabledExtensionCount() {
 const char** VulkanApplication::
 getEnabledExtensions() {
     return stringVectorToC(_enabledExtensions);
+}
+
+VkSurfaceCapabilitiesKHR VulkanApplication::
+getSurfaceCapabilities() {
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+
+    auto result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+        _physicalDevice,
+        _surface,
+        &surfaceCapabilities
+    );
+    checkSuccess(result, "could not query surface capabilities");
+
+    return surfaceCapabilities;
 }
 
 void VulkanApplication::
@@ -331,18 +346,11 @@ createDeviceAndQueues() {
 
 void VulkanApplication::
 createSwapChain() {
-    VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    auto result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-        _physicalDevice,
-        _surface,
-        &surfaceCapabilities
-    );
-    checkSuccess(result, "could not query surface capabilities");
-    if (!(surfaceCapabilities.supportedUsageFlags &
+    if (!(_surfaceCapabilities.supportedUsageFlags &
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) {
         throw runtime_error("surface does not support color attachment");
     }
-    if (!(surfaceCapabilities.supportedCompositeAlpha &
+    if (!(_surfaceCapabilities.supportedCompositeAlpha &
           VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)) {
         throw runtime_error("surface does not support opaque compositing");
     }
@@ -394,13 +402,13 @@ createSwapChain() {
         }
     }
 
-    _swapChainExtent = surfaceCapabilities.currentExtent;
+    _swapChainExtent = _surfaceCapabilities.currentExtent;
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = _surface;
-    createInfo.minImageCount = surfaceCapabilities.minImageCount;
-    createInfo.imageExtent = surfaceCapabilities.currentExtent;
+    createInfo.minImageCount = _surfaceCapabilities.minImageCount;
+    createInfo.imageExtent = _surfaceCapabilities.currentExtent;
     createInfo.oldSwapchain = VK_NULL_HANDLE;
     createInfo.imageFormat = _swapImageFormat;
     createInfo.imageColorSpace = _swapImageColorSpace;
@@ -408,13 +416,13 @@ createSwapChain() {
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     createInfo.presentMode = presentMode;
     // createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    createInfo.preTransform = surfaceCapabilities.currentTransform;
+    createInfo.preTransform = _surfaceCapabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.clipped = VK_FALSE;
     // createInfo.queueFamilyIndexCount = 1;
     // createInfo.pQueueFamilyIndices = &_presentFamily;
 
-    result = vkCreateSwapchainKHR(
+    auto result = vkCreateSwapchainKHR(
         _device,
         &createInfo,
         nullptr,

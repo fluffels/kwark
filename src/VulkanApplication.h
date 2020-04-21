@@ -27,6 +27,8 @@ class VulkanApplication {
         uint32_t getEnabledLayerCount();
         const char** getEnabledLayers();
 
+        VkSurfaceCapabilitiesKHR getSurfaceCapabilities();
+
         void present();
     
     protected:
@@ -42,6 +44,7 @@ class VulkanApplication {
         VkDevice _device;
         uint32_t _version;
         VkSurfaceKHR _surface;
+        VkSurfaceCapabilitiesKHR _surfaceCapabilities;
         VkSwapchainKHR _swapChain;
         VkExtent2D _swapChainExtent;
         VkFormat _swapImageFormat;
