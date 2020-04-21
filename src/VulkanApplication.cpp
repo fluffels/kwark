@@ -43,6 +43,7 @@ VulkanApplication(const Platform& platform):
     _surface = platform.getSurface(_instance);
     createPhysicalDevice();
     _surfaceCapabilities = getSurfaceCapabilities();
+    checkSurfaceCapabilities();
     createDeviceAndQueues();
     createSwapChain();
     createRenderPass();
@@ -344,63 +345,6 @@ createDeviceAndQueues() {
 
 void VulkanApplication::
 createSwapChain() {
-    if (!(_surfaceCapabilities.supportedUsageFlags &
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) {
-        throw runtime_error("surface does not support color attachment");
-    }
-    if (!(_surfaceCapabilities.supportedCompositeAlpha &
-          VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)) {
-        throw runtime_error("surface does not support opaque compositing");
-    }
-
-    uint32_t surfaceFormatCount = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(
-        _physicalDevice,
-        _surface,
-        &surfaceFormatCount,
-        nullptr
-    );
-    vector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(
-        _physicalDevice,
-        _surface,
-        &surfaceFormatCount,
-        surfaceFormats.data()
-    );
-
-    _swapImageFormat = surfaceFormats[0].format;
-    _swapImageColorSpace = surfaceFormats[0].colorSpace;
-    for (auto format: surfaceFormats) {
-        if ((format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) &&
-                (format.format == VK_FORMAT_B8G8R8A8_SRGB)) {
-            _swapImageFormat = format.format;
-            _swapImageColorSpace = format.colorSpace;
-            break;
-        }
-    }
-
-    uint32_t presentModeCount = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(
-        _physicalDevice,
-        _surface,
-        &presentModeCount,
-        nullptr
-    );
-    vector<VkPresentModeKHR> presentModes(presentModeCount);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(
-        _physicalDevice,
-        _surface,
-        &presentModeCount,
-        presentModes.data()
-    );
-    _presentMode = VK_PRESENT_MODE_FIFO_KHR;
-    for (auto availablePresentMode: presentModes) {
-        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-            _presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-        }
-    }
-
-    _swapChainExtent = _surfaceCapabilities.currentExtent;
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -1010,10 +954,76 @@ createSemaphores() {
 }
 
 void VulkanApplication::
+checkSurfaceCapabilities() {
+    if (!(_surfaceCapabilities.supportedUsageFlags &
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) {
+        throw runtime_error("surface does not support color attachment");
+    }
+    if (!(_surfaceCapabilities.supportedCompositeAlpha &
+          VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)) {
+        throw runtime_error("surface does not support opaque compositing");
+    }
+
+    uint32_t surfaceFormatCount = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(
+        _physicalDevice,
+        _surface,
+        &surfaceFormatCount,
+        nullptr
+    );
+    vector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(
+        _physicalDevice,
+        _surface,
+        &surfaceFormatCount,
+        surfaceFormats.data()
+    );
+
+    _swapImageFormat = surfaceFormats[0].format;
+    _swapImageColorSpace = surfaceFormats[0].colorSpace;
+    for (auto format: surfaceFormats) {
+        if ((format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) &&
+                (format.format == VK_FORMAT_B8G8R8A8_SRGB)) {
+            _swapImageFormat = format.format;
+            _swapImageColorSpace = format.colorSpace;
+            break;
+        }
+    }
+
+    uint32_t presentModeCount = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(
+        _physicalDevice,
+        _surface,
+        &presentModeCount,
+        nullptr
+    );
+    vector<VkPresentModeKHR> presentModes(presentModeCount);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(
+        _physicalDevice,
+        _surface,
+        &presentModeCount,
+        presentModes.data()
+    );
+    _presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    for (auto availablePresentMode: presentModes) {
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            _presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+        }
+    }
+
+    _swapChainExtent = _surfaceCapabilities.currentExtent;
+}
+
+void VulkanApplication::
 destroyFramebuffers() {
     for (auto framebuffer: _framebuffers) {
         vkDestroyFramebuffer(_device, framebuffer, nullptr);
     }
+}
+
+void VulkanApplication::
+getSwapImages() {
+
 }
 
 void VulkanApplication::
@@ -1074,6 +1084,9 @@ resizeSwapChainIfNecessary() {
          _surfaceCapabilities.currentExtent.width))
         return;
     
+    _surfaceCapabilities = newSurfaceCapabilities;
+    checkSurfaceCapabilities();
+    
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.oldSwapchain = _swapChain;
@@ -1081,9 +1094,9 @@ resizeSwapChainIfNecessary() {
     createInfo.imageColorSpace = _swapImageColorSpace;
     createInfo.imageArrayLayers = 1;
     createInfo.presentMode = _presentMode;
-    createInfo.minImageCount = newSurfaceCapabilities.minImageCount;
-    createInfo.imageExtent = newSurfaceCapabilities.currentExtent;
-    createInfo.preTransform = newSurfaceCapabilities.currentTransform;
+    createInfo.minImageCount = _surfaceCapabilities.minImageCount;
+    createInfo.imageExtent = _swapChainExtent;
+    createInfo.preTransform = _surfaceCapabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.clipped = VK_FALSE;
     createInfo.surface = _surface;
@@ -1096,4 +1109,7 @@ resizeSwapChainIfNecessary() {
     );
     checkSuccess(result, "could not resize swap chain");
     LOG(INFO) << "swap chain resized";
+
+    getSwapImages();
+    destroyFramebuffers();
 }
