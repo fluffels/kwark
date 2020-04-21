@@ -27,7 +27,8 @@ VulkanApplication(const Platform& platform):
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME
         }),
-        _enabledLayers({ "VK_LAYER_LUNARG_standard_validation" }) {
+        _enabledLayers({ "VK_LAYER_LUNARG_standard_validation" }),
+        _shouldResize(false) {
     auto platformRequiredExtensions = platform.getExtensions();
     _enabledExtensions.insert(
         _enabledExtensions.end(),
@@ -1032,10 +1033,8 @@ getSwapImagesAndImageViews() {
 
 void VulkanApplication::
 present() {
-    resizeSwapChainIfNecessary();
-
     uint32_t imageIndex = 0;
-    VkResult result = vkAcquireNextImageKHR(
+    auto result = vkAcquireNextImageKHR(
         _device,
         _swapChain,
         std::numeric_limits<uint64_t>::max(),
@@ -1043,10 +1042,15 @@ present() {
         VK_NULL_HANDLE,
         &imageIndex
     );
-    checkSuccess(
-        result,
-        "could not acquire swap chain image"
-    );
+    if ((result == VK_SUBOPTIMAL_KHR) ||
+            (result == VK_ERROR_OUT_OF_DATE_KHR) ||
+            _shouldResize) {
+        _shouldResize = false;
+        resizeSwapChain();
+        return;
+    } else if (result != VK_SUCCESS) {
+        throw std::runtime_error("could not acquire next image");
+    }
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1080,15 +1084,13 @@ present() {
 }
 
 void VulkanApplication::
-resizeSwapChainIfNecessary() {
-    auto newSurfaceCapabilities = getSurfaceCapabilities();
-    if ((newSurfaceCapabilities.currentExtent.height ==
-         _surfaceCapabilities.currentExtent.height) &&
-        (newSurfaceCapabilities.currentExtent.width ==
-         _surfaceCapabilities.currentExtent.width))
-        return;
-    
-    _surfaceCapabilities = newSurfaceCapabilities;
+resize() {
+    _shouldResize = true;
+}
+
+void VulkanApplication::
+resizeSwapChain() {
+    _surfaceCapabilities = getSurfaceCapabilities();
     checkSurfaceCapabilities();
 
     VkSwapchainCreateInfoKHR createInfo = {};

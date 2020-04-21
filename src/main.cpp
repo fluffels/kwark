@@ -11,6 +11,8 @@ using std::exception;
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
+VulkanApplication* vk;
+
 LRESULT
 WindowProc(
     HWND    window,
@@ -19,6 +21,9 @@ WindowProc(
     LPARAM  lParam
 ) {
     switch (message) {
+        case WM_SIZE:
+            if (vk) vk->resize();
+            break;
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
@@ -70,7 +75,7 @@ WinMain(
     int errorCode = 0;
     try {
         Win32 platform(instance, window);
-        VulkanApplication vk(platform);
+        vk = new VulkanApplication(platform);
 
         BOOL done = false;
         while (!done) {
@@ -92,12 +97,14 @@ WinMain(
             } while(!done && messageAvailable);
 
             if (!done) {
-                vk.present();
+                vk->present();
             }
         } 
     } catch (exception e) {
         LOG(ERROR) << e.what();
     }
+
+    delete vk;
 
     return errorCode; 
 }

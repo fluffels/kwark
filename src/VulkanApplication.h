@@ -30,10 +30,12 @@ class VulkanApplication {
         VkSurfaceCapabilitiesKHR getSurfaceCapabilities();
 
         void present();
+        void resize();
     
     protected:
         vector<string> _enabledExtensions;
         vector<string> _enabledLayers;
+        bool _shouldResize;
 
         VkInstance _instance;
         VkPhysicalDevice _physicalDevice;
@@ -94,5 +96,5 @@ class VulkanApplication {
         void loadVertexBuffer();
 
         void recordCommandBuffers();
-        void resizeSwapChainIfNecessary();
+        void resizeSwapChain();
 };
