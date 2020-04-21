@@ -44,6 +44,7 @@ class VulkanApplication {
         VkDevice _device;
         uint32_t _version;
         VkSurfaceKHR _surface;
+        VkPresentModeKHR _presentMode;
         VkSurfaceCapabilitiesKHR _surfaceCapabilities;
         VkSwapchainKHR _swapChain;
         VkExtent2D _swapChainExtent;

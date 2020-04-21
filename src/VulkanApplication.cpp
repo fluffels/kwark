@@ -393,10 +393,10 @@ createSwapChain() {
         &presentModeCount,
         presentModes.data()
     );
-    VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    _presentMode = VK_PRESENT_MODE_FIFO_KHR;
     for (auto availablePresentMode: presentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-            presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+            _presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
         }
     }
 
@@ -412,7 +412,7 @@ createSwapChain() {
     createInfo.imageColorSpace = _swapImageColorSpace;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    createInfo.presentMode = presentMode;
+    createInfo.presentMode = _presentMode;
     // createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.preTransform = _surfaceCapabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -1018,6 +1018,8 @@ destroyFramebuffers() {
 
 void VulkanApplication::
 present() {
+    resizeSwapChainIfNecessary();
+
     uint32_t imageIndex = 0;
     VkResult result = vkAcquireNextImageKHR(
         _device,
@@ -1061,4 +1063,37 @@ present() {
         result,
         "could not enqueue image for presentation"
     );
+}
+
+void VulkanApplication::
+resizeSwapChainIfNecessary() {
+    auto newSurfaceCapabilities = getSurfaceCapabilities();
+    if ((newSurfaceCapabilities.currentExtent.height ==
+         _surfaceCapabilities.currentExtent.height) &&
+        (newSurfaceCapabilities.currentExtent.width ==
+         _surfaceCapabilities.currentExtent.width))
+        return;
+    
+    VkSwapchainCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.oldSwapchain = _swapChain;
+    createInfo.imageFormat = _swapImageFormat;
+    createInfo.imageColorSpace = _swapImageColorSpace;
+    createInfo.imageArrayLayers = 1;
+    createInfo.presentMode = _presentMode;
+    createInfo.minImageCount = newSurfaceCapabilities.minImageCount;
+    createInfo.imageExtent = newSurfaceCapabilities.currentExtent;
+    createInfo.preTransform = newSurfaceCapabilities.currentTransform;
+    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    createInfo.clipped = VK_FALSE;
+    createInfo.surface = _surface;
+    
+    auto result = vkCreateSwapchainKHR(
+        _device,
+        &createInfo,
+        nullptr,
+        &_swapChain
+    );
+    checkSuccess(result, "could not resize swap chain");
+    LOG(INFO) << "swap chain resized";
 }
