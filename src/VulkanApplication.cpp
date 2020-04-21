@@ -15,8 +15,10 @@ debugCallback(
         LOG(ERROR) << "[" << layerPrefix << "] " << msg;
     } else if (flags == VK_DEBUG_REPORT_WARNING_BIT_EXT) {
         LOG(WARNING) << "[" << layerPrefix << "] " << msg;
-    } else {
+    } else if (flags == VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
         LOG(DEBUG) << "[" << layerPrefix << "] " << msg;
+    } else {
+        LOG(INFO) << "[" << layerPrefix << "] " << msg;
     }
     return VK_FALSE;
 }
@@ -27,7 +29,7 @@ VulkanApplication(const Platform& platform):
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME
         }),
-        _enabledLayers({ "VK_LAYER_LUNARG_standard_validation" }),
+        _enabledLayers({ "VK_LAYER_KHRONOS_validation" }),
         _shouldResize(false) {
     auto platformRequiredExtensions = platform.getExtensions();
     _enabledExtensions.insert(
@@ -203,6 +205,7 @@ createDebugCallback() {
             ),
             "couldn't create debug callback"
         );
+        LOG(INFO) << "created debug callback";
     }
 }
 
@@ -711,7 +714,7 @@ createClearCommandBuffer() {
     commandBufferAllocateInfo.sType =
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.commandPool = _graphicsCommandPool;
-    commandBufferAllocateInfo.commandBufferCount = _swapImages.size();
+    commandBufferAllocateInfo.commandBufferCount = (uint32_t)_swapImages.size();
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     auto result = vkAllocateCommandBuffers(
         _device,
