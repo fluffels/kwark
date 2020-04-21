@@ -78,9 +78,7 @@ VulkanApplication::
     }
     //vkDestroyBuffer(_device, _vertexBuffer, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
-    for (auto framebuffer: _framebuffers) {
-        vkDestroyFramebuffer(_device, framebuffer, nullptr);
-    }
+    destroyFramebuffers();
     for (auto imageView: _swapImageViews) {
         vkDestroyImageView(_device, imageView, nullptr);
     }
@@ -1009,6 +1007,13 @@ createSemaphores() {
         nullptr,
         &_presentReady
     );
+}
+
+void VulkanApplication::
+destroyFramebuffers() {
+    for (auto framebuffer: _framebuffers) {
+        vkDestroyFramebuffer(_device, framebuffer, nullptr);
+    }
 }
 
 void VulkanApplication::

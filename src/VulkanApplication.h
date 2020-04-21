@@ -81,7 +81,10 @@ class VulkanApplication {
         void createSwapCommandBuffers();
         void createSemaphores();
 
+        void destroyFramebuffers();
+
         void loadVertexBuffer();
 
         void recordCommandBuffers();
+        void resizeSwapChainIfNecessary();
 };
