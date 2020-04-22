@@ -72,14 +72,7 @@ VulkanApplication::
 
     vkDestroySemaphore(_device, _imageReady, nullptr);
     vkDestroySemaphore(_device, _presentReady, nullptr);
-    for (auto commandBuffer: _swapCommandBuffers) {
-        vkFreeCommandBuffers(
-            _device,
-            _graphicsCommandPool,
-            (uint32_t)_swapCommandBuffers.size(),
-            _swapCommandBuffers.data()
-        );
-    }
+    vkDestroyCommandPool(_device, _graphicsCommandPool, nullptr);
     //vkDestroyBuffer(_device, _vertexBuffer, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
     vkDestroyShaderModule(_device, _fragmentShader, nullptr);
@@ -92,6 +85,10 @@ VulkanApplication::
     destroySwapchain(_swapChain);
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
+    auto vkDestroyDebugReportCallbackEXT =
+        (PFN_vkDestroyDebugReportCallbackEXT)
+        vkGetInstanceProcAddr(_instance, "vkDestroyDebugReportCallbackEXT");
+    vkDestroyDebugReportCallbackEXT(_instance, _debugCallback, nullptr);
     vkDestroyInstance(_instance, nullptr);
 }
 
@@ -182,7 +179,6 @@ createVulkanInstance() {
 
 void VulkanApplication::
 createDebugCallback() {
-    VkDebugReportCallbackEXT callbackDebug;
     VkDebugReportCallbackCreateInfoEXT debugReportCallbackCreateInfo = {};
     debugReportCallbackCreateInfo.sType =
         VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
@@ -202,7 +198,7 @@ createDebugCallback() {
                 _instance,
                 &debugReportCallbackCreateInfo,
                 nullptr,
-                &callbackDebug
+                &_debugCallback
             ),
             "couldn't create debug callback"
         );

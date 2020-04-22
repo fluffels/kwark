@@ -38,6 +38,7 @@ class VulkanApplication {
         bool _shouldResize;
 
         VkInstance _instance;
+        VkDebugReportCallbackEXT _debugCallback;
         VkPhysicalDevice _physicalDevice;
         uint32_t _gfxFamily;
         VkQueue _gfxQueue;
