@@ -68,6 +68,8 @@ VulkanApplication(const Platform& platform):
 
 VulkanApplication::
 ~VulkanApplication() {
+    vkDeviceWaitIdle(_device);
+
     vkDestroySemaphore(_device, _imageReady, nullptr);
     vkDestroySemaphore(_device, _presentReady, nullptr);
     for (auto commandBuffer: _swapCommandBuffers) {
