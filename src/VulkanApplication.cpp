@@ -226,7 +226,6 @@ createPhysicalDevice() {
 
     for (auto physicalDevice: physicalDevices) {
         bool hasGraphicsQueue = false;
-        VkBool32 hasPresentQueue = false;
 
         VkPhysicalDeviceProperties deviceProperties = {};
         vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
@@ -272,21 +271,21 @@ createPhysicalDevice() {
         for (uint32_t index = 0; index < queueFamilyPropertyCount; index++) {
             auto queueFamilyProperties = queueFamilyPropertySets[index];
             if (queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                hasGraphicsQueue = true;
-                _gfxFamily = index;
-            }
-            vkGetPhysicalDeviceSurfaceSupportKHR(
-                physicalDevice,
-                index,
-                _surface,
-                &hasPresentQueue
-            );
-            if (hasPresentQueue) {
-                _presentFamily = index;
+                VkBool32 isPresentQueue;
+                vkGetPhysicalDeviceSurfaceSupportKHR(
+                    physicalDevice,
+                    index,
+                    _surface,
+                    &isPresentQueue
+                );
+                if (isPresentQueue) {
+                    hasGraphicsQueue = true;
+                    _gfxFamily = index;
+                }
             }
         }
 
-        if (hasGraphicsQueue && hasPresentQueue) {
+        if (hasGraphicsQueue) {
             _physicalDevice = physicalDevice;
             LOG(INFO) << "selected physical device "
                       << deviceProperties.deviceName;
@@ -309,13 +308,6 @@ createDeviceAndQueues() {
     gfxQueueCreateInfo.queueFamilyIndex = _gfxFamily;
     gfxQueueCreateInfo.pQueuePriorities = &queuePriority;
     queueCreateInfos.push_back(gfxQueueCreateInfo);
-
-    VkDeviceQueueCreateInfo presentQueueCreateInfo = {};
-    presentQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    presentQueueCreateInfo.queueCount = 1;
-    presentQueueCreateInfo.queueFamilyIndex = _presentFamily;
-    presentQueueCreateInfo.pQueuePriorities = &queuePriority;
-    queueCreateInfos.push_back(presentQueueCreateInfo);
 
     vector<char*> extensions({ VK_KHR_SWAPCHAIN_EXTENSION_NAME });
 
@@ -343,8 +335,6 @@ createDeviceAndQueues() {
 
     vkGetDeviceQueue(_device, _gfxFamily, 0, &_gfxQueue);
     LOG(INFO) << "retrieved gfx queue";
-    vkGetDeviceQueue(_device, _presentFamily, 0, &_presentQueue);
-    LOG(INFO) << "retrieved present queue";
 }
 
 void VulkanApplication::
@@ -387,8 +377,8 @@ createRenderPass() {
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     attachmentDescriptions.push_back(colorAttachment);
 
     vector<VkAttachmentReference> colorAttachmentReferences;
@@ -408,8 +398,8 @@ createRenderPass() {
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass = 0;
     dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask = 0;
     dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
     dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
     VkRenderPassCreateInfo createInfo = {};
@@ -688,24 +678,6 @@ createGraphicsCommandPool() {
 }
 
 void VulkanApplication::
-createPresentCommandPool() {
-    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
-    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    commandPoolCreateInfo.queueFamilyIndex = _presentFamily;
-    auto result = vkCreateCommandPool(
-        _device,
-        &commandPoolCreateInfo,
-        nullptr,
-        &_presentCommandPool
-    );
-    checkSuccess(
-        result,
-        "could not create presentation queue command pool"
-    );
-    LOG(INFO) << "created presentation queue command pool";
-}
-
-void VulkanApplication::
 createSwapCommandBuffers() {
     _swapCommandBuffers.resize(_swapImages.size());
 
@@ -958,7 +930,7 @@ present() {
     presentInfo.pWaitSemaphores = &_presentReady;
     presentInfo.pImageIndices = &imageIndex;
     result = vkQueuePresentKHR(
-        _presentQueue,
+        _gfxQueue,
         &presentInfo
     );
     checkSuccess(

@@ -41,8 +41,6 @@ class VulkanApplication {
         VkPhysicalDevice _physicalDevice;
         uint32_t _gfxFamily;
         VkQueue _gfxQueue;
-        uint32_t _presentFamily;
-        VkQueue _presentQueue;
         VkDevice _device;
         uint32_t _version;
         VkSurfaceKHR _surface;
@@ -55,7 +53,6 @@ class VulkanApplication {
         vector<VkImage> _swapImages;
         vector<VkImageView> _swapImageViews;
         VkCommandPool _graphicsCommandPool;
-        VkCommandPool _presentCommandPool;
         VkRenderPass _renderPass;
         vector<VkFramebuffer> _framebuffers;
         VkShaderModule _vertexShader;
