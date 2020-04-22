@@ -62,7 +62,6 @@ class VulkanApplication {
         VkShaderModule _fragmentShader;
         VkPipeline _pipeline;
         VkBuffer _vertexBuffer;
-        vector<VkCommandBuffer> _clearCommandBuffers;
         vector<VkCommandBuffer> _swapCommandBuffers;
         VkSemaphore _imageReady;
         VkSemaphore _presentReady;
@@ -82,7 +81,6 @@ class VulkanApplication {
         void createPipeline(VkShaderModule&, VkShaderModule&);
         void createGraphicsCommandPool();
         void createPresentCommandPool();
-        void createClearCommandBuffer();
         void createSwapCommandBuffers();
         void createSemaphores();
 

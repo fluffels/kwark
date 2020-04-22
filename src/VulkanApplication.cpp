@@ -61,7 +61,6 @@ VulkanApplication(const Platform& platform):
 
     createGraphicsCommandPool();
     createSwapCommandBuffers();
-    createClearCommandBuffer();
     recordCommandBuffers();
 
     createSemaphores();
@@ -704,60 +703,6 @@ createPresentCommandPool() {
         "could not create presentation queue command pool"
     );
     LOG(INFO) << "created presentation queue command pool";
-}
-
-void VulkanApplication::
-createClearCommandBuffer() {
-    _clearCommandBuffers.resize(_swapImages.size());
-
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-    commandBufferAllocateInfo.sType =
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    commandBufferAllocateInfo.commandPool = _graphicsCommandPool;
-    commandBufferAllocateInfo.commandBufferCount = (uint32_t)_swapImages.size();
-    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    auto result = vkAllocateCommandBuffers(
-        _device,
-        &commandBufferAllocateInfo,
-        _clearCommandBuffers.data()
-    );
-
-    checkSuccess(
-        result,
-        "could not allocate clear command buffers"
-    );
-
-    LOG(INFO) << "allocated clear command buffers";
-
-    for (int imageIndex = 0; imageIndex < _swapImages.size(); imageIndex++) {
-        VkCommandBuffer commandBuffer = _clearCommandBuffers[imageIndex];
-
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        checkSuccess(
-            vkBeginCommandBuffer(commandBuffer, &beginInfo),
-            "could not begin clear command buffer"
-        );
-        VkClearColorValue color = { };
-        if (imageIndex % 2 == 0) {
-            color = { 1, 0, 1, 1};
-        } else {
-            color = { 0, 1, 1, 1};
-        }
-        VkImageSubresourceRange range = {};
-        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        range.levelCount = 1;
-        range.layerCount = 1;
-        vkCmdClearColorImage(
-            commandBuffer,
-            _swapImages[imageIndex],
-            VK_IMAGE_LAYOUT_GENERAL,
-            &color,
-            1,
-            &range
-        );
-        vkEndCommandBuffer(commandBuffer);
-    }
 }
 
 void VulkanApplication::
