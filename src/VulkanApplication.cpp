@@ -761,70 +761,6 @@ loadVertexBuffer() {
 }
 
 void VulkanApplication::
-recordCommandBuffers() {
-    for (size_t swapIndex = 0; swapIndex < _swapImages.size(); swapIndex++) {
-        auto commandBuffer = _swapCommandBuffers[swapIndex];
-
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        auto result = vkBeginCommandBuffer(
-            commandBuffer,
-            &beginInfo
-        );
-        checkSuccess(
-            result,
-            "could not begin command"
-        );
-
-        VkClearValue clearValue;
-        clearValue.color = {0, 0.1f, 0.1f, 1.f};
-
-        VkRenderPassBeginInfo renderPassBeginInfo = {};
-        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.clearValueCount = 1;
-        renderPassBeginInfo.pClearValues = &clearValue;
-        renderPassBeginInfo.framebuffer = _framebuffers[swapIndex];
-        renderPassBeginInfo.renderArea.extent = _swapChainExtent;
-        renderPassBeginInfo.renderArea.offset = {0, 0};
-        renderPassBeginInfo.renderPass = _renderPass;
-
-        vkCmdBeginRenderPass(
-            commandBuffer,
-            &renderPassBeginInfo,
-            VK_SUBPASS_CONTENTS_INLINE
-        );
-
-        vkCmdBindPipeline(
-            commandBuffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            _pipeline
-        );
-
-        /*VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(
-            commandBuffer,
-            0, 1,
-            &_vertexBuffer,
-            offsets
-        );*/
-        vkCmdDraw(
-            commandBuffer,
-            3, 1,
-            0, 0
-        );
-
-        vkCmdEndRenderPass(commandBuffer);
-
-        result = vkEndCommandBuffer(commandBuffer);
-        checkSuccess(
-            result,
-            "could not record command buffer"
-        );
-    }
-}
-
-void VulkanApplication::
 createSemaphores() {
     VkSemaphoreCreateInfo semaphoreCreateInfo = {};
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1029,6 +965,70 @@ present() {
         result,
         "could not enqueue image for presentation"
     );
+}
+
+void VulkanApplication::
+recordCommandBuffers() {
+    for (size_t swapIndex = 0; swapIndex < _swapImages.size(); swapIndex++) {
+        auto commandBuffer = _swapCommandBuffers[swapIndex];
+
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        auto result = vkBeginCommandBuffer(
+            commandBuffer,
+            &beginInfo
+        );
+        checkSuccess(
+            result,
+            "could not begin command"
+        );
+
+        VkClearValue clearValue;
+        clearValue.color = {0, 0.1f, 0.1f, 1.f};
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.clearValueCount = 1;
+        renderPassBeginInfo.pClearValues = &clearValue;
+        renderPassBeginInfo.framebuffer = _framebuffers[swapIndex];
+        renderPassBeginInfo.renderArea.extent = _swapChainExtent;
+        renderPassBeginInfo.renderArea.offset = {0, 0};
+        renderPassBeginInfo.renderPass = _renderPass;
+
+        vkCmdBeginRenderPass(
+            commandBuffer,
+            &renderPassBeginInfo,
+            VK_SUBPASS_CONTENTS_INLINE
+        );
+
+        vkCmdBindPipeline(
+            commandBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            _pipeline
+        );
+
+        /*VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(
+            commandBuffer,
+            0, 1,
+            &_vertexBuffer,
+            offsets
+        );*/
+        vkCmdDraw(
+            commandBuffer,
+            3, 1,
+            0, 0
+        );
+
+        vkCmdEndRenderPass(commandBuffer);
+
+        result = vkEndCommandBuffer(commandBuffer);
+        checkSuccess(
+            result,
+            "could not record command buffer"
+        );
+    }
 }
 
 void VulkanApplication::
