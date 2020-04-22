@@ -86,6 +86,7 @@ class VulkanApplication {
 
         void destroyFramebuffers();
         void destroySwapchain(VkSwapchainKHR&);
+        void destroySwapImageViews();
 
         void getSwapImagesAndImageViews();
 

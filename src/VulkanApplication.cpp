@@ -78,9 +78,7 @@ VulkanApplication::
     vkDestroyShaderModule(_device, _fragmentShader, nullptr);
     vkDestroyShaderModule(_device, _vertexShader, nullptr);
     destroyFramebuffers();
-    for (auto imageView: _swapImageViews) {
-        vkDestroyImageView(_device, imageView, nullptr);
-    }
+    destroySwapImageViews();
     vkDestroyRenderPass(_device, _renderPass, nullptr);
     destroySwapchain(_swapChain);
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
@@ -819,6 +817,13 @@ destroyFramebuffers() {
 }
 
 void VulkanApplication::
+destroySwapImageViews() {
+    for (auto imageView: _swapImageViews) {
+        vkDestroyImageView(_device, imageView, nullptr);
+    }
+}
+
+void VulkanApplication::
 destroySwapchain(VkSwapchainKHR& target) {
     vkDestroySwapchainKHR(_device, target, nullptr);
 }
@@ -1011,7 +1016,7 @@ resizeSwapChain() {
     _surfaceCapabilities = getSurfaceCapabilities();
     checkSurfaceCapabilities();
 
-    vkDeviceWaitIdle(_device);
+    vkQueueWaitIdle(_gfxQueue);
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -1019,6 +1024,7 @@ resizeSwapChain() {
     createInfo.imageFormat = _swapImageFormat;
     createInfo.imageColorSpace = _swapImageColorSpace;
     createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     createInfo.presentMode = _presentMode;
     createInfo.minImageCount = _surfaceCapabilities.minImageCount;
     createInfo.imageExtent = _swapChainExtent;
@@ -1036,15 +1042,22 @@ resizeSwapChain() {
     checkSuccess(result, "could not resize swap chain");
     LOG(INFO) << "swap chain resized";
 
+    vkDestroyPipeline(_device, _pipeline, nullptr);
+    vkDestroyRenderPass(_device, _renderPass, nullptr);
+    vkDestroySemaphore(_device, _imageReady, nullptr);
+    vkDestroySemaphore(_device, _presentReady, nullptr);
     destroyFramebuffers();
+    destroySwapImageViews();
     _swapImages.clear();
     _swapImageViews.clear();
+    _swapCommandBuffers.clear();
     destroySwapchain(createInfo.oldSwapchain);
 
     getSwapImagesAndImageViews();
-    createFramebuffers();
     createRenderPass();
+    createFramebuffers();
     createPipeline(_vertexShader, _fragmentShader);
     createSwapCommandBuffers();
     recordCommandBuffers();
+    createSemaphores();
 }
