@@ -1015,6 +1015,8 @@ resizeSwapChain() {
     _surfaceCapabilities = getSurfaceCapabilities();
     checkSurfaceCapabilities();
 
+    vkDeviceWaitIdle(_device);
+
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.oldSwapchain = _swapChain;
