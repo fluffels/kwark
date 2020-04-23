@@ -57,7 +57,7 @@ VulkanApplication(const Platform& platform):
     _fragmentShader = createShaderModule("shaders/default.frag.spv");
     createPipeline(_vertexShader, _fragmentShader);
 
-    // loadVertexBuffer();
+    loadVertexBuffer();
 
     createGraphicsCommandPool();
     createSwapCommandBuffers();
@@ -73,7 +73,7 @@ VulkanApplication::
     vkDestroySemaphore(_device, _imageReady, nullptr);
     vkDestroySemaphore(_device, _presentReady, nullptr);
     vkDestroyCommandPool(_device, _graphicsCommandPool, nullptr);
-    //vkDestroyBuffer(_device, _vertexBuffer, nullptr);
+    vkDestroyBuffer(_device, _vertexBuffer, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
     vkDestroyShaderModule(_device, _fragmentShader, nullptr);
     vkDestroyShaderModule(_device, _vertexShader, nullptr);
