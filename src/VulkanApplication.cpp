@@ -57,7 +57,8 @@ VulkanApplication(const Platform& platform):
     _fragmentShader = createShaderModule("shaders/default.frag.spv");
     createPipeline(_vertexShader, _fragmentShader);
 
-    loadVertexBuffer();
+    createVertexBuffer();
+    allocateVertexBuffer();
 
     createGraphicsCommandPool();
     createSwapCommandBuffers();
@@ -73,6 +74,7 @@ VulkanApplication::
     vkDestroySemaphore(_device, _imageReady, nullptr);
     vkDestroySemaphore(_device, _presentReady, nullptr);
     vkDestroyCommandPool(_device, _graphicsCommandPool, nullptr);
+    vkFreeMemory(_device, _vertexMemory, nullptr);
     vkDestroyBuffer(_device, _vertexBuffer, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
     vkDestroyShaderModule(_device, _fragmentShader, nullptr);
@@ -698,7 +700,26 @@ createSwapCommandBuffers() {
 }
 
 void VulkanApplication::
-loadVertexBuffer() {
+createSemaphores() {
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    vkCreateSemaphore(
+        _device,
+        &semaphoreCreateInfo,
+        nullptr,
+        &_imageReady
+    );
+
+    vkCreateSemaphore(
+        _device,
+        &semaphoreCreateInfo,
+        nullptr,
+        &_presentReady
+    );
+}
+
+void VulkanApplication::
+createVertexBuffer() {
     float vertices[] = {
         -1.f, 0.f, 0.f,
         0.f, 1.f, 0.f,
@@ -711,7 +732,7 @@ loadVertexBuffer() {
     createInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     createInfo.queueFamilyIndexCount = 1;
     createInfo.pQueueFamilyIndices = &_gfxFamily;
-    createInfo.size = sizeof(vertices);
+    createInfo.size = 1024;
 
     auto result = vkCreateBuffer(
         _device,
@@ -729,21 +750,42 @@ loadVertexBuffer() {
 }
 
 void VulkanApplication::
-createSemaphores() {
-    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
-    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    vkCreateSemaphore(
+allocateVertexBuffer() {
+    VkMemoryRequirements requirements = {};
+    vkGetBufferMemoryRequirements(
         _device,
-        &semaphoreCreateInfo,
-        nullptr,
-        &_imageReady
+        _vertexBuffer,
+        &requirements
     );
 
-    vkCreateSemaphore(
+    VkPhysicalDeviceMemoryProperties memories = {};
+    vkGetPhysicalDeviceMemoryProperties(
+        _physicalDevice,
+        &memories
+    );
+
+    uint32_t typeIndex = 0;
+    for (; typeIndex > memories.memoryTypeCount; typeIndex++) {
+        if (requirements.memoryTypeBits & (1 << typeIndex)) {
+            auto flags = memories.memoryTypes[typeIndex].propertyFlags;
+            flags &= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+            flags &= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            if (flags) {
+                break;
+            }
+        }
+    }
+
+    VkMemoryAllocateInfo allocateInfo = {};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocateInfo.allocationSize = requirements.size;
+    allocateInfo.memoryTypeIndex = typeIndex;
+
+    vkAllocateMemory(
         _device,
-        &semaphoreCreateInfo,
+        &allocateInfo,
         nullptr,
-        &_presentReady
+        &_vertexMemory
     );
 }
 

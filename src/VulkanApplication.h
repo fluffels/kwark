@@ -60,12 +60,15 @@ class VulkanApplication {
         VkShaderModule _fragmentShader;
         VkPipeline _pipeline;
         VkBuffer _vertexBuffer;
+        VkDeviceMemory _vertexMemory;
         vector<VkCommandBuffer> _swapCommandBuffers;
         VkSemaphore _imageReady;
         VkSemaphore _presentReady;
 
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
+
+        void allocateVertexBuffer();
 
         void createVulkanInstance();
         void createDebugCallback();
@@ -81,6 +84,7 @@ class VulkanApplication {
         void createPresentCommandPool();
         void createSwapCommandBuffers();
         void createSemaphores();
+        void createVertexBuffer();
 
         void checkSurfaceCapabilities();
 
@@ -89,8 +93,6 @@ class VulkanApplication {
         void destroySwapImageViews();
 
         void getSwapImagesAndImageViews();
-
-        void loadVertexBuffer();
 
         void recordCommandBuffers();
         void resizeSwapChain();
