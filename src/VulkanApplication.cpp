@@ -720,12 +720,6 @@ createSemaphores() {
 
 void VulkanApplication::
 createVertexBuffer() {
-    float vertices[] = {
-        -1.f, 0.f, 0.f,
-        0.f, 1.f, 0.f,
-        1.f, 0.f, 0.f
-    };
-
     VkBufferCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -765,15 +759,20 @@ allocateVertexBuffer() {
     );
 
     uint32_t typeIndex = 0;
-    for (; typeIndex > memories.memoryTypeCount; typeIndex++) {
+    bool found = false;
+    for (; typeIndex < memories.memoryTypeCount; typeIndex++) {
         if (requirements.memoryTypeBits & (1 << typeIndex)) {
             auto flags = memories.memoryTypes[typeIndex].propertyFlags;
-            flags &= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-            flags &= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            flags &= (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
             if (flags) {
+                found = true;
                 break;
             }
         }
+    }
+    if (!found) {
+        throw std::runtime_error("could not find memory for vertex buffer");
     }
 
     VkMemoryAllocateInfo allocateInfo = {};
@@ -781,12 +780,31 @@ allocateVertexBuffer() {
     allocateInfo.allocationSize = requirements.size;
     allocateInfo.memoryTypeIndex = typeIndex;
 
-    vkAllocateMemory(
+    auto result = vkAllocateMemory(
         _device,
         &allocateInfo,
         nullptr,
         &_vertexMemory
     );
+    checkSuccess(
+        result,
+        "could not allocate vertex buffer"
+    );
+
+    float vertices[] = {
+        -1.f, 0.f, 0.f,
+        0.f, 1.f, 0.f,
+        1.f, 0.f, 0.f
+    };
+
+    void* data = 0;
+    result = vkMapMemory(_device, _vertexMemory, 0, requirements.size, 0, &data);
+    checkSuccess(
+        result,
+        "could not map vertex memory"
+    );
+        memcpy(data, vertices, sizeof(vertices));
+    vkUnmapMemory(_device, _vertexMemory);
 }
 
 void VulkanApplication::
