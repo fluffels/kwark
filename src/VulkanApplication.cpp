@@ -536,10 +536,12 @@ void VulkanApplication::createPipeline(
     VkPipelineVertexInputStateCreateInfo vertexInputState = {};
     vertexInputState.sType =
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputState.vertexBindingDescriptionCount = 0;
-    vertexInputState.pVertexBindingDescriptions = nullptr;
-    vertexInputState.vertexAttributeDescriptionCount = 0;
-    vertexInputState.pVertexAttributeDescriptions = nullptr;
+    vertexInputState.vertexBindingDescriptionCount = 1;
+    vertexInputState.pVertexBindingDescriptions =
+        &inputBindingDescription;
+    vertexInputState.vertexAttributeDescriptionCount = 1;
+    vertexInputState.pVertexAttributeDescriptions =
+        inputAttributeDescriptions.data();
     
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo = {};
     inputAssemblyStateCreateInfo.sType =
@@ -792,9 +794,9 @@ allocateVertexBuffer() {
     );
 
     float vertices[] = {
-        -1.f, 0.f, 0.f,
-        0.f, 1.f, 0.f,
-        1.f, 0.f, 0.f
+        -1.f, 1.f, 0.f,
+        0.f, -1.f, 0.f,
+        1.f, 1.f, 0.f
     };
 
     void* data = 0;
@@ -805,6 +807,13 @@ allocateVertexBuffer() {
     );
         memcpy(data, vertices, sizeof(vertices));
     vkUnmapMemory(_device, _vertexMemory);
+
+    vkBindBufferMemory(
+        _device,
+        _vertexBuffer,
+        _vertexMemory,
+        0
+    );
 }
 
 void VulkanApplication::
@@ -1043,13 +1052,13 @@ recordCommandBuffers() {
             _pipeline
         );
 
-        /*VkDeviceSize offsets[] = {0};
+        VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(
             commandBuffer,
             0, 1,
             &_vertexBuffer,
             offsets
-        );*/
+        );
         vkCmdDraw(
             commandBuffer,
             3, 1,
