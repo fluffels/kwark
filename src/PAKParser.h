@@ -45,4 +45,10 @@ struct BSPHeader {
     BSPEntry models;
 };
 
+struct Vec3 {
+    float x;
+    float y;
+    float z;
+};
+
 void parsePAK(const char*);
