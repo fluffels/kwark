@@ -108,6 +108,18 @@ int MainLoop(
     return errorCode; 
 }
 
+struct PAKHeader {
+    char id[4];
+    int32_t offset;
+    int32_t size;
+};
+
+struct FileEntry {
+    char name[54];
+    int32_t offset;
+    int32_t size;
+};
+
 int
 WinMain(
     HINSTANCE instance,
@@ -125,26 +137,31 @@ WinMain(
         return 1;
     }
 
-    char buffer[1024] = {};
-    fread_s(buffer, 1024, 4, 1, pakFile);
-    if (strcmp("PACK", buffer) != 0) {
+    PAKHeader header;
+    fread_s(&header, sizeof(header), sizeof(header), 1, pakFile);
+    if (strcmp("PACK", header.id) != 0) {
         LOG(ERROR) << "this is not a PAK file";
     }
+    LOG(INFO) << "offset: " << header.offset;
+    LOG(INFO) << "size: " << header.size;
 
-    fread_s(buffer, 1024, 4, 1, pakFile);
-    auto offset = *(int32_t*)buffer;
-    LOG(INFO) << "offset: " << offset;
-
-    fread_s(buffer, 1024, 4, 1, pakFile);
-    auto size = *(int32_t*)buffer;
-    LOG(INFO) << "size: " << size;
-
-    auto fileCount = size / 64;
+    auto fileCount = header.size / 64;
     LOG(INFO) << "contains " << fileCount << " files";
 
-    if (fseek(pakFile, offset, SEEK_SET) != 0) {
+    if (fseek(pakFile, header.offset, SEEK_SET) != 0) {
         LOG(ERROR) << "could not seek to file table";
         return 2;
+    }
+
+    for (int i = 0; i < fileCount; i++) {
+        FileEntry fileEntry;
+        fread_s(&fileEntry, sizeof(fileEntry), sizeof(fileEntry), 1, pakFile);
+        LOG(INFO) << "file " << i << ": " << fileEntry.name;
+
+        if (fseek(pakFile, header.offset + (64*i), SEEK_SET) != 0) {
+            LOG(ERROR) << "could not seek to next file record";
+            return 3;
+        }
     }
 
     return MainLoop(instance, prevInstance, commandLine, showCommand);
