@@ -33,6 +33,7 @@ add_executable (
     src/util.cpp
     src/Vertex.cpp
     src/VulkanApplication.cpp
+    src/PAKParser.cpp
     src/Win32.cpp
 )
 target_link_libraries(
