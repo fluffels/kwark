@@ -1,5 +1,7 @@
 #pragma once
 
+/* See: http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_4.htm */
+
 #include <iostream>
 
 #include "easylogging++.h"
