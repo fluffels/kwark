@@ -29,6 +29,9 @@ BSPFile parseBSPFile(FILE* file, int32_t offset) {
     BSPFile result = {};
     seek(file, offset);
     readStruct(file, result);
+    if (result.version != 29) {
+        throw runtime_error("BSP is not version 29");
+    }
     return result;
 }
 
