@@ -539,7 +539,8 @@ void VulkanApplication::createPipeline(
     vertexInputState.vertexBindingDescriptionCount = 1;
     vertexInputState.pVertexBindingDescriptions =
         &inputBindingDescription;
-    vertexInputState.vertexAttributeDescriptionCount = 1;
+    vertexInputState.vertexAttributeDescriptionCount =
+        inputAttributeDescriptions.size();
     vertexInputState.pVertexAttributeDescriptions =
         inputAttributeDescriptions.data();
     
@@ -794,9 +795,12 @@ allocateVertexBuffer() {
     );
 
     float vertices[] = {
-        -1.f, 1.f, 0.f,
-        0.f, -1.f, 0.f,
-        1.f, 1.f, 0.f
+        -1.f,  1.f,  0.f, // p
+         0.f,  1.f,  1.f, // c
+         0.f, -1.f,  0.f, // p
+         1.f,  0.f,  1.f, // c
+         1.f,  1.f,  0.f, // p
+         0.f,  1.f,  1.f, // c
     };
 
     void* data = 0;
