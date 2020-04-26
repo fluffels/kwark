@@ -1033,7 +1033,7 @@ recordCommandBuffers() {
         );
 
         VkClearValue clearValue;
-        clearValue.color = {0, 0.1f, 0.1f, 1.f};
+        clearValue.color = {1.f, 0.5f, 1.f, 1.f};
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
