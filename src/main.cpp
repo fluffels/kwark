@@ -120,6 +120,40 @@ struct FileEntry {
     int32_t size;
 };
 
+void Seek(
+    FILE* file,
+    int32_t offset
+) {
+    auto code = fseek(file, offset, SEEK_SET);
+    if (code != 0) {
+        throw std::runtime_error("could not seek to position");
+    }
+}
+
+struct BSPEntry {
+    int32_t offset;
+    int32_t size;
+};
+
+struct BSPFile {
+    int32_t version;
+    BSPEntry entities;
+    BSPEntry planes;
+    BSPEntry miptex;
+    BSPEntry vertices;
+    BSPEntry visilist;
+    BSPEntry nodes;
+    BSPEntry texinfo;
+    BSPEntry faces;
+    BSPEntry lightmaps;
+    BSPEntry clipnodes;
+    BSPEntry leaves;
+    BSPEntry lface;
+    BSPEntry edges;
+    BSPEntry ledges;
+    BSPEntry models;
+};
+
 int
 WinMain(
     HINSTANCE instance,
@@ -148,19 +182,19 @@ WinMain(
     auto fileCount = header.size / 64;
     LOG(INFO) << "contains " << fileCount << " files";
 
-    if (fseek(pakFile, header.offset, SEEK_SET) != 0) {
-        LOG(ERROR) << "could not seek to file table";
-        return 2;
-    }
-
+    BSPFile map = {};
+    Seek(pakFile, header.offset);
     for (int i = 0; i < fileCount; i++) {
         FileEntry fileEntry;
         fread_s(&fileEntry, sizeof(fileEntry), sizeof(fileEntry), 1, pakFile);
         LOG(INFO) << "file " << i << ": " << fileEntry.name;
 
-        if (fseek(pakFile, header.offset + (64*i), SEEK_SET) != 0) {
-            LOG(ERROR) << "could not seek to next file record";
-            return 3;
+        if (strcmp("maps/e1m1.bsp", fileEntry.name) == 0) {
+            Seek(pakFile, fileEntry.offset);
+            fread_s(&map, sizeof(map), sizeof(map), 1, pakFile);
+            break;
+        } else {
+            Seek(pakFile, header.offset + (64*i));
         }
     }
 
