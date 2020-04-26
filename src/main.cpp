@@ -34,8 +34,7 @@ WindowProc(
     return DefWindowProc(window, message, wParam, lParam);
 }
 
-int
-WinMain(
+int MainLoop(
     HINSTANCE instance,
     HINSTANCE prevInstance,
     LPSTR commandLine,
@@ -107,4 +106,14 @@ WinMain(
     delete vk;
 
     return errorCode; 
+}
+
+int
+WinMain(
+    HINSTANCE instance,
+    HINSTANCE prevInstance,
+    LPSTR commandLine,
+    int showCommand
+) {
+    return MainLoop(instance, prevInstance, commandLine, showCommand);
 }
