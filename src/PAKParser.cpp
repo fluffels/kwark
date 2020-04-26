@@ -54,6 +54,18 @@ void parsePAK(const char* path) {
 
         if (strcmp("maps/e1m1.bsp", entry.name) == 0) {
             auto BSPHeader = parseBSPHeader(file, entry.offset);
+
+            seek(file, BSPHeader.vertices.offset + entry.offset);
+            const int vertexCount = BSPHeader.vertices.size / sizeof(Vec3);
+            Vec3* vertices = new Vec3[vertexCount];
+            fread_s(vertices, sizeof(Vec3)*vertexCount, sizeof(Vec3)*vertexCount, 1, file);
+            delete vertices;
+
+            seek(file, BSPHeader.edges.offset + entry.offset);
+            const int edgeCount = BSPHeader.edges.size / sizeof(Edge);
+            Edge* edges = new Edge[edgeCount];
+            fread_s(edges, sizeof(Edge)*edgeCount, sizeof(Edge)*edgeCount, 1, file);
+            delete edges;
         } else {
             seek(file, header.offset + (FILE_ENTRY_LENGTH*i));
         }

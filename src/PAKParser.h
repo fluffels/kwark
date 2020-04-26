@@ -53,4 +53,9 @@ struct Vec3 {
     float z;
 };
 
+struct Edge {
+    uint16_t v0;
+    uint16_t v1;
+};
+
 void parsePAK(const char*);
