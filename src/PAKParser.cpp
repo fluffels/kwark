@@ -25,8 +25,8 @@ PAKFileEntry parsePAKFileEntry(FILE* file, int32_t offset, int idx) {
     return result;
 }
 
-BSPFile parseBSPFile(FILE* file, int32_t offset) {
-    BSPFile result = {};
+BSPHeader parseBSPHeader(FILE* file, int32_t offset) {
+    BSPHeader result = {};
     seek(file, offset);
     readStruct(file, result);
     if (result.version != 29) {
@@ -53,7 +53,7 @@ void parsePAK(const char* path) {
         LOG(INFO) << "file " << i << ": " << entry.name;
 
         if (strcmp("maps/e1m1.bsp", entry.name) == 0) {
-            auto BSPFile = parseBSPFile(file, entry.offset);
+            auto BSPHeader = parseBSPHeader(file, entry.offset);
         } else {
             seek(file, header.offset + (FILE_ENTRY_LENGTH*i));
         }

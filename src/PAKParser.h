@@ -26,7 +26,7 @@ struct BSPEntry {
     int32_t size;
 };
 
-struct BSPFile {
+struct BSPHeader {
     int32_t version;
     BSPEntry entities;
     BSPEntry planes;
