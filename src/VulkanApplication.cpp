@@ -540,7 +540,7 @@ void VulkanApplication::createPipeline(
     vertexInputState.pVertexBindingDescriptions =
         &inputBindingDescription;
     vertexInputState.vertexAttributeDescriptionCount =
-        inputAttributeDescriptions.size();
+        (uint32_t)inputAttributeDescriptions.size();
     vertexInputState.pVertexAttributeDescriptions =
         inputAttributeDescriptions.data();
     
@@ -548,7 +548,7 @@ void VulkanApplication::createPipeline(
     inputAssemblyStateCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyStateCreateInfo.topology =
-        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+        VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
     inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
     
     // VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo = {};
@@ -795,12 +795,20 @@ allocateVertexBuffer() {
     );
 
     float vertices[] = {
-        -1.f,  1.f,  0.f, // p
-         0.f,  1.f,  1.f, // c
-         0.f, -1.f,  0.f, // p
-         1.f,  0.f,  1.f, // c
-         1.f,  1.f,  0.f, // p
-         0.f,  1.f,  1.f, // c
+        -.8f,  .8f,  0.f, // p
+         1.f,  1.f,  1.f, // c
+         0.f, -.8f,  0.f, // p
+         1.f,  1.f,  1.f, // c
+
+         0.f, -.8f,  0.f, // p
+         1.f,  1.f,  1.f, // c
+         .8f,  .8f,  0.f, // p
+         1.f,  1.f,  1.f, // c
+
+        -.8f,  .8f,  0.f, // p
+         1.f,  1.f,  1.f, // c
+         .8f,  .8f,  0.f, // p
+         1.f,  1.f,  1.f, // c
     };
 
     void* data = 0;
@@ -1065,7 +1073,7 @@ recordCommandBuffers() {
         );
         vkCmdDraw(
             commandBuffer,
-            3, 1,
+            6, 1,
             0, 0
         );
 
