@@ -115,5 +115,37 @@ WinMain(
     LPSTR commandLine,
     int showCommand
 ) {
+    LPSTR pakName = commandLine;
+    LOG(INFO) << "path to PAK file: " << commandLine;
+
+    FILE* pakFile = nullptr;
+    errno_t error = fopen_s(&pakFile, pakName, "r");
+    if (error != 0) {
+        LOG(ERROR) << "could not open PAK file";
+        return 1;
+    }
+
+    char buffer[1024] = {};
+    fread_s(buffer, 1024, 4, 1, pakFile);
+    if (strcmp("PACK", buffer) != 0) {
+        LOG(ERROR) << "this is not a PAK file";
+    }
+
+    fread_s(buffer, 1024, 4, 1, pakFile);
+    auto offset = *(int32_t*)buffer;
+    LOG(INFO) << "offset: " << offset;
+
+    fread_s(buffer, 1024, 4, 1, pakFile);
+    auto size = *(int32_t*)buffer;
+    LOG(INFO) << "size: " << size;
+
+    auto fileCount = size / 64;
+    LOG(INFO) << "contains " << fileCount << " files";
+
+    if (fseek(pakFile, offset, SEEK_SET) != 0) {
+        LOG(ERROR) << "could not seek to file table";
+        return 2;
+    }
+
     return MainLoop(instance, prevInstance, commandLine, showCommand);
 }
