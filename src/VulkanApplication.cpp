@@ -490,11 +490,17 @@ void VulkanApplication::createPipeline(
     VkShaderModule& vertexShaderModule,
     VkShaderModule& fragmentShaderModule
 ) {
+    VkPushConstantRange pushConstants;
+    pushConstants.offset = 0;
+    pushConstants.size = 32 * 3;
+    pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
     pipelineLayoutCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutCreateInfo.setLayoutCount = 0;
-    pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstants;
 
     VkPipelineLayout layout = {};
     auto result = vkCreatePipelineLayout(
