@@ -77,6 +77,7 @@ VulkanApplication::
     vkFreeMemory(_device, _vertexMemory, nullptr);
     vkDestroyBuffer(_device, _vertexBuffer, nullptr);
     vkDestroyPipeline(_device, _pipeline, nullptr);
+    vkDestroyPipelineLayout(_device, _layout, nullptr);
     vkDestroyShaderModule(_device, _fragmentShader, nullptr);
     vkDestroyShaderModule(_device, _vertexShader, nullptr);
     destroyFramebuffers();
@@ -502,12 +503,11 @@ void VulkanApplication::createPipeline(
     pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
     pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstants;
 
-    VkPipelineLayout layout = {};
     auto result = vkCreatePipelineLayout(
         _device,
         &pipelineLayoutCreateInfo,
         nullptr,
-        &layout
+        &_layout
     );
     checkSuccess(
         result,
@@ -645,7 +645,7 @@ void VulkanApplication::createPipeline(
     pipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
     pipelineCreateInfo.pColorBlendState = &colorBlending;
     pipelineCreateInfo.renderPass = _renderPass;
-    pipelineCreateInfo.layout = layout;
+    pipelineCreateInfo.layout = _layout;
     pipelineCreateInfo.subpass = 0;
     result = vkCreateGraphicsPipelines(
         _device,
@@ -655,8 +655,6 @@ void VulkanApplication::createPipeline(
         nullptr,
         &_pipeline
     );
-
-    vkDestroyPipelineLayout(_device, layout, nullptr);
 
     checkSuccess(
         result,
@@ -1076,6 +1074,15 @@ recordCommandBuffers() {
             0, 1,
             &_vertexBuffer,
             offsets
+        );
+        float color[3] = {0.f, 1.f, 1.f};
+        vkCmdPushConstants(
+            commandBuffer,
+            _layout,
+            VK_SHADER_STAGE_VERTEX_BIT,
+            0,
+            32 * 3,
+            color
         );
         vkCmdDraw(
             commandBuffer,

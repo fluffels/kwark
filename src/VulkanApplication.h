@@ -58,6 +58,7 @@ class VulkanApplication {
         vector<VkFramebuffer> _framebuffers;
         VkShaderModule _vertexShader;
         VkShaderModule _fragmentShader;
+        VkPipelineLayout _layout;
         VkPipeline _pipeline;
         VkBuffer _vertexBuffer;
         VkDeviceMemory _vertexMemory;
