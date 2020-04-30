@@ -5,6 +5,10 @@ layout(push_constant) uniform Push {
     vec3 color;
 } push;
 
+layout(binding=0) uniform Uniform {
+    mat4x4 mvp;
+} uniforms;
+
 layout(location=0) in vec3 inPosition;
 layout(location=1) in vec3 inColor;
 

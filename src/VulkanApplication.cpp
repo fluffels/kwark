@@ -491,6 +491,32 @@ void VulkanApplication::createPipeline(
     VkShaderModule& vertexShaderModule,
     VkShaderModule& fragmentShaderModule
 ) {
+    VkDescriptorSetLayoutBinding uniformDescriptorSetBinding = {};
+    uniformDescriptorSetBinding.binding = 0;
+    uniformDescriptorSetBinding.descriptorCount = 1;
+    uniformDescriptorSetBinding.descriptorType =
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uniformDescriptorSetBinding.stageFlags =
+        VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+
+    VkDescriptorSetLayoutCreateInfo uniformDescriptorSetLayoutCreateInfo = {};
+    uniformDescriptorSetLayoutCreateInfo.sType =
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    uniformDescriptorSetLayoutCreateInfo.bindingCount = 1;
+    uniformDescriptorSetLayoutCreateInfo.pBindings =
+        &uniformDescriptorSetBinding;
+    
+    VkDescriptorSetLayout descriptorSetLayout;
+    vkCreateDescriptorSetLayout(
+        _device,
+        &uniformDescriptorSetLayoutCreateInfo,
+        nullptr,
+        &descriptorSetLayout
+    );
+
+    vector<VkDescriptorSetLayout> descriptorSetLayouts;
+    descriptorSetLayouts.push_back(descriptorSetLayout);
+
     VkPushConstantRange pushConstants;
     pushConstants.offset = 0;
     pushConstants.size = 32 * 3;
@@ -499,7 +525,9 @@ void VulkanApplication::createPipeline(
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
     pipelineLayoutCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutCreateInfo.setLayoutCount = 0;
+    pipelineLayoutCreateInfo.setLayoutCount =
+        (uint32_t)descriptorSetLayouts.size();
+    pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
     pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
     pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstants;
 
