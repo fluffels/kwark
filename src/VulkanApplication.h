@@ -61,20 +61,28 @@ class VulkanApplication {
         VkShaderModule _fragmentShader;
         VkPipelineLayout _layout;
         VkPipeline _pipeline;
-        VkBuffer _vertexBuffer;
-        VkBuffer _uniformBuffer;
-        VkDeviceMemory _vertexMemory;
         vector<VkCommandBuffer> _swapCommandBuffers;
         VkSemaphore _imageReady;
         VkSemaphore _presentReady;
 
+        VkBuffer _vertexBuffer;
+        VkBuffer _uniformBuffer;
+
+        VkDeviceMemory _vertexMemory;
+        VkDeviceMemory _uniformMemory;
+
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
 
+        VkDeviceMemory allocateBuffer(VkBuffer);
+        void allocateUniformBuffer();
         void allocateVertexBuffer();
 
-        VkDeviceMemory allocateBuffer(VkBuffer);
         VkBuffer createBuffer(VkBufferUsageFlags, uint32_t);
+        void createUniformBuffer();
+        void createVertexBuffer();
+
+        void uploadVertexData();
 
         void createVulkanInstance();
         void createDebugCallback();
@@ -90,8 +98,6 @@ class VulkanApplication {
         void createPresentCommandPool();
         void createSwapCommandBuffers();
         void createSemaphores();
-        void createVertexBuffer();
-        void createUniformBuffer();
 
         void checkSurfaceCapabilities();
 

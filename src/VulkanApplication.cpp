@@ -58,8 +58,12 @@ VulkanApplication(const Platform& platform):
     _fragmentShader = createShaderModule("shaders/default.frag.spv");
     createPipeline(_vertexShader, _fragmentShader);
 
+    createUniformBuffer();
+    allocateUniformBuffer();
+
     createVertexBuffer();
     allocateVertexBuffer();
+    uploadVertexData();
 
     createGraphicsCommandPool();
     createSwapCommandBuffers();
@@ -75,8 +79,13 @@ VulkanApplication::
     vkDestroySemaphore(_device, _imageReady, nullptr);
     vkDestroySemaphore(_device, _presentReady, nullptr);
     vkDestroyCommandPool(_device, _graphicsCommandPool, nullptr);
+
     vkFreeMemory(_device, _vertexMemory, nullptr);
     vkDestroyBuffer(_device, _vertexBuffer, nullptr);
+
+    vkFreeMemory(_device, _uniformMemory, nullptr);
+    vkDestroyBuffer(_device, _uniformBuffer, nullptr);
+
     vkDestroyPipeline(_device, _pipeline, nullptr);
     vkDestroyPipelineLayout(_device, _layout, nullptr);
     vkDestroyShaderModule(_device, _fragmentShader, nullptr);
@@ -837,7 +846,21 @@ allocateBuffer(VkBuffer buffer) {
         "could not allocate buffer"
     );
 
+    vkBindBufferMemory(
+        _device,
+        buffer,
+        memory,
+        0
+    );
+
     return memory;
+}
+
+void VulkanApplication::
+allocateUniformBuffer() {
+    _uniformMemory = allocateBuffer(
+        _uniformBuffer
+    );
 }
 
 void VulkanApplication::
@@ -845,7 +868,10 @@ allocateVertexBuffer() {
     _vertexMemory = allocateBuffer(
         _vertexBuffer
     );
+}
 
+void VulkanApplication::
+uploadVertexData() {
     float vertices[] = {
         -.4f,  .4f,  0.f, // p
          1.f,  1.f,  1.f, // c
@@ -879,13 +905,6 @@ allocateVertexBuffer() {
     );
         memcpy(data, vertices, sizeof(vertices));
     vkUnmapMemory(_device, _vertexMemory);
-
-    vkBindBufferMemory(
-        _device,
-        _vertexBuffer,
-        _vertexMemory,
-        0
-    );
 }
 
 void VulkanApplication::
