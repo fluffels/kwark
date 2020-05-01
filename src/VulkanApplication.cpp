@@ -60,6 +60,7 @@ VulkanApplication(const Platform& platform):
 
     createUniformBuffer();
     allocateUniformBuffer();
+    mapMemory(_uniformBuffer, _uniformMemory);
 
     createVertexBuffer();
     allocateVertexBuffer();
