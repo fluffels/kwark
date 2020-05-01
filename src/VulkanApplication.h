@@ -71,6 +71,8 @@ class VulkanApplication {
 
         void allocateVertexBuffer();
 
+        VkBuffer createBuffer(VkBufferUsageFlags, uint32_t);
+
         void createVulkanInstance();
         void createDebugCallback();
         void createPhysicalDevice();

@@ -753,29 +753,40 @@ createSemaphores() {
     );
 }
 
-void VulkanApplication::
-createVertexBuffer() {
+VkBuffer VulkanApplication::
+createBuffer(VkBufferUsageFlags usage, uint32_t size) {
+    VkBuffer buffer;
+
     VkBufferCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    createInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    createInfo.usage = usage;
     createInfo.queueFamilyIndexCount = 1;
     createInfo.pQueueFamilyIndices = &_gfxFamily;
-    createInfo.size = 1024;
+    createInfo.size = size;
 
     auto result = vkCreateBuffer(
         _device,
         &createInfo,
         nullptr,
-        &_vertexBuffer
+        &buffer
     );
 
     checkSuccess(
         result,
         "could not create vertex buffer"
     );
-
     LOG(INFO) << "created vertex buffer";
+
+    return buffer;
+}
+
+void VulkanApplication::
+createVertexBuffer() {
+    _vertexBuffer = createBuffer(
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        1024
+    );
 }
 
 void VulkanApplication::
