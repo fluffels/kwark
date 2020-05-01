@@ -92,9 +92,12 @@ VulkanApplication::
     vkDestroyBuffer(_device, _uniformBuffer, nullptr);
 
     vkDestroyPipeline(_device, _pipeline, nullptr);
+    vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
     vkDestroyPipelineLayout(_device, _layout, nullptr);
+    vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
     vkDestroyShaderModule(_device, _fragmentShader, nullptr);
     vkDestroyShaderModule(_device, _vertexShader, nullptr);
+
     destroyFramebuffers();
     destroySwapImageViews();
     vkDestroyRenderPass(_device, _renderPass, nullptr);
