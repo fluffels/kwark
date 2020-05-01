@@ -65,6 +65,10 @@ class VulkanApplication {
         VkSemaphore _imageReady;
         VkSemaphore _presentReady;
 
+        VkDescriptorSetLayout _descriptorSetLayout;
+        VkDescriptorPool _descriptorPool;
+        VkDescriptorSet _descriptorSet;
+
         VkBuffer _vertexBuffer;
         VkBuffer _uniformBuffer;
 
@@ -87,6 +91,10 @@ class VulkanApplication {
 
         void uploadUniformData();
         void uploadVertexData();
+
+        void createDescriptorPool();
+        void allocateDescriptorSet();
+        void updateDescriptorSet();
 
         void createVulkanInstance();
         void createDebugCallback();

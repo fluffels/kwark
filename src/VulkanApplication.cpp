@@ -62,6 +62,10 @@ VulkanApplication(const Platform& platform):
     allocateUniformBuffer();
     uploadUniformData();
 
+    createDescriptorPool();
+    allocateDescriptorSet();
+    updateDescriptorSet();
+
     createVertexBuffer();
     allocateVertexBuffer();
     uploadVertexData();
@@ -517,16 +521,15 @@ void VulkanApplication::createPipeline(
     uniformDescriptorSetLayoutCreateInfo.pBindings =
         &uniformDescriptorSetBinding;
     
-    VkDescriptorSetLayout descriptorSetLayout;
     vkCreateDescriptorSetLayout(
         _device,
         &uniformDescriptorSetLayoutCreateInfo,
         nullptr,
-        &descriptorSetLayout
+        &_descriptorSetLayout
     );
 
     vector<VkDescriptorSetLayout> descriptorSetLayouts;
-    descriptorSetLayouts.push_back(descriptorSetLayout);
+    descriptorSetLayouts.push_back(_descriptorSetLayout);
 
     VkPushConstantRange pushConstants;
     pushConstants.offset = 0;
@@ -701,6 +704,71 @@ void VulkanApplication::createPipeline(
     );
 
     LOG(INFO) << "created pipeline";
+}
+
+void VulkanApplication::
+createDescriptorPool() {
+    VkDescriptorPoolSize poolSize = {};
+    poolSize.descriptorCount = 1;
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+    VkDescriptorPoolCreateInfo createInfo = {};
+    createInfo.sType =
+        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    createInfo.maxSets = 1;
+    createInfo.poolSizeCount = 1;
+    createInfo.pPoolSizes = &poolSize;
+
+    auto result = vkCreateDescriptorPool(
+        _device,
+        &createInfo,
+        nullptr,
+        &_descriptorPool
+    );
+    checkSuccess(result, "could not create descriptor pool");
+}
+
+void VulkanApplication::
+allocateDescriptorSet() {
+    VkDescriptorSetAllocateInfo allocateInfo = {};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocateInfo.descriptorPool = _descriptorPool;
+    allocateInfo.descriptorSetCount = 1;
+    allocateInfo.pSetLayouts = &_descriptorSetLayout;
+
+    auto result = vkAllocateDescriptorSets(
+        _device,
+        &allocateInfo,
+        &_descriptorSet
+    );
+    checkSuccess(result, "could not allocate descriptor set");
+}
+
+void VulkanApplication::
+updateDescriptorSet() {
+    VkDescriptorBufferInfo bufferInfo;
+    bufferInfo.buffer = _uniformBuffer;
+    bufferInfo.offset = 0;
+    bufferInfo.range = VK_WHOLE_SIZE;
+
+    VkWriteDescriptorSet writeSet = {};
+    writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeSet.descriptorCount = 1;
+    writeSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    writeSet.dstArrayElement = 0;
+    writeSet.dstBinding = 0;
+    writeSet.dstSet = _descriptorSet;
+    writeSet.pBufferInfo = &bufferInfo;
+    writeSet.pImageInfo = nullptr;
+    writeSet.pTexelBufferView = nullptr;
+
+    vkUpdateDescriptorSets(
+        _device,
+        1,
+        &writeSet,
+        0,
+        nullptr
+    );
 }
 
 void VulkanApplication::
@@ -1184,6 +1252,17 @@ recordCommandBuffers() {
             commandBuffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _pipeline
+        );
+
+        vkCmdBindDescriptorSets(
+            commandBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            _layout,
+            0,
+            1,
+            &_descriptorSet,
+            0,
+            nullptr
         );
 
         VkDeviceSize offsets[] = {0};
