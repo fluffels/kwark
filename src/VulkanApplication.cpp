@@ -48,6 +48,7 @@ VulkanApplication(const Platform& platform):
     _surfaceCapabilities = getSurfaceCapabilities();
     checkSurfaceCapabilities();
     createDeviceAndQueues();
+    getMemories();
     createSwapChain();
     getSwapImagesAndImageViews();
     createRenderPass();
@@ -790,25 +791,24 @@ createVertexBuffer() {
 }
 
 void VulkanApplication::
-allocateVertexBuffer() {
-    VkMemoryRequirements requirements = {};
-    vkGetBufferMemoryRequirements(
-        _device,
-        _vertexBuffer,
-        &requirements
+createUniformBuffer() {
+    _uniformBuffer = createBuffer(
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        1024
     );
+}
 
-    VkPhysicalDeviceMemoryProperties memories = {};
-    vkGetPhysicalDeviceMemoryProperties(
-        _physicalDevice,
-        &memories
-    );
+VkDeviceMemory VulkanApplication::
+allocateBuffer(VkBuffer buffer) {
+    VkDeviceMemory memory;
+
+    auto requirements = getMemoryRequirements(buffer);
 
     uint32_t typeIndex = 0;
     bool found = false;
-    for (; typeIndex < memories.memoryTypeCount; typeIndex++) {
+    for (; typeIndex < _memories.memoryTypeCount; typeIndex++) {
         if (requirements.memoryTypeBits & (1 << typeIndex)) {
-            auto flags = memories.memoryTypes[typeIndex].propertyFlags;
+            auto flags = _memories.memoryTypes[typeIndex].propertyFlags;
             flags &= (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                       VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
             if (flags) {
@@ -818,7 +818,7 @@ allocateVertexBuffer() {
         }
     }
     if (!found) {
-        throw std::runtime_error("could not find memory for vertex buffer");
+        throw std::runtime_error("could not find memory for buffer");
     }
 
     VkMemoryAllocateInfo allocateInfo = {};
@@ -830,11 +830,20 @@ allocateVertexBuffer() {
         _device,
         &allocateInfo,
         nullptr,
-        &_vertexMemory
+        &memory
     );
     checkSuccess(
         result,
-        "could not allocate vertex buffer"
+        "could not allocate buffer"
+    );
+
+    return memory;
+}
+
+void VulkanApplication::
+allocateVertexBuffer() {
+    _vertexMemory = allocateBuffer(
+        _vertexBuffer
     );
 
     float vertices[] = {
@@ -855,7 +864,15 @@ allocateVertexBuffer() {
     };
 
     void* data = 0;
-    result = vkMapMemory(_device, _vertexMemory, 0, requirements.size, 0, &data);
+    auto result = vkMapMemory(
+        _device,
+        _vertexMemory,
+        0,
+        getMemoryRequirements(_vertexBuffer).size,
+        0,
+        &data
+    );
+
     checkSuccess(
         result,
         "could not map vertex memory"
@@ -951,6 +968,25 @@ void VulkanApplication::
 destroySwapchain(VkSwapchainKHR& target) {
     vkDestroySwapchainKHR(_device, target, nullptr);
 }
+
+void VulkanApplication::
+getMemories() {
+    vkGetPhysicalDeviceMemoryProperties(
+        _physicalDevice,
+        &_memories
+    );
+}
+
+VkMemoryRequirements VulkanApplication::
+getMemoryRequirements(VkBuffer buffer) {
+    VkMemoryRequirements requirements = {};
+    vkGetBufferMemoryRequirements(
+        _device,
+        buffer,
+        &requirements
+    );
+    return requirements;
+}  
 
 void VulkanApplication::
 getSwapImagesAndImageViews() {

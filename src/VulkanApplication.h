@@ -43,6 +43,7 @@ class VulkanApplication {
         uint32_t _gfxFamily;
         VkQueue _gfxQueue;
         VkDevice _device;
+        VkPhysicalDeviceMemoryProperties _memories;
         uint32_t _version;
         VkSurfaceKHR _surface;
         VkPresentModeKHR _presentMode;
@@ -61,6 +62,7 @@ class VulkanApplication {
         VkPipelineLayout _layout;
         VkPipeline _pipeline;
         VkBuffer _vertexBuffer;
+        VkBuffer _uniformBuffer;
         VkDeviceMemory _vertexMemory;
         vector<VkCommandBuffer> _swapCommandBuffers;
         VkSemaphore _imageReady;
@@ -71,6 +73,7 @@ class VulkanApplication {
 
         void allocateVertexBuffer();
 
+        VkDeviceMemory allocateBuffer(VkBuffer);
         VkBuffer createBuffer(VkBufferUsageFlags, uint32_t);
 
         void createVulkanInstance();
@@ -88,6 +91,7 @@ class VulkanApplication {
         void createSwapCommandBuffers();
         void createSemaphores();
         void createVertexBuffer();
+        void createUniformBuffer();
 
         void checkSurfaceCapabilities();
 
@@ -95,6 +99,8 @@ class VulkanApplication {
         void destroySwapchain(VkSwapchainKHR&);
         void destroySwapImageViews();
 
+        void getMemories();
+        VkMemoryRequirements getMemoryRequirements(VkBuffer);
         void getSwapImagesAndImageViews();
 
         void recordCommandBuffers();
