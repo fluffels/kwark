@@ -508,7 +508,7 @@ void VulkanApplication::createPipeline(
     uniformDescriptorSetBinding.descriptorType =
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     uniformDescriptorSetBinding.stageFlags =
-        VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+        VK_SHADER_STAGE_VERTEX_BIT;
 
     VkDescriptorSetLayoutCreateInfo uniformDescriptorSetLayoutCreateInfo = {};
     uniformDescriptorSetLayoutCreateInfo.sType =
