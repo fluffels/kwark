@@ -870,6 +870,30 @@ allocateVertexBuffer() {
     );
 }
 
+void* VulkanApplication::
+mapMemory(VkBuffer buffer, VkDeviceMemory memory) {
+    void* data = 0;
+    auto result = vkMapMemory(
+        _device,
+        memory,
+        0,
+        getMemoryRequirements(buffer).size,
+        0,
+        &data
+    );
+
+    checkSuccess(
+        result,
+        "could not map vertex memory"
+    );
+    return data;
+}
+
+void VulkanApplication::
+unMapMemory(VkDeviceMemory memory) {
+    vkUnmapMemory(_device, memory);
+}
+
 void VulkanApplication::
 uploadVertexData() {
     float vertices[] = {
@@ -888,23 +912,9 @@ uploadVertexData() {
          .4f,  .4f,  0.f, // p
          1.f,  1.f,  1.f, // c
     };
-
-    void* data = 0;
-    auto result = vkMapMemory(
-        _device,
-        _vertexMemory,
-        0,
-        getMemoryRequirements(_vertexBuffer).size,
-        0,
-        &data
-    );
-
-    checkSuccess(
-        result,
-        "could not map vertex memory"
-    );
+    void* data = mapMemory(_vertexBuffer, _vertexMemory);
         memcpy(data, vertices, sizeof(vertices));
-    vkUnmapMemory(_device, _vertexMemory);
+    unMapMemory(_vertexMemory);
 }
 
 void VulkanApplication::
