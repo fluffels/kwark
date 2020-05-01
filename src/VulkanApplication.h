@@ -85,6 +85,7 @@ class VulkanApplication {
         void* mapMemory(VkBuffer, VkDeviceMemory);
         void unMapMemory(VkDeviceMemory);
 
+        void uploadUniformData();
         void uploadVertexData();
 
         void createVulkanInstance();

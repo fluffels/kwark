@@ -60,7 +60,7 @@ VulkanApplication(const Platform& platform):
 
     createUniformBuffer();
     allocateUniformBuffer();
-    mapMemory(_uniformBuffer, _uniformMemory);
+    uploadUniformData();
 
     createVertexBuffer();
     allocateVertexBuffer();
@@ -893,6 +893,19 @@ mapMemory(VkBuffer buffer, VkDeviceMemory memory) {
 void VulkanApplication::
 unMapMemory(VkDeviceMemory memory) {
     vkUnmapMemory(_device, memory);
+}
+
+void VulkanApplication::
+uploadUniformData() {
+    float mvp[] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    auto data = mapMemory(_uniformBuffer, _uniformMemory);
+    memcpy(data, mvp, sizeof(mvp));
+    unMapMemory(_uniformMemory);
 }
 
 void VulkanApplication::
