@@ -124,6 +124,8 @@ class VulkanApplication {
         VkMemoryRequirements getMemoryRequirements(VkBuffer);
         void getSwapImagesAndImageViews();
 
+        void initCamera();
+
         void recordCommandBuffers();
         void resizeSwapChain();
 };

@@ -11,7 +11,14 @@ struct Camera {
     vec3 at;
     vec3 up;
 
-    mat4 mvp;
+    float fov;
+    float ar;
 
-    Camera(float, float, float, float, float, float, float, float, float);
+    float nearz;
+    float farz;
+
+    mat4 get() const;
+
+    void setAR(uint32_t, uint32_t);
+    void setFOV(float);
 };

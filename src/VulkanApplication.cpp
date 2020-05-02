@@ -30,8 +30,7 @@ VulkanApplication(const Platform& platform):
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME
         }),
         _enabledLayers({ "VK_LAYER_KHRONOS_validation" }),
-        _shouldResize(false),
-        _camera(0, 0, -1, 0, 0, 0, 0, -1, 0) {
+        _shouldResize(false) {
     auto platformRequiredExtensions = platform.getExtensions();
     _enabledExtensions.insert(
         _enabledExtensions.end(),
@@ -59,6 +58,7 @@ VulkanApplication(const Platform& platform):
     _fragmentShader = createShaderModule("shaders/default.frag.spv");
     createPipeline(_vertexShader, _fragmentShader);
 
+    initCamera();
     createUniformBuffer();
     allocateUniformBuffer();
     uploadUniformData();
@@ -969,8 +969,9 @@ unMapMemory(VkDeviceMemory memory) {
 
 void VulkanApplication::
 uploadUniformData() {
-    auto data = mapMemory(_uniformBuffer, _uniformMemory);
-    memcpy(data, &_camera.mvp, sizeof(_camera.mvp));
+    auto mvp = _camera.get();
+    auto dst = mapMemory(_uniformBuffer, _uniformMemory);
+    memcpy(dst, &mvp, sizeof(mvp));
     unMapMemory(_uniformMemory);
 }
 
@@ -1157,6 +1158,17 @@ getSwapImagesAndImageViews() {
 
         LOG(INFO) << "created swap image view";
     }
+}
+
+void VulkanApplication::
+initCamera() {
+    _camera.eye = { 0, 0, -1 };
+    _camera.at = { 0, 0, 0 };
+    _camera.up = { 0, -1, 0 };
+    _camera.setAR(_swapChainExtent.width, _swapChainExtent.height);
+    _camera.setFOV(45);
+    _camera.nearz = 0;
+    _camera.farz = 10;
 }
 
 void VulkanApplication::
