@@ -7,6 +7,7 @@
 
 #include "easylogging++.h"
 
+#include "Camera.h"
 #include "FileSystem.h"
 #include "Platform.h"
 #include "util.h"
@@ -36,6 +37,8 @@ class VulkanApplication {
         vector<string> _enabledExtensions;
         vector<string> _enabledLayers;
         bool _shouldResize;
+
+        Camera _camera;
 
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;

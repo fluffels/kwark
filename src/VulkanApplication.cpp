@@ -30,7 +30,8 @@ VulkanApplication(const Platform& platform):
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME
         }),
         _enabledLayers({ "VK_LAYER_KHRONOS_validation" }),
-        _shouldResize(false) {
+        _shouldResize(false),
+        _camera(0, 0, -1, 0, 0, 0, 0, -1, 0) {
     auto platformRequiredExtensions = platform.getExtensions();
     _enabledExtensions.insert(
         _enabledExtensions.end(),
@@ -968,14 +969,8 @@ unMapMemory(VkDeviceMemory memory) {
 
 void VulkanApplication::
 uploadUniformData() {
-    float mvp[] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    };
     auto data = mapMemory(_uniformBuffer, _uniformMemory);
-    memcpy(data, mvp, sizeof(mvp));
+    memcpy(data, &_camera.mvp, sizeof(_camera.mvp));
     unMapMemory(_uniformMemory);
 }
 
