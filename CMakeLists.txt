@@ -32,6 +32,7 @@ add_executable (
     src/FileSystem.cpp
     src/util.cpp
     src/Vertex.cpp
+    src/Camera.cpp
     src/VulkanApplication.cpp
     src/PAKParser.cpp
     src/Win32.cpp
