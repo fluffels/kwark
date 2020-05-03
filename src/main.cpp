@@ -42,6 +42,9 @@ int MainLoop(
     int showCommand
 ) {
     LOG(INFO) << "Starting...";
+
+    LARGE_INTEGER counterFrequency;
+    QueryPerformanceFrequency(&counterFrequency);
     
     WNDCLASSEX windowClassProperties = {};
     windowClassProperties.cbSize = sizeof(windowClassProperties);
@@ -97,7 +100,16 @@ int MainLoop(
             } while(!done && messageAvailable);
 
             if (!done) {
+                LARGE_INTEGER frameStart, frameEnd;
+                int64_t frameDelta;
+                QueryPerformanceCounter(&frameStart);
                 vk->present();
+                QueryPerformanceCounter(&frameEnd);
+                frameDelta = frameEnd.QuadPart - frameStart.QuadPart;
+                float fps = counterFrequency.QuadPart / (float)frameDelta;
+                char buffer[255];
+                sprintf_s(buffer, "%.2f FPS", fps);
+                SetWindowText(window, buffer);
             }
         } 
     } catch (exception e) {
