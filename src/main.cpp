@@ -3,6 +3,7 @@
 #include "easylogging++.h"
 INITIALIZE_EASYLOGGINGPP
 
+#include "Camera.h"
 #include "PAKParser.h"
 #include "VulkanApplication.h"
 #include "Win32.h"
@@ -13,6 +14,7 @@ const int WIDTH = 640;
 const int HEIGHT = 480;
 
 VulkanApplication* vk;
+bool keyboard[VK_OEM_CLEAR] = {};
 
 LRESULT
 WindowProc(
@@ -30,6 +32,10 @@ WindowProc(
             break;
         case WM_KEYDOWN:
             if (wParam == VK_ESCAPE) PostQuitMessage(0);
+            else keyboard[(uint16_t)wParam] = true;
+            break;
+        case WM_KEYUP:
+            keyboard[(uint16_t)wParam] = false;
             break;
     }
     return DefWindowProc(window, message, wParam, lParam);
@@ -78,7 +84,8 @@ int MainLoop(
     int errorCode = 0;
     try {
         Win32 platform(instance, window);
-        vk = new VulkanApplication(platform);
+        Camera camera;
+        vk = new VulkanApplication(platform, &camera);
 
         BOOL done = false;
         while (!done) {
@@ -110,6 +117,10 @@ int MainLoop(
                 char buffer[255];
                 sprintf_s(buffer, "%.2f FPS", fps);
                 SetWindowText(window, buffer);
+
+                if (keyboard['W']) {
+                    LOG(ERROR) << "test";
+                }
             }
         } 
     } catch (exception e) {

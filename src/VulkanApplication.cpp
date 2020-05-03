@@ -24,13 +24,14 @@ debugCallback(
 }
 
 VulkanApplication::
-VulkanApplication(const Platform& platform):
+VulkanApplication(const Platform& platform, Camera* camera):
         _enabledExtensions({
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME
         }),
         _enabledLayers({ "VK_LAYER_KHRONOS_validation" }),
-        _shouldResize(false) {
+        _shouldResize(false),
+        _camera(camera) {
     auto platformRequiredExtensions = platform.getExtensions();
     _enabledExtensions.insert(
         _enabledExtensions.end(),
@@ -969,7 +970,7 @@ unMapMemory(VkDeviceMemory memory) {
 
 void VulkanApplication::
 uploadUniformData() {
-    auto mvp = _camera.get();
+    auto mvp = _camera->get();
     auto dst = mapMemory(_uniformBuffer, _uniformMemory);
     memcpy(dst, &mvp, sizeof(mvp));
     unMapMemory(_uniformMemory);
@@ -1162,13 +1163,13 @@ getSwapImagesAndImageViews() {
 
 void VulkanApplication::
 initCamera() {
-    _camera.eye = { 0, 0, -1 };
-    _camera.at = { 0, 0, 0 };
-    _camera.up = { 0, -1, 0 };
-    _camera.setAR(_swapChainExtent.width, _swapChainExtent.height);
-    _camera.setFOV(45);
-    _camera.nearz = 0;
-    _camera.farz = 10;
+    _camera->eye = { 0, 0, -1 };
+    _camera->at = { 0, 0, 0 };
+    _camera->up = { 0, -1, 0 };
+    _camera->setAR(_swapChainExtent.width, _swapChainExtent.height);
+    _camera->setFOV(45);
+    _camera->nearz = 0;
+    _camera->farz = 10;
 }
 
 void VulkanApplication::
@@ -1222,7 +1223,7 @@ present() {
         "could not enqueue image for presentation"
     );
 
-    _camera.eye.z -= 0.001f;
+    _camera->eye.z -= 0.001f;
     uploadUniformData();
 }
 
