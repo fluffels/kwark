@@ -2,7 +2,9 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+using glm::cross;
 using glm::lookAt;
+using glm::normalize;
 using glm::perspective;
 
 mat4 Camera::get() const {
@@ -24,9 +26,21 @@ void Camera::back(float d) {
     forward(-d);
 }
 
+void Camera::left(float d) {
+    right(-d);
+}
+
 void Camera::forward(float d) {
-    auto direction = at - eye;
-    auto forward = d * direction;
-    eye += forward;
-    at += forward;
+    auto forward = at - eye;
+    auto delta = forward * d;
+    eye += delta;
+    at += delta;
+}
+
+void Camera::right(float d) {
+    auto forward = at - eye;
+    auto right = normalize(cross(forward, up));
+    auto delta = right * d;
+    eye += delta;
+    at += delta;
 }

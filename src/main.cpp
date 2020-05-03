@@ -126,6 +126,10 @@ int MainLoop(
                     camera.forward(deltaMove);
                 } else if (keyboard['S']) {
                     camera.back(deltaMove);
+                } else if (keyboard['A']) {
+                    camera.left(deltaMove);
+                } else if (keyboard['D']) {
+                    camera.right(deltaMove);
                 }
             }
         } 

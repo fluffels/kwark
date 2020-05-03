@@ -24,4 +24,6 @@ struct Camera {
 
     void back(float);
     void forward(float);
+    void left(float);
+    void right(float);
 };
