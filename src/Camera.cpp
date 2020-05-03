@@ -19,3 +19,14 @@ void Camera::setAR(uint32_t w, uint32_t h) {
 void Camera::setFOV(float f) {
     fov = glm::radians(f);
 }
+
+void Camera::back(float d) {
+    forward(-d);
+}
+
+void Camera::forward(float d) {
+    auto direction = at - eye;
+    auto forward = d * direction;
+    eye += forward;
+    at += forward;
+}

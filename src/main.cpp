@@ -13,6 +13,8 @@ using std::exception;
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
+const float DELTA_MOVE_PER_S = .5f;
+
 VulkanApplication* vk;
 bool keyboard[VK_OEM_CLEAR] = {};
 
@@ -113,13 +115,17 @@ int MainLoop(
                 vk->present();
                 QueryPerformanceCounter(&frameEnd);
                 frameDelta = frameEnd.QuadPart - frameStart.QuadPart;
+                float s = (float)frameDelta / counterFrequency.QuadPart;
                 float fps = counterFrequency.QuadPart / (float)frameDelta;
                 char buffer[255];
                 sprintf_s(buffer, "%.2f FPS", fps);
                 SetWindowText(window, buffer);
 
+                float deltaMove = DELTA_MOVE_PER_S * s;
                 if (keyboard['W']) {
-                    LOG(ERROR) << "test";
+                    camera.forward(deltaMove);
+                } else if (keyboard['S']) {
+                    camera.back(deltaMove);
                 }
             }
         } 

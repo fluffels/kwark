@@ -1223,7 +1223,6 @@ present() {
         "could not enqueue image for presentation"
     );
 
-    _camera->eye.z -= 0.001f;
     uploadUniformData();
 }
 

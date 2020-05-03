@@ -21,4 +21,7 @@ struct Camera {
 
     void setAR(uint32_t, uint32_t);
     void setFOV(float);
+
+    void back(float);
+    void forward(float);
 };
