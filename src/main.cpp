@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <dinput.h>
 
 #include "easylogging++.h"
 INITIALIZE_EASYLOGGINGPP
@@ -50,6 +51,17 @@ int MainLoop(
     int showCommand
 ) {
     LOG(INFO) << "Starting...";
+
+    IDirectInput8* directInput;
+    auto result = DirectInput8Create(
+        instance,
+        DIRECTINPUT_VERSION,
+        IID_IDirectInput8A,
+        (LPVOID*)&directInput,
+        NULL
+    );
+    LPDIRECTINPUTDEVICE8  mouse;
+    directInput->CreateDevice(GUID_SysMouse, &mouse, NULL);
 
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);

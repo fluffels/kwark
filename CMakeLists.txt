@@ -40,4 +40,6 @@ add_executable (
 target_link_libraries(
     main
     ${Vulkan_LIBRARIES}
+    dinput8.lib
+    dxguid.lib
 )
