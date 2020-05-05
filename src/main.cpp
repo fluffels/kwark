@@ -73,6 +73,8 @@ int MainLoop(
 
     result = mouse->SetDataFormat(&c_dfDIMouse);
 
+    result = mouse->Acquire();
+
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
     
