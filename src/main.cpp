@@ -71,6 +71,8 @@ int MainLoop(
     properties.dwData = DIPROPAXISMODE_REL;
     result = mouse->SetProperty(DIPROP_AXISMODE, &properties.diph);
 
+    result = mouse->SetDataFormat(&c_dfDIMouse);
+
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
     
