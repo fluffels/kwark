@@ -63,6 +63,14 @@ int MainLoop(
     LPDIRECTINPUTDEVICE8  mouse;
     directInput->CreateDevice(GUID_SysMouse, &mouse, NULL);
 
+    DIPROPDWORD properties;
+    properties.diph.dwSize = sizeof(DIPROPDWORD);
+    properties.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+    properties.diph.dwObj = 0;
+    properties.diph.dwHow = DIPH_DEVICE;
+    properties.dwData = DIPROPAXISMODE_REL;
+    result = mouse->SetProperty(DIPROP_AXISMODE, &properties.diph);
+
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
     
