@@ -979,20 +979,20 @@ uploadUniformData() {
 void VulkanApplication::
 uploadVertexData() {
     float vertices[] = {
-        -.4f,  .4f,  0.f, // p
-         1.f,  1.f,  1.f, // c
-         0.f, -.4f,  0.f, // p
-         1.f,  1.f,  1.f, // c
+         0.0f, 0.0f, 0.0f, // p
+         1.0f, 0.0f, 0.0f, // c
+         1.0f, 0.0f, 0.0f, // p
+         1.0f, 0.0f, 0.0f, // c
 
-         0.f, -.4f,  0.f, // p
-         1.f,  1.f,  1.f, // c
-         .4f,  .4f,  0.f, // p
-         1.f,  1.f,  1.f, // c
+         0.0f, 0.0f, 0.0f, // p
+         0.0f, 1.0f, 0.0f, // c
+         0.0f, 1.0f, 0.0f, // p
+         0.0f, 1.0f, 0.0f, // c
 
-        -.4f,  .4f,  0.f, // p
-         1.f,  1.f,  1.f, // c
-         .4f,  .4f,  0.f, // p
-         1.f,  1.f,  1.f, // c
+         0.0f, 0.0f, 0.0f, // p
+         0.0f, 0.0f, 1.0f, // c
+         0.0f, 0.0f, 1.0f, // p
+         0.0f, 0.0f, 1.0f, // c
     };
     void* data = mapMemory(_vertexBuffer, _vertexMemory);
         memcpy(data, vertices, sizeof(vertices));
@@ -1163,7 +1163,7 @@ getSwapImagesAndImageViews() {
 
 void VulkanApplication::
 initCamera() {
-    _camera->eye = { 0, 0, -1 };
+    _camera->eye = { 2, 2, 2 };
     _camera->at = { 0, 0, 0 };
     _camera->up = { 0, -1, 0 };
     _camera->setAR(_swapChainExtent.width, _swapChainExtent.height);
@@ -1244,7 +1244,7 @@ recordCommandBuffers() {
         );
 
         VkClearValue clearValue;
-        clearValue.color = {1.f, 0.5f, 1.f, 1.f};
+        clearValue.color = {1.f, 1.f, 1.f, 1.f};
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
