@@ -75,6 +75,9 @@ int MainLoop(
 
     result = mouse->Acquire();
 
+    DIMOUSESTATE mouseState;
+    mouse->GetDeviceState(sizeof(mouseState), &mouseState);
+
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
     
