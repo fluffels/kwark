@@ -6,6 +6,8 @@ using glm::cross;
 using glm::lookAt;
 using glm::normalize;
 using glm::perspective;
+using glm::rotate;
+using glm::vec4;
 
 mat4 Camera::get() const {
     auto view = lookAt(eye, at, up);
@@ -43,4 +45,23 @@ void Camera::right(float d) {
     auto delta = right * d;
     eye += delta;
     at += delta;
+}
+
+void Camera::rotateY(float d) {
+    vec3 f = at - eye;
+    vec4 forward = vec4(f, 0.0);
+    mat4 rotation(1);
+    rotation = rotate(rotation, 3.14f * d * (1/360.f), up);
+    forward = normalize(forward * rotation);
+    at = eye + vec3(forward);
+}
+
+void Camera::rotateX(float d) {
+    vec3 f = at - eye;
+    vec4 forward = vec4(f, 0.0);
+    mat4 rotation(1);
+    auto right = normalize(cross(f, up));
+    rotation = rotate(rotation, 3.14f * d * (1/360.f), right);
+    forward = normalize(forward * rotation);
+    at = eye + vec3(forward);
 }

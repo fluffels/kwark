@@ -75,9 +75,6 @@ int MainLoop(
 
     result = mouse->Acquire();
 
-    DIMOUSESTATE mouseState;
-    mouse->GetDeviceState(sizeof(mouseState), &mouseState);
-
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
     
@@ -158,6 +155,12 @@ int MainLoop(
                 } else if (keyboard['D']) {
                     camera.right(deltaMove);
                 }
+
+                DIMOUSESTATE mouseState;
+                mouse->GetDeviceState(sizeof(mouseState), &mouseState);
+                LOG(INFO) << mouseState.lX;
+                camera.rotateY((float)mouseState.lX);
+                camera.rotateX((float)(-mouseState.lY));
             }
         } 
     } catch (exception e) {
