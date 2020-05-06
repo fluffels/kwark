@@ -11,6 +11,8 @@ INITIALIZE_EASYLOGGINGPP
 
 using std::exception;
 
+#define WIN32_CHECK(e, m) if (e != S_OK) throw new std::runtime_error(m)
+
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
@@ -18,6 +20,40 @@ const float DELTA_MOVE_PER_S = .5f;
 
 VulkanApplication* vk;
 bool keyboard[VK_OEM_CLEAR] = {};
+
+LPDIRECTINPUTDEVICE8
+GetMouse(
+    HINSTANCE instance
+) {
+    IDirectInput8* directInput;
+    auto result = DirectInput8Create(
+        instance,
+        DIRECTINPUT_VERSION,
+        IID_IDirectInput8A,
+        (LPVOID*)&directInput,
+        NULL
+    );
+
+    LPDIRECTINPUTDEVICE8 mouse;
+    directInput->CreateDevice(GUID_SysMouse, &mouse, NULL);
+
+    DIPROPDWORD properties;
+    properties.diph.dwSize = sizeof(DIPROPDWORD);
+    properties.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+    properties.diph.dwObj = 0;
+    properties.diph.dwHow = DIPH_DEVICE;
+    properties.dwData = DIPROPAXISMODE_REL;
+    result = mouse->SetProperty(DIPROP_AXISMODE, &properties.diph);
+    WIN32_CHECK(result, "could not set mouse properties");
+
+    result = mouse->SetDataFormat(&c_dfDIMouse);
+    WIN32_CHECK(result, "could not set mouse data format");
+
+    result = mouse->Acquire();
+    WIN32_CHECK(result, "could not acquire mouse");
+
+    return mouse;
+}
 
 LRESULT
 WindowProc(
@@ -52,28 +88,7 @@ int MainLoop(
 ) {
     LOG(INFO) << "Starting...";
 
-    IDirectInput8* directInput;
-    auto result = DirectInput8Create(
-        instance,
-        DIRECTINPUT_VERSION,
-        IID_IDirectInput8A,
-        (LPVOID*)&directInput,
-        NULL
-    );
-    LPDIRECTINPUTDEVICE8  mouse;
-    directInput->CreateDevice(GUID_SysMouse, &mouse, NULL);
-
-    DIPROPDWORD properties;
-    properties.diph.dwSize = sizeof(DIPROPDWORD);
-    properties.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-    properties.diph.dwObj = 0;
-    properties.diph.dwHow = DIPH_DEVICE;
-    properties.dwData = DIPROPAXISMODE_REL;
-    result = mouse->SetProperty(DIPROP_AXISMODE, &properties.diph);
-
-    result = mouse->SetDataFormat(&c_dfDIMouse);
-
-    result = mouse->Acquire();
+    LPDIRECTINPUTDEVICE8 mouse = GetMouse(instance);
 
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
