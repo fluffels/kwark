@@ -33,6 +33,7 @@ GetMouse(
         (LPVOID*)&directInput,
         NULL
     );
+    WIN32_CHECK(result, "could not get dinput");
 
     LPDIRECTINPUTDEVICE8 mouse;
     directInput->CreateDevice(GUID_SysMouse, &mouse, NULL);
@@ -80,6 +81,15 @@ WindowProc(
     return DefWindowProc(window, message, wParam, lParam);
 }
 
+BOOL DirectInputDeviceCallback(
+    LPCDIDEVICEINSTANCE lpddi,
+    LPVOID pvRef
+) {
+    DIDEVICEINSTANCE device = *lpddi;
+    LOG(INFO) << "found a controller: " << device.tszInstanceName;
+    return true;
+}
+
 int MainLoop(
     HINSTANCE instance,
     HINSTANCE prevInstance,
@@ -89,6 +99,22 @@ int MainLoop(
     LOG(INFO) << "Starting...";
 
     LPDIRECTINPUTDEVICE8 mouse = GetMouse(instance);
+
+    IDirectInput8* directInput;
+    auto result = DirectInput8Create(
+        instance,
+        DIRECTINPUT_VERSION,
+        IID_IDirectInput8A,
+        (LPVOID*)&directInput,
+        NULL
+    );
+    WIN32_CHECK(result, "could not get dinput");
+    result = directInput->EnumDevices(
+        DI8DEVCLASS_GAMECTRL,
+        DirectInputDeviceCallback,
+        0, 0
+    );
+    WIN32_CHECK(result, "could not enumerate devices");
 
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
@@ -173,7 +199,6 @@ int MainLoop(
 
                 DIMOUSESTATE mouseState;
                 mouse->GetDeviceState(sizeof(mouseState), &mouseState);
-                LOG(INFO) << mouseState.lX;
                 camera.rotateY((float)mouseState.lX);
                 camera.rotateX((float)(-mouseState.lY));
             }
