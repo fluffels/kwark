@@ -20,6 +20,7 @@ const float DELTA_MOVE_PER_S = .5f;
 
 VulkanApplication* vk;
 bool keyboard[VK_OEM_CLEAR] = {};
+GUID controllerGUID = {};
 
 LPDIRECTINPUTDEVICE8
 GetMouse(
@@ -87,7 +88,8 @@ BOOL DirectInputDeviceCallback(
 ) {
     DIDEVICEINSTANCE device = *lpddi;
     LOG(INFO) << "found a controller: " << device.tszInstanceName;
-    return true;
+    controllerGUID = device.guidInstance;
+    return DIENUM_STOP;
 }
 
 int MainLoop(
