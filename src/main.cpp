@@ -93,6 +93,15 @@ BOOL DirectInputDeviceCallback(
     return DIENUM_STOP;
 }
 
+BOOL DirectInputControllerObjectsCallback(
+    LPCDIDEVICEOBJECTINSTANCE lpddoi,
+    LPVOID pvRef
+) {
+    DIDEVICEOBJECTINSTANCE object = *lpddoi;
+    LOG(INFO) << "found a controller object: " << object.tszName;
+    return DIENUM_CONTINUE;
+}
+
 int MainLoop(
     HINSTANCE instance,
     HINSTANCE prevInstance,
@@ -123,6 +132,13 @@ int MainLoop(
     if (controllerGUID.Data1 > 0) {
         result = directInput->CreateDevice(controllerGUID, &controller, NULL);
         WIN32_CHECK(result, "could not create controller");
+
+        result = controller->EnumObjects(
+            DirectInputControllerObjectsCallback,
+            nullptr,
+            0
+        );
+        WIN32_CHECK(result, "could not enumerate controller objects");
 
         result = controller->SetDataFormat(&c_dfDIJoystick);
         WIN32_CHECK(result, "could not set controller data format");
