@@ -120,14 +120,16 @@ int MainLoop(
     WIN32_CHECK(result, "could not enumerate devices");
 
     LPDIRECTINPUTDEVICE8 controller;
-    result = directInput->CreateDevice(controllerGUID, &controller, NULL);
-    WIN32_CHECK(result, "could not create controller");
+    if (controllerGUID.Data1 > 0) {
+        result = directInput->CreateDevice(controllerGUID, &controller, NULL);
+        WIN32_CHECK(result, "could not create controller");
 
-    result = controller->SetDataFormat(&c_dfDIJoystick);
-    WIN32_CHECK(result, "could not set controller data format");
+        result = controller->SetDataFormat(&c_dfDIJoystick);
+        WIN32_CHECK(result, "could not set controller data format");
 
-    result = controller->Acquire();
-    WIN32_CHECK(result, "could not acquire controller");
+        result = controller->Acquire();
+        WIN32_CHECK(result, "could not acquire controller");
+    }
 
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
@@ -215,9 +217,11 @@ int MainLoop(
                 camera.rotateY((float)mouseState.lX);
                 camera.rotateX((float)(-mouseState.lY));
 
-                DIJOYSTATE joyState;
-                controller->GetDeviceState(sizeof(joyState), &joyState);
-                LOG(INFO) << joyState.lX;
+                if (controllerGUID.Data1 > 0) {
+                    DIJOYSTATE joyState;
+                    controller->GetDeviceState(sizeof(joyState), &joyState);
+                    LOG(INFO) << joyState.lX;
+                }
             }
         } 
     } catch (exception e) {
