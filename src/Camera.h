@@ -26,7 +26,7 @@ struct Camera {
     void forward(float);
     void left(float);
     void right(float);
-
+    
     void rotateY(float);
     void rotateX(float);
 };

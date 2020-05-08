@@ -21,7 +21,9 @@ const long JOYSTICK_RANGE = JOYSTICK_MAX - JOYSTICK_MIN;
 const long JOYSTICK_MID = JOYSTICK_RANGE / 2;
 
 const float DELTA_MOVE_PER_S = .5f;
-const float DELTA_ROTATE_PER_S = 3.14 * 0.5f;
+const float DELTA_ROTATE_PER_S = 3.14f;
+const float MOUSE_SENSITIVITY = 5;
+const float JOYSTICK_SENSITIVITY = 100;
 
 DIOBJECTDATAFORMAT xAxis = {};
 DIOBJECTDATAFORMAT yAxis = {};
@@ -293,22 +295,34 @@ int MainLoop(
                     camera.right(deltaMove);
                 }
 
+                float deltaMouseRotate =
+                    DELTA_ROTATE_PER_S * MOUSE_SENSITIVITY * s;
                 DIMOUSESTATE mouseState;
                 mouse->GetDeviceState(sizeof(mouseState), &mouseState);
-                camera.rotateY((float)mouseState.lX);
-                camera.rotateX((float)(-mouseState.lY));
+                camera.rotateY((float)mouseState.lX * deltaMouseRotate);
+                camera.rotateX((float)-mouseState.lY * deltaMouseRotate);
 
+                float deltaJoystickRotate =
+                    DELTA_ROTATE_PER_S * JOYSTICK_SENSITIVITY * s;
                 if (controllerGUID.Data1 > 0) {
                     ControllerState joyState;
                     controller->GetDeviceState(sizeof(joyState), &joyState);
 
-                    float rX = (joyState.rX / (float)JOYSTICK_RANGE) - .5f;
-                    rX *= DELTA_ROTATE_PER_S;
+                    float rX = (joyState.rX / (float)JOYSTICK_RANGE)*2 - 1;
+                    rX *= deltaJoystickRotate;
                     camera.rotateY(rX);
 
-                    float rY = (joyState.rY / (float)JOYSTICK_RANGE) - .5f;
-                    rY *= -DELTA_ROTATE_PER_S;
+                    float rY = (joyState.rY / (float)JOYSTICK_RANGE)*2 - 1;
+                    rY *= -deltaJoystickRotate;
                     camera.rotateX(rY);
+
+                    float dX = (joyState.x / (float)JOYSTICK_RANGE)*2 - 1;
+                    dX *= deltaMove;
+                    camera.right(dX);
+
+                    float dY = (joyState.y / (float)JOYSTICK_RANGE)*2 - 1;
+                    dY *= -deltaMove;
+                    camera.forward(dY);
                 }
             }
         } 
