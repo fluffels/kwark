@@ -25,6 +25,8 @@ const float DELTA_ROTATE_PER_S = 3.14 * 0.5f;
 
 DIOBJECTDATAFORMAT xAxis = {};
 DIOBJECTDATAFORMAT yAxis = {};
+DIOBJECTDATAFORMAT rXAxis = {};
+DIOBJECTDATAFORMAT rYAxis = {};
 
 VulkanApplication* vk;
 bool keyboard[VK_OEM_CLEAR] = {};
@@ -33,6 +35,8 @@ GUID controllerGUID = {};
 struct ControllerState {
     uint32_t x;
     uint32_t y;
+    uint32_t rX;
+    uint32_t rY;
 };
 
 LPDIRECTINPUTDEVICE8
@@ -121,6 +125,14 @@ BOOL DirectInputControllerObjectsCallback(
         dataFormat = &yAxis;
         dataFormat->pguid = &GUID_YAxis;
         dataFormat->dwOfs = 4;
+    } else if (object.guidType == GUID_RxAxis) {
+        dataFormat = &rXAxis;
+        dataFormat->pguid = &GUID_RxAxis;
+        dataFormat->dwOfs = 8;
+    } else if (object.guidType == GUID_RyAxis) {
+        dataFormat = &rYAxis;
+        dataFormat->pguid = &GUID_RyAxis;
+        dataFormat->dwOfs = 12;
     }
     if (dataFormat != nullptr) {
         dataFormat->dwFlags = object.dwFlags;
@@ -169,15 +181,17 @@ int MainLoop(
 
         DIOBJECTDATAFORMAT objectDataFormats[] = {
             xAxis,
-            yAxis
+            yAxis,
+            rXAxis,
+            rYAxis
         };
 
         DIDATAFORMAT dataFormat = {};
         dataFormat.dwSize = sizeof(dataFormat);
         dataFormat.dwObjSize = sizeof(DIOBJECTDATAFORMAT);
         dataFormat.dwFlags = DIDF_ABSAXIS;
-        dataFormat.dwDataSize = 8;
-        dataFormat.dwNumObjs = 2;
+        dataFormat.dwDataSize = 4 * 4;
+        dataFormat.dwNumObjs = 4;
         dataFormat.rgodf = objectDataFormats;
 
         result = controller->SetDataFormat(&dataFormat);
@@ -288,13 +302,13 @@ int MainLoop(
                     ControllerState joyState;
                     controller->GetDeviceState(sizeof(joyState), &joyState);
 
-                    float dX = (joyState.x / (float)JOYSTICK_RANGE) - .5f;
-                    dX *= DELTA_ROTATE_PER_S;
-                    camera.rotateY(dX);
+                    float rX = (joyState.rX / (float)JOYSTICK_RANGE) - .5f;
+                    rX *= DELTA_ROTATE_PER_S;
+                    camera.rotateY(rX);
 
-                    float dY = (joyState.y / (float)JOYSTICK_RANGE) - .5f;
-                    dY *= -DELTA_ROTATE_PER_S;
-                    camera.rotateX(dY);
+                    float rY = (joyState.rY / (float)JOYSTICK_RANGE) - .5f;
+                    rY *= -DELTA_ROTATE_PER_S;
+                    camera.rotateX(rY);
                 }
             }
         } 
