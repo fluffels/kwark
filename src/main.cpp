@@ -23,9 +23,17 @@ const long JOYSTICK_MID = JOYSTICK_RANGE / 2;
 const float DELTA_MOVE_PER_S = .5f;
 const float DELTA_ROTATE_PER_S = 3.14 * 0.5f;
 
+DIOBJECTDATAFORMAT xAxis = {};
+DIOBJECTDATAFORMAT yAxis = {};
+
 VulkanApplication* vk;
 bool keyboard[VK_OEM_CLEAR] = {};
 GUID controllerGUID = {};
+
+struct ControllerState {
+    uint32_t x;
+    uint32_t y;
+};
 
 LPDIRECTINPUTDEVICE8
 GetMouse(
@@ -104,6 +112,20 @@ BOOL DirectInputControllerObjectsCallback(
 ) {
     DIDEVICEOBJECTINSTANCE object = *lpddoi;
     LOG(INFO) << "found a controller object: " << object.tszName;
+    DIOBJECTDATAFORMAT *dataFormat = nullptr;
+    if (object.guidType == GUID_XAxis) {
+        dataFormat = &xAxis;
+        dataFormat->pguid = &GUID_XAxis;
+        dataFormat->dwOfs = 0;
+    } else if (object.guidType == GUID_YAxis) {
+        dataFormat = &yAxis;
+        dataFormat->pguid = &GUID_YAxis;
+        dataFormat->dwOfs = 4;
+    }
+    if (dataFormat != nullptr) {
+        dataFormat->dwFlags = object.dwFlags;
+        dataFormat->dwType = object.dwType;
+    }
     return DIENUM_CONTINUE;
 }
 
@@ -145,7 +167,20 @@ int MainLoop(
         );
         WIN32_CHECK(result, "could not enumerate controller objects");
 
-        result = controller->SetDataFormat(&c_dfDIJoystick);
+        DIOBJECTDATAFORMAT objectDataFormats[] = {
+            xAxis,
+            yAxis
+        };
+
+        DIDATAFORMAT dataFormat = {};
+        dataFormat.dwSize = sizeof(dataFormat);
+        dataFormat.dwObjSize = sizeof(DIOBJECTDATAFORMAT);
+        dataFormat.dwFlags = DIDF_ABSAXIS;
+        dataFormat.dwDataSize = 8;
+        dataFormat.dwNumObjs = 2;
+        dataFormat.rgodf = objectDataFormats;
+
+        result = controller->SetDataFormat(&dataFormat);
         WIN32_CHECK(result, "could not set controller data format");
 
         DIPROPRANGE range;
@@ -250,14 +285,14 @@ int MainLoop(
                 camera.rotateX((float)(-mouseState.lY));
 
                 if (controllerGUID.Data1 > 0) {
-                    DIJOYSTATE joyState;
+                    ControllerState joyState;
                     controller->GetDeviceState(sizeof(joyState), &joyState);
 
-                    float dX = (joyState.lX / (float)JOYSTICK_RANGE) - .5f;
+                    float dX = (joyState.x / (float)JOYSTICK_RANGE) - .5f;
                     dX *= DELTA_ROTATE_PER_S;
                     camera.rotateY(dX);
 
-                    float dY = (joyState.lY / (float)JOYSTICK_RANGE) - .5f;
+                    float dY = (joyState.y / (float)JOYSTICK_RANGE) - .5f;
                     dY *= -DELTA_ROTATE_PER_S;
                     camera.rotateX(dY);
                 }
