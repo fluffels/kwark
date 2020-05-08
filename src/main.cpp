@@ -15,8 +15,13 @@ using std::exception;
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
+const long JOYSTICK_MIN = 0;
+const long JOYSTICK_MAX = 1000000;
+const long JOYSTICK_RANGE = JOYSTICK_MAX - JOYSTICK_MIN;
+const long JOYSTICK_MID = JOYSTICK_RANGE / 2;
 
 const float DELTA_MOVE_PER_S = .5f;
+const float DELTA_ROTATE_PER_S = 3.14 * 0.5f;
 
 VulkanApplication* vk;
 bool keyboard[VK_OEM_CLEAR] = {};
@@ -143,6 +148,17 @@ int MainLoop(
         result = controller->SetDataFormat(&c_dfDIJoystick);
         WIN32_CHECK(result, "could not set controller data format");
 
+        DIPROPRANGE range;
+        range.diph.dwSize = sizeof(DIPROPRANGE);
+        range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+        range.diph.dwObj = 0;
+        range.diph.dwHow = DIPH_DEVICE;
+        range.lMax = JOYSTICK_MAX;
+        range.lMin = JOYSTICK_MIN;
+        result = controller->SetProperty(DIPROP_RANGE, &range.diph);
+        WIN32_CHECK(result, "could not get controller properties");
+        LOG(INFO) << "controller range: " << range.lMin << " -> " << range.lMax;
+
         result = controller->Acquire();
         WIN32_CHECK(result, "could not acquire controller");
     }
@@ -236,7 +252,14 @@ int MainLoop(
                 if (controllerGUID.Data1 > 0) {
                     DIJOYSTATE joyState;
                     controller->GetDeviceState(sizeof(joyState), &joyState);
-                    LOG(INFO) << joyState.lX;
+
+                    float dX = (joyState.lX / (float)JOYSTICK_RANGE) - .5f;
+                    dX *= DELTA_ROTATE_PER_S;
+                    camera.rotateY(dX);
+
+                    float dY = (joyState.lY / (float)JOYSTICK_RANGE) - .5f;
+                    dY *= -DELTA_ROTATE_PER_S;
+                    camera.rotateX(dY);
                 }
             }
         } 
