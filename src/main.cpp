@@ -146,11 +146,14 @@ int MainLoop(
                 float deltaMove = DELTA_MOVE_PER_S * s;
                 if (keyboard['W']) {
                     camera.forward(deltaMove);
-                } else if (keyboard['S']) {
+                }
+                if (keyboard['S']) {
                     camera.back(deltaMove);
-                } else if (keyboard['A']) {
+                }
+                if (keyboard['A']) {
                     camera.left(deltaMove);
-                } else if (keyboard['D']) {
+                }
+                if (keyboard['D']) {
                     camera.right(deltaMove);
                 }
 
