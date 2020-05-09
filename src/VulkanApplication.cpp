@@ -24,7 +24,7 @@ debugCallback(
 }
 
 VulkanApplication::
-VulkanApplication(const Platform& platform, Camera* camera):
+VulkanApplication(const Platform& platform, Camera* camera, vector<vec3>& lines):
         _enabledExtensions({
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME
@@ -67,6 +67,37 @@ VulkanApplication(const Platform& platform, Camera* camera):
     createDescriptorPool();
     allocateDescriptorSet();
     updateDescriptorSet();
+
+    Vertex v0, v1, v2, v3;
+    v0.pos = {0, 0, 0};
+    v0.color = {0, 0, 0};
+    v1.pos = {1, 0, 0};
+    v1.color = {1, 0, 0};
+    v2.pos = {0, 1, 0};
+    v2.color = {0, 1, 0};
+    v3.pos = {0, 0, 1};
+    v3.color = {0, 0, 1};
+    _mesh.push_back(v0);
+    _mesh.push_back(v1);
+    _mesh.push_back(v0);
+    _mesh.push_back(v2);
+    _mesh.push_back(v0);
+    _mesh.push_back(v3);
+    for (int i = 0; i < lines.size() / 2; i++) {
+        int idx = i * 2;
+        vec3 vc0 = lines[idx];
+        Vertex v0;
+        v0.color = {0, 0, 0};
+        v0.pos = {vc0.x, vc0.y, vc0.z};
+        _mesh.push_back(v0);
+
+        idx++;
+        vec3 vc1 = lines[idx];
+        Vertex v1;
+        v1.color = {0, 0, 0};
+        v1.pos = {vc1.x, vc1.y, vc1.z};
+        _mesh.push_back(v1);
+    }
 
     createVertexBuffer();
     allocateVertexBuffer();
@@ -869,7 +900,7 @@ void VulkanApplication::
 createVertexBuffer() {
     _vertexBuffer = createBuffer(
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        1024
+        1000024
     );
 }
 
@@ -978,7 +1009,7 @@ uploadUniformData() {
 
 void VulkanApplication::
 uploadVertexData() {
-    float vertices[] = {
+    /*float vertices[] = {
          0.0f, 0.0f, 0.0f, // p
          1.0f, 0.0f, 0.0f, // c
          1.0f, 0.0f, 0.0f, // p
@@ -993,9 +1024,9 @@ uploadVertexData() {
          0.0f, 0.0f, 1.0f, // c
          0.0f, 0.0f, 1.0f, // p
          0.0f, 0.0f, 1.0f, // c
-    };
+    };*/
     void* data = mapMemory(_vertexBuffer, _vertexMemory);
-        memcpy(data, vertices, sizeof(vertices));
+        memcpy(data, _mesh.data(), sizeof(Vertex)*_mesh.size());
     unMapMemory(_vertexMemory);
 }
 
@@ -1163,13 +1194,11 @@ getSwapImagesAndImageViews() {
 
 void VulkanApplication::
 initCamera() {
-    _camera->eye = { 2, 2, 2 };
-    _camera->at = { 0, 0, 0 };
     _camera->up = { 0, -1, 0 };
     _camera->setAR(_swapChainExtent.width, _swapChainExtent.height);
     _camera->setFOV(45);
     _camera->nearz = 0;
-    _camera->farz = 10;
+    _camera->farz = 1000;
 }
 
 void VulkanApplication::
@@ -1296,7 +1325,7 @@ recordCommandBuffers() {
         );
         vkCmdDraw(
             commandBuffer,
-            6, 1,
+            _mesh.size() / 2, 1,
             0, 0
         );
 

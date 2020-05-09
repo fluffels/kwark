@@ -17,7 +17,7 @@ using std::exception;
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
-const float DELTA_MOVE_PER_S = 2.f;
+const float DELTA_MOVE_PER_S = 200.f;
 const float DELTA_ROTATE_PER_S = 3.14f;
 const float MOUSE_SENSITIVITY = 5;
 const float JOYSTICK_SENSITIVITY = 100;
@@ -54,7 +54,8 @@ int MainLoop(
     HINSTANCE instance,
     HINSTANCE prevInstance,
     LPSTR commandLine,
-    int showCommand
+    int showCommand,
+    PAKParser& parser
 ) {
     LOG(INFO) << "Starting...";
 
@@ -93,8 +94,19 @@ int MainLoop(
     int errorCode = 0;
     try {
         Win32 platform(instance, window);
+
         Camera camera;
-        vk = new VulkanApplication(platform, &camera);
+        // camera.eye = { parser.startX, parser.startY, parser.startZ };
+        // camera.at = { parser.startX, parser.startY, parser.startZ - 1 };
+        // camera.eye = { 2, 2, 2 };
+        // camera.at = { 0, 0, 0 };
+        camera.eye = parser.initEye;
+        camera.at = parser.initEye;
+        camera.at.x += 1;
+
+        vk = new VulkanApplication(platform, &camera, parser.lines);
+        camera.rotateY(parser.initAngle);
+
         DirectInput directInput(instance);
         Controller* controller = directInput.controller;
         Mouse* mouse = directInput.mouse;
@@ -178,7 +190,13 @@ WinMain(
 ) {
     LPSTR pathToPAK = commandLine;
     LOG(INFO) << "path to PAK file: " << pathToPAK;
-    parsePAK(pathToPAK);
+    PAKParser parser(pathToPAK);
 
-    return MainLoop(instance, prevInstance, commandLine, showCommand);
+    return MainLoop(
+        instance,
+        prevInstance,
+        commandLine,
+        showCommand,
+        parser
+    );
 }

@@ -4,58 +4,21 @@
 
 #include <iostream>
 
+#include <vector>
+
+#include <glm/vec3.hpp>
+
 #include "easylogging++.h"
 
+using glm::vec3;
+
 using std::runtime_error;
+using std::vector;
 
-#define HEADER_LENGTH 4
-#define FILE_ENTRY_LENGTH 64
-
-struct PAKHeader {
-    char id[4];
-    int32_t offset;
-    int32_t size;
+struct PAKParser {
+    vector<vec3> lines;
+    vec3 initEye;
+    float initAngle;
+    
+    PAKParser(const char*);
 };
-
-struct PAKFileEntry {
-    char name[54];
-    int32_t offset;
-    int32_t size;
-};
-
-struct BSPEntry {
-    int32_t offset;
-    int32_t size;
-};
-
-struct BSPHeader {
-    int32_t version;
-    BSPEntry entities;
-    BSPEntry planes;
-    BSPEntry miptex;
-    BSPEntry vertices;
-    BSPEntry visilist;
-    BSPEntry nodes;
-    BSPEntry texinfo;
-    BSPEntry faces;
-    BSPEntry lightmaps;
-    BSPEntry clipnodes;
-    BSPEntry leaves;
-    BSPEntry lface;
-    BSPEntry edges;
-    BSPEntry ledges;
-    BSPEntry models;
-};
-
-struct Vec3 {
-    float x;
-    float y;
-    float z;
-};
-
-struct Edge {
-    uint16_t v0;
-    uint16_t v1;
-};
-
-void parsePAK(const char*);

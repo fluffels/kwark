@@ -19,7 +19,7 @@ using std::vector;
 
 class VulkanApplication {
     public:
-        VulkanApplication(const Platform&, Camera*);
+        VulkanApplication(const Platform&, Camera*, vector<vec3>&);
         virtual ~VulkanApplication();
 
         uint32_t getEnabledExtensionCount();
@@ -39,6 +39,7 @@ class VulkanApplication {
         bool _shouldResize;
 
         Camera* _camera;
+        vector<Vertex> _mesh;
 
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;
