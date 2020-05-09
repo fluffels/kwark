@@ -154,10 +154,10 @@ PAKParser::PAKParser(const char* path) {
                             char* n = s + 1;
                             s = strstr(n, " ");
                             *s = '\0';
-                            entity.origin.z = atoi(n);
+                            entity.origin.z = -atoi(n);
 
                             n = s + 1;
-                            entity.origin.y = atoi(n);
+                            entity.origin.y = -atoi(n);
                         } else if (inAngle) {
                             entity.angle = atoi(buffer);
                         }
@@ -183,7 +183,7 @@ PAKParser::PAKParser(const char* path) {
             }
 
             for (auto entity: entityList) {
-                if (strcmp("info_player_start", entity.className) == 0) {
+                if (strcmp("info_player_deathmatch", entity.className) == 0) {
                     initEye = {
                         entity.origin.x,
                         entity.origin.y,
