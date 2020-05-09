@@ -72,7 +72,6 @@ Controller::Controller(IDirectInput8* directInput, GUID guid):
     range.lMin = JOYSTICK_MIN;
     result = device->SetProperty(DIPROP_RANGE, &range.diph);
     DI_CHECK(result, "could not get controller properties");
-    LOG(INFO) << "controller range: " << range.lMin << " -> " << range.lMax;
 
     result = device->Acquire();
     DI_CHECK(result, "could not acquire controller");
@@ -83,11 +82,9 @@ ControllerState Controller::getState() {
     device->GetDeviceState(sizeof(deviceState), &deviceState);
 
     ControllerState state;
-    LOG(INFO) << deviceState.rX << " " << deviceState.rY << " " << deviceState.x << " " << deviceState.y;
     state.rX = (deviceState.rX / (float)JOYSTICK_RANGE)*2 - 1;
     state.rY = (deviceState.rY / (float)JOYSTICK_RANGE)*2 - 1;
     state.x = (deviceState.x / (float)JOYSTICK_RANGE)*2 - 1;
     state.y = (deviceState.y / (float)JOYSTICK_RANGE)*2 - 1;
-    LOG(INFO) << state.rX << " " << state.rY << " " << state.x << " " << state.y;
     return state;
 }
