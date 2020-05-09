@@ -1,10 +1,10 @@
 #include <Windows.h>
-#include <dinput.h>
 
 #include "easylogging++.h"
 INITIALIZE_EASYLOGGINGPP
 
 #include "Camera.h"
+#include "DirectInput.h"
 #include "Mouse.h"
 #include "PAKParser.h"
 #include "VulkanApplication.h"
@@ -16,31 +16,14 @@ using std::exception;
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
-const long JOYSTICK_MIN = 0;
-const long JOYSTICK_MAX = 1000000;
-const long JOYSTICK_RANGE = JOYSTICK_MAX - JOYSTICK_MIN;
-const long JOYSTICK_MID = JOYSTICK_RANGE / 2;
 
-const float DELTA_MOVE_PER_S = .5f;
+const float DELTA_MOVE_PER_S = 2.f;
 const float DELTA_ROTATE_PER_S = 3.14f;
 const float MOUSE_SENSITIVITY = 5;
 const float JOYSTICK_SENSITIVITY = 100;
 
-DIOBJECTDATAFORMAT xAxis = {};
-DIOBJECTDATAFORMAT yAxis = {};
-DIOBJECTDATAFORMAT rXAxis = {};
-DIOBJECTDATAFORMAT rYAxis = {};
-
 VulkanApplication* vk;
 bool keyboard[VK_OEM_CLEAR] = {};
-GUID controllerGUID = {};
-
-struct ControllerState {
-    uint32_t x;
-    uint32_t y;
-    uint32_t rX;
-    uint32_t rY;
-};
 
 LRESULT
 WindowProc(
@@ -67,47 +50,6 @@ WindowProc(
     return DefWindowProc(window, message, wParam, lParam);
 }
 
-BOOL DirectInputDeviceCallback(
-    LPCDIDEVICEINSTANCE lpddi,
-    LPVOID pvRef
-) {
-    DIDEVICEINSTANCE device = *lpddi;
-    LOG(INFO) << "found a controller: " << device.tszInstanceName;
-    controllerGUID = device.guidInstance;
-    return DIENUM_STOP;
-}
-
-BOOL DirectInputControllerObjectsCallback(
-    LPCDIDEVICEOBJECTINSTANCE lpddoi,
-    LPVOID pvRef
-) {
-    DIDEVICEOBJECTINSTANCE object = *lpddoi;
-    LOG(INFO) << "found a controller object: " << object.tszName;
-    DIOBJECTDATAFORMAT *dataFormat = nullptr;
-    if (object.guidType == GUID_XAxis) {
-        dataFormat = &xAxis;
-        dataFormat->pguid = &GUID_XAxis;
-        dataFormat->dwOfs = 0;
-    } else if (object.guidType == GUID_YAxis) {
-        dataFormat = &yAxis;
-        dataFormat->pguid = &GUID_YAxis;
-        dataFormat->dwOfs = 4;
-    } else if (object.guidType == GUID_RxAxis) {
-        dataFormat = &rXAxis;
-        dataFormat->pguid = &GUID_RxAxis;
-        dataFormat->dwOfs = 8;
-    } else if (object.guidType == GUID_RyAxis) {
-        dataFormat = &rYAxis;
-        dataFormat->pguid = &GUID_RyAxis;
-        dataFormat->dwOfs = 12;
-    }
-    if (dataFormat != nullptr) {
-        dataFormat->dwFlags = object.dwFlags;
-        dataFormat->dwType = object.dwType;
-    }
-    return DIENUM_CONTINUE;
-}
-
 int MainLoop(
     HINSTANCE instance,
     HINSTANCE prevInstance,
@@ -115,67 +57,6 @@ int MainLoop(
     int showCommand
 ) {
     LOG(INFO) << "Starting...";
-
-    IDirectInput8* directInput;
-    auto result = DirectInput8Create(
-        instance,
-        DIRECTINPUT_VERSION,
-        IID_IDirectInput8A,
-        (LPVOID*)&directInput,
-        NULL
-    );
-    WIN32_CHECK(result, "could not get dinput");
-    result = directInput->EnumDevices(
-        DI8DEVCLASS_GAMECTRL,
-        DirectInputDeviceCallback,
-        0, 0
-    );
-    WIN32_CHECK(result, "could not enumerate devices");
-
-    LPDIRECTINPUTDEVICE8 controller;
-    if (controllerGUID.Data1 > 0) {
-        result = directInput->CreateDevice(controllerGUID, &controller, NULL);
-        WIN32_CHECK(result, "could not create controller");
-
-        result = controller->EnumObjects(
-            DirectInputControllerObjectsCallback,
-            nullptr,
-            0
-        );
-        WIN32_CHECK(result, "could not enumerate controller objects");
-
-        DIOBJECTDATAFORMAT objectDataFormats[] = {
-            xAxis,
-            yAxis,
-            rXAxis,
-            rYAxis
-        };
-
-        DIDATAFORMAT dataFormat = {};
-        dataFormat.dwSize = sizeof(dataFormat);
-        dataFormat.dwObjSize = sizeof(DIOBJECTDATAFORMAT);
-        dataFormat.dwFlags = DIDF_ABSAXIS;
-        dataFormat.dwDataSize = 4 * 4;
-        dataFormat.dwNumObjs = 4;
-        dataFormat.rgodf = objectDataFormats;
-
-        result = controller->SetDataFormat(&dataFormat);
-        WIN32_CHECK(result, "could not set controller data format");
-
-        DIPROPRANGE range;
-        range.diph.dwSize = sizeof(DIPROPRANGE);
-        range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-        range.diph.dwObj = 0;
-        range.diph.dwHow = DIPH_DEVICE;
-        range.lMax = JOYSTICK_MAX;
-        range.lMin = JOYSTICK_MIN;
-        result = controller->SetProperty(DIPROP_RANGE, &range.diph);
-        WIN32_CHECK(result, "could not get controller properties");
-        LOG(INFO) << "controller range: " << range.lMin << " -> " << range.lMax;
-
-        result = controller->Acquire();
-        WIN32_CHECK(result, "could not acquire controller");
-    }
 
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
@@ -214,7 +95,9 @@ int MainLoop(
         Win32 platform(instance, window);
         Camera camera;
         vk = new VulkanApplication(platform, &camera);
-        Mouse mouse(instance);
+        DirectInput directInput(instance);
+        Controller* controller = directInput.controller;
+        Mouse* mouse = directInput.mouse;
 
         BOOL done = false;
         while (!done) {
@@ -261,31 +144,19 @@ int MainLoop(
 
                 float deltaMouseRotate =
                     DELTA_ROTATE_PER_S * MOUSE_SENSITIVITY * s;
-                auto mouseDelta = mouse.getDelta();
+                auto mouseDelta = mouse->getDelta();
                 camera.rotateY((float)mouseDelta.x * deltaMouseRotate);
                 camera.rotateX((float)-mouseDelta.y * deltaMouseRotate);
 
                 float deltaJoystickRotate =
-                    DELTA_ROTATE_PER_S * JOYSTICK_SENSITIVITY * s;
-                if (controllerGUID.Data1 > 0) {
-                    ControllerState joyState;
-                    controller->GetDeviceState(sizeof(joyState), &joyState);
+                    DELTA_ROTATE_PER_S * s * JOYSTICK_SENSITIVITY;
+                if (controller) {
+                    auto state = controller->getState();
 
-                    float rX = (joyState.rX / (float)JOYSTICK_RANGE)*2 - 1;
-                    rX *= deltaJoystickRotate;
-                    camera.rotateY(rX);
-
-                    float rY = (joyState.rY / (float)JOYSTICK_RANGE)*2 - 1;
-                    rY *= -deltaJoystickRotate;
-                    camera.rotateX(rY);
-
-                    float dX = (joyState.x / (float)JOYSTICK_RANGE)*2 - 1;
-                    dX *= deltaMove;
-                    camera.right(dX);
-
-                    float dY = (joyState.y / (float)JOYSTICK_RANGE)*2 - 1;
-                    dY *= -deltaMove;
-                    camera.forward(dY);
+                    camera.rotateY(state.rX * deltaJoystickRotate);
+                    camera.rotateX(-state.rY * deltaJoystickRotate);
+                    camera.right(state.x * deltaMove);
+                    camera.forward(-state.y * deltaMove);
                 }
             }
         } 

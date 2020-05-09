@@ -3,20 +3,9 @@
 #include <exception>
 
 #define DI_CHECK(e, m) if (e != DI_OK) throw new std::exception(m)
-#define DIRECTINPUT_VERSION 0x0800
 
-Mouse::Mouse(HINSTANCE instance) {
-    IDirectInput8* directInput;
-    auto result = DirectInput8Create(
-        instance,
-        DIRECTINPUT_VERSION,
-        IID_IDirectInput8A,
-        (LPVOID*)&directInput,
-        NULL
-    );
-    DI_CHECK(result, "could not get dinput");
-
-    directInput->CreateDevice(GUID_SysMouse, &device, NULL);
+Mouse::Mouse(IDirectInput8* directInput) {
+    auto result = directInput->CreateDevice(GUID_SysMouse, &device, NULL);
     DI_CHECK(result, "could not create mouse");
 
     DIPROPDWORD properties;

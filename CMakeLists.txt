@@ -33,6 +33,7 @@ add_executable (
     src/util.cpp
     src/Vertex.cpp
     src/Camera.cpp
+    src/DirectInput.cpp
     src/Controller.cpp
     src/Mouse.cpp
     src/VulkanApplication.cpp
