@@ -5,6 +5,7 @@
 INITIALIZE_EASYLOGGINGPP
 
 #include "Camera.h"
+#include "Mouse.h"
 #include "PAKParser.h"
 #include "VulkanApplication.h"
 #include "Win32.h"
@@ -40,42 +41,6 @@ struct ControllerState {
     uint32_t rX;
     uint32_t rY;
 };
-
-LPDIRECTINPUTDEVICE8
-GetMouse(
-    HINSTANCE instance
-) {
-    IDirectInput8* directInput;
-    auto result = DirectInput8Create(
-        instance,
-        DIRECTINPUT_VERSION,
-        IID_IDirectInput8A,
-        (LPVOID*)&directInput,
-        NULL
-    );
-    WIN32_CHECK(result, "could not get dinput");
-
-    LPDIRECTINPUTDEVICE8 mouse;
-    directInput->CreateDevice(GUID_SysMouse, &mouse, NULL);
-    WIN32_CHECK(result, "could not create mouse");
-
-    DIPROPDWORD properties;
-    properties.diph.dwSize = sizeof(DIPROPDWORD);
-    properties.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-    properties.diph.dwObj = 0;
-    properties.diph.dwHow = DIPH_DEVICE;
-    properties.dwData = DIPROPAXISMODE_REL;
-    result = mouse->SetProperty(DIPROP_AXISMODE, &properties.diph);
-    WIN32_CHECK(result, "could not set mouse properties");
-
-    result = mouse->SetDataFormat(&c_dfDIMouse);
-    WIN32_CHECK(result, "could not set mouse data format");
-
-    result = mouse->Acquire();
-    WIN32_CHECK(result, "could not acquire mouse");
-
-    return mouse;
-}
 
 LRESULT
 WindowProc(
@@ -150,8 +115,6 @@ int MainLoop(
     int showCommand
 ) {
     LOG(INFO) << "Starting...";
-
-    LPDIRECTINPUTDEVICE8 mouse = GetMouse(instance);
 
     IDirectInput8* directInput;
     auto result = DirectInput8Create(
@@ -251,6 +214,7 @@ int MainLoop(
         Win32 platform(instance, window);
         Camera camera;
         vk = new VulkanApplication(platform, &camera);
+        Mouse mouse(instance);
 
         BOOL done = false;
         while (!done) {
@@ -297,10 +261,9 @@ int MainLoop(
 
                 float deltaMouseRotate =
                     DELTA_ROTATE_PER_S * MOUSE_SENSITIVITY * s;
-                DIMOUSESTATE mouseState;
-                mouse->GetDeviceState(sizeof(mouseState), &mouseState);
-                camera.rotateY((float)mouseState.lX * deltaMouseRotate);
-                camera.rotateX((float)-mouseState.lY * deltaMouseRotate);
+                auto mouseDelta = mouse.getDelta();
+                camera.rotateY((float)mouseDelta.x * deltaMouseRotate);
+                camera.rotateX((float)-mouseDelta.y * deltaMouseRotate);
 
                 float deltaJoystickRotate =
                     DELTA_ROTATE_PER_S * JOYSTICK_SENSITIVITY * s;
