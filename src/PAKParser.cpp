@@ -108,7 +108,7 @@ PAKParser::PAKParser(const char* path) {
         auto entry = parsePAKFileEntry(file, header.offset, i);
         LOG(INFO) << "file " << i << ": " << entry.name;
 
-        if (strcmp("maps/e1m1.bsp", entry.name) == 0) {
+        if (strcmp("maps/e1m2.bsp", entry.name) == 0) {
             auto BSPHeader = parseBSPHeader(file, entry.offset);
 
             vector<Entity> entityList;
@@ -183,7 +183,7 @@ PAKParser::PAKParser(const char* path) {
             }
 
             for (auto entity: entityList) {
-                if (strcmp("info_player_deathmatch", entity.className) == 0) {
+                if (strcmp("info_player_start", entity.className) == 0) {
                     initEye = {
                         entity.origin.x,
                         entity.origin.y,
