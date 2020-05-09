@@ -105,7 +105,7 @@ int MainLoop(
         camera.at.x += 1;
 
         vk = new VulkanApplication(platform, &camera, parser.lines);
-        camera.rotateY(parser.initAngle);
+        camera.rotateY(-parser.initAngle);
 
         DirectInput directInput(instance);
         Controller* controller = directInput.controller;

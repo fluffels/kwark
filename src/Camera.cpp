@@ -9,6 +9,8 @@ using glm::perspective;
 using glm::rotate;
 using glm::vec4;
 
+#define PI 3.14159265358979323846f
+
 mat4 Camera::get() const {
     auto view = lookAt(eye, at, up);
     auto proj = perspective(fov, ar, nearz, farz);
@@ -51,7 +53,7 @@ void Camera::rotateY(float d) {
     vec3 f = at - eye;
     vec4 forward = vec4(f, 0.0);
     mat4 rotation(1);
-    rotation = rotate(rotation, 3.14f * d * (1/360.f), up);
+    rotation = rotate(rotation, PI * d * (1/180.f), up);
     forward = normalize(forward * rotation);
     at = eye + vec3(forward);
 }
@@ -61,7 +63,7 @@ void Camera::rotateX(float d) {
     vec4 forward = vec4(f, 0.0);
     mat4 rotation(1);
     auto right = normalize(cross(f, up));
-    rotation = rotate(rotation, 3.14f * d * (1/360.f), right);
+    rotation = rotate(rotation, PI * d * (1/180.f), right);
     forward = normalize(forward * rotation);
     at = eye + vec3(forward);
 }
