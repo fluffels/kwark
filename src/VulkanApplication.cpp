@@ -1194,7 +1194,7 @@ getSwapImagesAndImageViews() {
 
 void VulkanApplication::
 initCamera() {
-    _camera->up = { 0, -1, 0 };
+    _camera->up = { 0, 1, 0 };
     _camera->setAR(_swapChainExtent.width, _swapChainExtent.height);
     _camera->setFOV(45);
     _camera->nearz = 0;
