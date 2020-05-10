@@ -46,12 +46,26 @@ struct Edge {
     uint16_t v1;
 };
 
+struct Face {
+    uint16_t planeId;
+    uint16_t side;
+    int32_t ledgeId;
+    uint16_t ledgeNum;
+    uint16_t texinfoId;
+    uint8_t typeLight;
+    uint8_t baseLight;
+    uint8_t light[2];
+    int32_t lightmap;
+};
+
 struct BSPParser {
     FILE* file;
+    int32_t fileOffset;
     BSPHeader header;
 
     vector<Entity> entities;
     vector<Edge> edges;
+    vector<Face> faces;
     vector<vec3> lines;
     vector<vec3> vertices;
     
@@ -59,6 +73,7 @@ struct BSPParser {
 
     void parseEdges(int32_t, int32_t);
     void parseEntities(int32_t, int32_t);
+    void parseFaces();
     void parseHeader(int32_t);
     void parseVertices(int32_t, int32_t);
 

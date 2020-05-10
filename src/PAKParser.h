@@ -1,6 +1,11 @@
 #pragma once
 
-/* See: http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_4.htm */
+/*
+See: http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_4.htm
+
+The `long` type mentioned in the link is an int32_t and the `u_short` type is
+a uint32_t.
+*/
 
 #include <iostream>
 #include <string>

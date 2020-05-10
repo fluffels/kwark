@@ -11,6 +11,20 @@ void BSPParser::parseHeader(int32_t offset) {
     }
 }
 
+void BSPParser::parseFaces() {
+    auto offset = fileOffset + header.faces.offset;
+    auto size = header.faces.size;
+
+    auto count = size / sizeof(Face);
+    faces.resize(count);
+
+    seek(file, offset);
+    size_t readCount = fread_s(faces.data(), size, sizeof(Face), count, file);
+    if (readCount != count) {
+        throw runtime_error("unexpected eof");
+    }
+}
+
 void parseOrigin(char *buffer, vec3 &origin) {
     char *s = strstr(buffer, " ");
     *s = '\0';
@@ -139,7 +153,8 @@ Entity& BSPParser::findEntityByName(char* name) {
 }
 
 BSPParser::BSPParser(FILE* file, int32_t offset):
-        file(file) {
+        file(file),
+        fileOffset(offset) {
     parseHeader(offset);
     parseEntities(
         offset + header.entities.offset,
@@ -153,6 +168,7 @@ BSPParser::BSPParser(FILE* file, int32_t offset):
         offset + header.edges.offset,
         header.edges.size
     );
+    parseFaces();
 
     for (int i = 0; i < edges.size(); i++) {
         auto edge = edges[i];
