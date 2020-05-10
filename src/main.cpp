@@ -96,10 +96,6 @@ int MainLoop(
         Win32 platform(instance, window);
 
         Camera camera;
-        // camera.eye = { parser.startX, parser.startY, parser.startZ };
-        // camera.at = { parser.startX, parser.startY, parser.startZ - 1 };
-        // camera.eye = { 2, 2, 2 };
-        // camera.at = { 0, 0, 0 };
         camera.eye = parser.initEye;
         camera.at = parser.initEye;
         camera.at.x += 1;
