@@ -114,6 +114,20 @@ PAKParser::PAKParser(const char* path) {
     }
 }
 
+void parseOrigin(char *buffer, Vec3 &origin) {
+    char *s = strstr(buffer, " ");
+    *s = '\0';
+    origin.x = (float)atoi(buffer);
+
+    char *n = s + 1;
+    s = strstr(n, " ");
+    *s = '\0';
+    origin.z = (float)-atoi(n);
+
+    n = s + 1;
+    origin.y = (float)-atoi(n);
+}
+
 vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
     vector<Entity> entityList;
 
@@ -165,20 +179,9 @@ vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
                         case CLASS_NAME:
                             strcpy(entity.className, buffer);
                             break;
-                        case ORIGIN: {
-                            char* s = strstr(buffer, " ");
-                            *s = '\0';
-                            entity.origin.x = atoi(buffer);
-
-                            char* n = s + 1;
-                            s = strstr(n, " ");
-                            *s = '\0';
-                            entity.origin.z = -atoi(n);
-
-                            n = s + 1;
-                            entity.origin.y = -atoi(n);
+                        case ORIGIN:
+                            parseOrigin(buffer, entity.origin);
                             break;
-                        }
                         case ANGLE:
                             entity.angle = atoi(buffer);
                             break;

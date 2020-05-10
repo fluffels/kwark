@@ -18,7 +18,7 @@ using std::vector;
 struct PAKParser {
     vector<vec3> lines;
     vec3 initEye;
-    float initAngle;
+    int initAngle;
     
     PAKParser(const char*);
     void parseBSP(FILE*, int32_t);
