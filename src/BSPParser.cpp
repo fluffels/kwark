@@ -139,6 +139,21 @@ void BSPParser::parseVertices() {
     }
 }
 
+void BSPParser::parseEdgeList() {
+    auto offset = fileOffset + header.ledges.offset;
+    auto size = header.ledges.size;
+    auto elementSize = (int32_t)sizeof(int32_t);
+
+    auto count = size / elementSize;
+    edgeList.resize(count);
+
+    seek(file, offset);
+    auto readCount = fread_s(edgeList.data(), size, elementSize, count, file);
+    if (readCount != count) {
+        throw runtime_error("unexpected EOF");
+    }
+}
+
 void BSPParser::parseEdges() {
     auto offset = fileOffset + header.edges.offset;
     auto size = header.edges.size;
@@ -166,6 +181,7 @@ BSPParser::BSPParser(FILE* file, int32_t offset):
     parseHeader();
     parseEntities();
     parseVertices();
+    parseEdgeList();
     parseEdges();
     parseFaces();
 

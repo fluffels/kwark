@@ -65,6 +65,7 @@ struct BSPParser {
 
     vector<Entity> entities;
     vector<Edge> edges;
+    vector<int32_t> edgeList;
     vector<Face> faces;
     vector<vec3> lines;
     vector<vec3> vertices;
@@ -72,6 +73,7 @@ struct BSPParser {
     BSPParser(FILE*, int32_t);
 
     void parseEdges();
+    void parseEdgeList();
     void parseEntities();
     void parseFaces();
     void parseHeader();

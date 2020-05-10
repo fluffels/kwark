@@ -3,8 +3,11 @@
 /*
 See: http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_4.htm
 
-The `long` type mentioned in the link is an int32_t and the `u_short` type is
-a uint32_t.
+Types mentioned in the link appear to be defined as follows:
+  * long: int32_t
+  * short: int32_t (odd, but ledges is marked as an array of short, but appears
+      to be 4 byte integers in Quake's pak0 stored at offset 10777107)
+  * u_short: uint16_t
 */
 
 #include <iostream>
