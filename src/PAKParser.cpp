@@ -116,73 +116,85 @@ PAKParser::PAKParser(const char* path) {
 
 vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
     vector<Entity> entityList;
+
     seek(file, offset);
+
     char* entities = new char[size];
     fread_s(entities, size, size, 1, file);
-    char buffer[255];
     char* ePos = entities;
+
+    char buffer[255];
     char* bPos = buffer;
-    bool inClassName = false;
-    bool inOrigin = false;
-    bool inAngle = false;
+
+    enum KEYS {
+        CLASS_NAME,
+        ORIGIN,
+        ANGLE,
+        UNKNOWN
+    };
+    KEYS key = UNKNOWN;
+
     int state = 0;
     Entity entity;
+
     while(ePos < entities + size) {
-        if (state == 0) {
-            if (*ePos == '{') {
-                state = 1;
-            }
-            ePos++;
-            continue;
-        } else if (state == 1) {
-            if (*ePos == '"') {
-                bPos = buffer;
-                state = 2;
-            } else if (*ePos == '}') {
-                entityList.push_back(entity);
-                entity = {};
-                state = 0;
-            }
-            ePos++;
-            continue;
-        } else if (state == 2) {
-            if (*ePos == '"') {
-                *bPos = '\0';
-                if (inClassName) {
-                    strcpy(entity.className, buffer);
-                } else if (inOrigin) {
-                    char* s = strstr(buffer, " ");
-                    *s = '\0';
-                    entity.origin.x = atoi(buffer);
-
-                    char* n = s + 1;
-                    s = strstr(n, " ");
-                    *s = '\0';
-                    entity.origin.z = -atoi(n);
-
-                    n = s + 1;
-                    entity.origin.y = -atoi(n);
-                } else if (inAngle) {
-                    entity.angle = atoi(buffer);
+        char c = *ePos;
+        switch (state) {
+            case 0:
+                if (c == '{') {
+                    state = 1;
+                    entity = {};
                 }
-                if (strcmp("classname", buffer) == 0) {
-                    inClassName = true;
-                } else if (strcmp("origin", buffer) == 0) {
-                    inOrigin = true;
-                } else if (strcmp("angle", buffer) == 0) {
-                    inAngle = true;
+                ePos++;
+                break;
+            case 1:
+                if (c == '"') {
+                    bPos = buffer;
+                    state = 2;
+                } else if (*ePos == '}') {
+                    state = 0;
+                    entityList.push_back(entity);
+                }
+                ePos++;
+                break;
+            case 2:
+                if (*ePos == '"') {
+                    state = 1;
+                    *bPos = '\0';
+                    switch (key) {
+                        case CLASS_NAME:
+                            strcpy(entity.className, buffer);
+                            break;
+                        case ORIGIN: {
+                            char* s = strstr(buffer, " ");
+                            *s = '\0';
+                            entity.origin.x = atoi(buffer);
+
+                            char* n = s + 1;
+                            s = strstr(n, " ");
+                            *s = '\0';
+                            entity.origin.z = -atoi(n);
+
+                            n = s + 1;
+                            entity.origin.y = -atoi(n);
+                            break;
+                        }
+                        case ANGLE:
+                            entity.angle = atoi(buffer);
+                            break;
+                        default:
+                            break;
+                    }
+                    if (strcmp("classname", buffer) == 0) key = CLASS_NAME;
+                    else if (strcmp("origin", buffer) == 0) key = ORIGIN;
+                    else if (strcmp("angle", buffer) == 0) key = ANGLE;
+                    else key = UNKNOWN;
                 } else {
-                    inClassName = false;
-                    inOrigin = false;
-                    inAngle = false;
+                    *bPos = c;
+                    bPos++;
                 }
-                state = 1;
-            } else {
-                *bPos = *ePos;
-                bPos++;
-            }
-            ePos++;
-            continue;
+                ePos++;
+                break;
         }
     }
     return entityList;
