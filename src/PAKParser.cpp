@@ -114,13 +114,11 @@ PAKParser::PAKParser(const char* path) {
     }
 }
 
-void PAKParser::parseBSP(FILE* file, int32_t offset) {
-    auto BSPHeader = parseBSPHeader(file, offset);
-
+vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
     vector<Entity> entityList;
-    seek(file, BSPHeader.entities.offset + offset);
-    char* entities = new char[BSPHeader.entities.size];
-    fread_s(entities, BSPHeader.entities.size, BSPHeader.entities.size, 1, file);
+    seek(file, offset);
+    char* entities = new char[size];
+    fread_s(entities, size, size, 1, file);
     char buffer[255];
     char* ePos = entities;
     char* bPos = buffer;
@@ -129,7 +127,7 @@ void PAKParser::parseBSP(FILE* file, int32_t offset) {
     bool inAngle = false;
     int state = 0;
     Entity entity;
-    while(ePos < entities + BSPHeader.entities.size) {
+    while(ePos < entities + size) {
         if (state == 0) {
             if (*ePos == '{') {
                 state = 1;
@@ -187,6 +185,16 @@ void PAKParser::parseBSP(FILE* file, int32_t offset) {
             continue;
         }
     }
+    return entityList;
+}
+
+void PAKParser::parseBSP(FILE* file, int32_t offset) {
+    auto BSPHeader = parseBSPHeader(file, offset);
+    auto entityList = parseEntities(
+        file,
+        offset + BSPHeader.entities.offset,
+        BSPHeader.entities.size
+    );
 
     for (auto entity: entityList) {
         if (strcmp("info_player_start", entity.className) == 0) {
