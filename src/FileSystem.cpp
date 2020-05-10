@@ -13,3 +13,10 @@ readFile(const std::filesystem::path& path) {
     file.close();
     return buffer;
 }
+
+void seek(FILE* file, int32_t offset) {
+    auto code = fseek(file, offset, SEEK_SET);
+    if (code != 0) {
+        throw std::runtime_error("could not seek to position");
+    }
+}

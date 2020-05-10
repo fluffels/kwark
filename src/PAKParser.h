@@ -6,20 +6,16 @@
 
 #include <vector>
 
-#include <glm/vec3.hpp>
-
 #include "easylogging++.h"
 
-using glm::vec3;
+#include "BSPParser.h"
 
 using std::runtime_error;
 using std::vector;
 
 struct PAKParser {
-    vector<vec3> lines;
-    vec3 initEye;
-    int initAngle;
-    
+    BSPParser* map;
+
     PAKParser(const char*);
-    void parseBSP(FILE*, int32_t);
+    ~PAKParser();
 };

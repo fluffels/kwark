@@ -95,13 +95,15 @@ int MainLoop(
     try {
         Win32 platform(instance, window);
 
+        BSPParser& map = *parser.map;
+
         Camera camera;
-        camera.eye = parser.initEye;
-        camera.at = parser.initEye;
+        camera.eye = map.initEye;
+        camera.at = map.initEye;
         camera.at.x += 1;
 
-        vk = new VulkanApplication(platform, &camera, parser.lines);
-        camera.rotateY((float)-parser.initAngle);
+        vk = new VulkanApplication(platform, &camera, map.lines);
+        camera.rotateY((float)-map.initAngle);
 
         DirectInput directInput(instance);
         Controller* controller = directInput.controller;
