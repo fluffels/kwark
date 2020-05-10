@@ -140,40 +140,45 @@ vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
     char buffer[255];
     char* bPos = buffer;
 
-    enum KEYS {
+    enum KEY {
         CLASS_NAME,
         ORIGIN,
         ANGLE,
         UNKNOWN
     };
-    KEYS key = UNKNOWN;
+    KEY key = UNKNOWN;
 
-    int state = 0;
+    enum STATE {
+        OUTSIDE_ENTITY,
+        INSIDE_ENTITY,
+        INSIDE_STRING,
+    };
+    STATE state = OUTSIDE_ENTITY;
     Entity entity;
 
     while(ePos < entities + size) {
         char c = *ePos;
         switch (state) {
-            case 0:
+            case OUTSIDE_ENTITY:
                 if (c == '{') {
-                    state = 1;
+                    state = INSIDE_ENTITY;
                     entity = {};
                 }
                 ePos++;
                 break;
-            case 1:
+            case INSIDE_ENTITY:
                 if (c == '"') {
                     bPos = buffer;
-                    state = 2;
+                    state = INSIDE_STRING;
                 } else if (*ePos == '}') {
-                    state = 0;
+                    state = OUTSIDE_ENTITY;
                     entityList.push_back(entity);
                 }
                 ePos++;
                 break;
-            case 2:
+            case INSIDE_STRING:
                 if (*ePos == '"') {
-                    state = 1;
+                    state = INSIDE_ENTITY;
                     *bPos = '\0';
                     switch (key) {
                         case CLASS_NAME:
