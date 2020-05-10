@@ -21,4 +21,5 @@ struct PAKParser {
     float initAngle;
     
     PAKParser(const char*);
+    void parseBSP(FILE*, int32_t);
 };

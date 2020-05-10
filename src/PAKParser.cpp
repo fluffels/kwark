@@ -109,114 +109,116 @@ PAKParser::PAKParser(const char* path) {
         LOG(INFO) << "file " << i << ": " << entry.name;
 
         if (strcmp("maps/e1m2.bsp", entry.name) == 0) {
-            auto BSPHeader = parseBSPHeader(file, entry.offset);
-
-            vector<Entity> entityList;
-            seek(file, BSPHeader.entities.offset + entry.offset);
-            char* entities = new char[BSPHeader.entities.size];
-            fread_s(entities, BSPHeader.entities.size, BSPHeader.entities.size, 1, file);
-            char buffer[255];
-            char* ePos = entities;
-            char* bPos = buffer;
-            bool inClassName = false;
-            bool inOrigin = false;
-            bool inAngle = false;
-            int state = 0;
-            Entity entity;
-            while(ePos < entities + BSPHeader.entities.size) {
-                if (state == 0) {
-                    if (*ePos == '{') {
-                        state = 1;
-                    }
-                    ePos++;
-                    continue;
-                } else if (state == 1) {
-                    if (*ePos == '"') {
-                        bPos = buffer;
-                        state = 2;
-                    } else if (*ePos == '}') {
-                        entityList.push_back(entity);
-                        entity = {};
-                        state = 0;
-                    }
-                    ePos++;
-                    continue;
-                } else if (state == 2) {
-                    if (*ePos == '"') {
-                        *bPos = '\0';
-                        if (inClassName) {
-                            strcpy(entity.className, buffer);
-                        } else if (inOrigin) {
-                            char* s = strstr(buffer, " ");
-                            *s = '\0';
-                            entity.origin.x = atoi(buffer);
-
-                            char* n = s + 1;
-                            s = strstr(n, " ");
-                            *s = '\0';
-                            entity.origin.z = -atoi(n);
-
-                            n = s + 1;
-                            entity.origin.y = -atoi(n);
-                        } else if (inAngle) {
-                            entity.angle = atoi(buffer);
-                        }
-                        if (strcmp("classname", buffer) == 0) {
-                            inClassName = true;
-                        } else if (strcmp("origin", buffer) == 0) {
-                            inOrigin = true;
-                        } else if (strcmp("angle", buffer) == 0) {
-                            inAngle = true;
-                        } else {
-                            inClassName = false;
-                            inOrigin = false;
-                            inAngle = false;
-                        }
-                        state = 1;
-                    } else {
-                        *bPos = *ePos;
-                        bPos++;
-                    }
-                    ePos++;
-                    continue;
-                }
-            }
-
-            for (auto entity: entityList) {
-                if (strcmp("info_player_start", entity.className) == 0) {
-                    initEye = {
-                        entity.origin.x,
-                        entity.origin.y,
-                        entity.origin.z
-                    };
-                    initAngle = entity.angle;
-                }
-            }
-
-            seek(file, BSPHeader.vertices.offset + entry.offset);
-            const int vertexCount = BSPHeader.vertices.size / sizeof(Vec3);
-            Vec3* vertices = new Vec3[vertexCount];
-            fread_s(vertices, sizeof(Vec3)*vertexCount, sizeof(Vec3)*vertexCount, 1, file);
-
-            seek(file, BSPHeader.edges.offset + entry.offset);
-            const int edgeCount = BSPHeader.edges.size / sizeof(Edge);
-            Edge* edges = new Edge[edgeCount];
-            fread_s(edges, sizeof(Edge)*edgeCount, sizeof(Edge)*edgeCount, 1, file);
-
-            for (int i = 0; i < edgeCount; i++) {
-                auto edge = edges[i];
-                if ((edge.v0 < vertexCount) && (edge.v1 < vertexCount)) {
-                    auto v = vertices[edge.v0];
-                    lines.push_back(vec3(v.x, -v.z, -v.y));
-                    v = vertices[edge.v1];
-                    lines.push_back(vec3(v.x, -v.z, -v.y));
-                }
-            }
-
-            delete vertices;
-            delete edges;
-        } else {
-            seek(file, header.offset + (FILE_ENTRY_LENGTH*i));
+            parseBSP(file, entry.offset);
         }
     }
+}
+
+void PAKParser::parseBSP(FILE* file, int32_t offset) {
+    auto BSPHeader = parseBSPHeader(file, offset);
+
+    vector<Entity> entityList;
+    seek(file, BSPHeader.entities.offset + offset);
+    char* entities = new char[BSPHeader.entities.size];
+    fread_s(entities, BSPHeader.entities.size, BSPHeader.entities.size, 1, file);
+    char buffer[255];
+    char* ePos = entities;
+    char* bPos = buffer;
+    bool inClassName = false;
+    bool inOrigin = false;
+    bool inAngle = false;
+    int state = 0;
+    Entity entity;
+    while(ePos < entities + BSPHeader.entities.size) {
+        if (state == 0) {
+            if (*ePos == '{') {
+                state = 1;
+            }
+            ePos++;
+            continue;
+        } else if (state == 1) {
+            if (*ePos == '"') {
+                bPos = buffer;
+                state = 2;
+            } else if (*ePos == '}') {
+                entityList.push_back(entity);
+                entity = {};
+                state = 0;
+            }
+            ePos++;
+            continue;
+        } else if (state == 2) {
+            if (*ePos == '"') {
+                *bPos = '\0';
+                if (inClassName) {
+                    strcpy(entity.className, buffer);
+                } else if (inOrigin) {
+                    char* s = strstr(buffer, " ");
+                    *s = '\0';
+                    entity.origin.x = atoi(buffer);
+
+                    char* n = s + 1;
+                    s = strstr(n, " ");
+                    *s = '\0';
+                    entity.origin.z = -atoi(n);
+
+                    n = s + 1;
+                    entity.origin.y = -atoi(n);
+                } else if (inAngle) {
+                    entity.angle = atoi(buffer);
+                }
+                if (strcmp("classname", buffer) == 0) {
+                    inClassName = true;
+                } else if (strcmp("origin", buffer) == 0) {
+                    inOrigin = true;
+                } else if (strcmp("angle", buffer) == 0) {
+                    inAngle = true;
+                } else {
+                    inClassName = false;
+                    inOrigin = false;
+                    inAngle = false;
+                }
+                state = 1;
+            } else {
+                *bPos = *ePos;
+                bPos++;
+            }
+            ePos++;
+            continue;
+        }
+    }
+
+    for (auto entity: entityList) {
+        if (strcmp("info_player_start", entity.className) == 0) {
+            initEye = {
+                entity.origin.x,
+                entity.origin.y,
+                entity.origin.z
+            };
+            initAngle = entity.angle;
+        }
+    }
+
+    seek(file, BSPHeader.vertices.offset + offset);
+    const int vertexCount = BSPHeader.vertices.size / sizeof(Vec3);
+    Vec3* vertices = new Vec3[vertexCount];
+    fread_s(vertices, sizeof(Vec3)*vertexCount, sizeof(Vec3)*vertexCount, 1, file);
+
+    seek(file, BSPHeader.edges.offset + offset);
+    const int edgeCount = BSPHeader.edges.size / sizeof(Edge);
+    Edge* edges = new Edge[edgeCount];
+    fread_s(edges, sizeof(Edge)*edgeCount, sizeof(Edge)*edgeCount, 1, file);
+
+    for (int i = 0; i < edgeCount; i++) {
+        auto edge = edges[i];
+        if ((edge.v0 < vertexCount) && (edge.v1 < vertexCount)) {
+            auto v = vertices[edge.v0];
+            lines.push_back(vec3(v.x, -v.z, -v.y));
+            v = vertices[edge.v1];
+            lines.push_back(vec3(v.x, -v.z, -v.y));
+        }
+    }
+
+    delete vertices;
+    delete edges;
 }
