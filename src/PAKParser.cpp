@@ -208,6 +208,17 @@ vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
     return entityList;
 }
 
+vector<Vec3> parseVertices(FILE* file, int32_t offset, int32_t size) {
+    const int count = size / sizeof(Vec3);
+    vector<Vec3> vertices(count);
+
+    seek(file, offset);
+    int32_t bytes = sizeof(Vec3) * count;
+    fread_s(vertices.data(), bytes, bytes, 1, file);
+
+    return vertices;
+}
+
 void PAKParser::parseBSP(FILE* file, int32_t offset) {
     auto BSPHeader = parseBSPHeader(file, offset);
     auto entityList = parseEntities(
@@ -227,10 +238,11 @@ void PAKParser::parseBSP(FILE* file, int32_t offset) {
         }
     }
 
-    seek(file, BSPHeader.vertices.offset + offset);
-    const int vertexCount = BSPHeader.vertices.size / sizeof(Vec3);
-    Vec3* vertices = new Vec3[vertexCount];
-    fread_s(vertices, sizeof(Vec3)*vertexCount, sizeof(Vec3)*vertexCount, 1, file);
+    auto vertices = parseVertices(
+        file,
+        offset + BSPHeader.vertices.offset,
+        BSPHeader.vertices.size
+    );
 
     seek(file, BSPHeader.edges.offset + offset);
     const int edgeCount = BSPHeader.edges.size / sizeof(Edge);
@@ -239,7 +251,7 @@ void PAKParser::parseBSP(FILE* file, int32_t offset) {
 
     for (int i = 0; i < edgeCount; i++) {
         auto edge = edges[i];
-        if ((edge.v0 < vertexCount) && (edge.v1 < vertexCount)) {
+        if ((edge.v0 < vertices.size()) && (edge.v1 < vertices.size())) {
             auto v = vertices[edge.v0];
             lines.push_back(vec3(v.x, -v.z, -v.y));
             v = vertices[edge.v1];
@@ -247,6 +259,5 @@ void PAKParser::parseBSP(FILE* file, int32_t offset) {
         }
     }
 
-    delete vertices;
     delete edges;
 }
