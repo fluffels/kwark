@@ -79,5 +79,7 @@ struct BSPParser {
     void parseHeader();
     void parseVertices();
 
+    void buildWireFrameModel();
+
     Entity& findEntityByName(char*);
 };

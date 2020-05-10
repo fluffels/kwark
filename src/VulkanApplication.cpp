@@ -888,7 +888,7 @@ void VulkanApplication::
 createVertexBuffer() {
     _vertexBuffer = createBuffer(
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        1000024
+        (uint32_t)(_mesh.size() * sizeof(Vertex))
     );
 }
 
@@ -997,22 +997,6 @@ uploadUniformData() {
 
 void VulkanApplication::
 uploadVertexData() {
-    /*float vertices[] = {
-         0.0f, 0.0f, 0.0f, // p
-         1.0f, 0.0f, 0.0f, // c
-         1.0f, 0.0f, 0.0f, // p
-         1.0f, 0.0f, 0.0f, // c
-
-         0.0f, 0.0f, 0.0f, // p
-         0.0f, 1.0f, 0.0f, // c
-         0.0f, 1.0f, 0.0f, // p
-         0.0f, 1.0f, 0.0f, // c
-
-         0.0f, 0.0f, 0.0f, // p
-         0.0f, 0.0f, 1.0f, // c
-         0.0f, 0.0f, 1.0f, // p
-         0.0f, 0.0f, 1.0f, // c
-    };*/
     void* data = mapMemory(_vertexBuffer, _vertexMemory);
         memcpy(data, _mesh.data(), sizeof(Vertex)*_mesh.size());
     unMapMemory(_vertexMemory);

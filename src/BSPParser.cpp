@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "BSPParser.h"
 #include "FileSystem.h"
 
@@ -175,9 +177,30 @@ Entity& BSPParser::findEntityByName(char* name) {
     throw runtime_error("could not find entity " + string(name));
 }
 
+void BSPParser::buildWireFrameModel() {
+    for (Face& face: faces) {
+        auto edgeListBaseId = face.ledgeId;
+        for (uint32_t i = 0; i < face.ledgeNum; i++) {
+            auto edgeListId = edgeListBaseId + i;
+            auto edgeId = edgeList[edgeListId];
+            Edge& edge = edges[abs(edgeId)];
+            vec3 v0 = vertices[edge.v0];
+            vec3 v1 = vertices[edge.v1];
+            if (edgeId < 0) {
+                lines.push_back(v1);
+                lines.push_back(v0);
+            } else if (edgeId > 0) {
+                lines.push_back(v0);
+                lines.push_back(v1);
+            }
+        }
+    }
+}
+
 BSPParser::BSPParser(FILE* file, int32_t offset):
         file(file),
-        fileOffset(offset) {
+        fileOffset(offset)
+{
     parseHeader();
     parseEntities();
     parseVertices();
@@ -185,11 +208,13 @@ BSPParser::BSPParser(FILE* file, int32_t offset):
     parseEdges();
     parseFaces();
 
+    buildWireFrameModel();
+/* 
     for (int i = 0; i < edges.size(); i++) {
         auto edge = edges[i];
         if ((edge.v0 < vertices.size()) && (edge.v1 < vertices.size())) {
             lines.push_back(vertices[edge.v0]);
             lines.push_back(vertices[edge.v1]);
         }
-    }
+    } */
 }
