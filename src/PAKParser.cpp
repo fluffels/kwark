@@ -182,7 +182,7 @@ vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
                     *bPos = '\0';
                     switch (key) {
                         case CLASS_NAME:
-                            strcpy(entity.className, buffer);
+                            strncpy_s(entity.className, buffer, 255);
                             break;
                         case ORIGIN:
                             parseOrigin(buffer, entity.origin);
