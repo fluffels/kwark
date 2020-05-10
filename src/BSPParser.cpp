@@ -3,8 +3,8 @@
 
 using std::runtime_error;
 
-void BSPParser::parseHeader(int32_t offset) {
-    seek(file, offset);
+void BSPParser::parseHeader() {
+    seek(file, fileOffset);
     readStruct(file, header);
     if (header.version != 29) {
         throw runtime_error("BSP is not version 29");
@@ -39,9 +39,11 @@ void parseOrigin(char *buffer, vec3 &origin) {
     origin.y = (float)-atoi(n);
 }
 
-void BSPParser::parseEntities(int32_t offset, int32_t size) {
-    seek(file, offset);
+void BSPParser::parseEntities() {
+    auto offset = fileOffset + header.entities.offset;
+    auto size = header.entities.size;
 
+    seek(file, offset);
     char* entityBuffer = new char[size];
     fread_s(entityBuffer, size, size, 1, file);
     char* ePos = entityBuffer;
@@ -116,7 +118,10 @@ void BSPParser::parseEntities(int32_t offset, int32_t size) {
     }
 }
 
-void BSPParser::parseVertices(int32_t offset, int32_t size) {
+void BSPParser::parseVertices() {
+    auto offset = fileOffset + header.vertices.offset;
+    auto size = header.vertices.size;
+
     const int count = size / sizeof(vec3);
     vertices.resize(count);
 
@@ -134,7 +139,10 @@ void BSPParser::parseVertices(int32_t offset, int32_t size) {
     }
 }
 
-void BSPParser::parseEdges(int32_t offset, int32_t size) {
+void BSPParser::parseEdges() {
+    auto offset = fileOffset + header.edges.offset;
+    auto size = header.edges.size;
+
     const int count = size / sizeof(Edge);
     edges.resize(count);
 
@@ -155,19 +163,10 @@ Entity& BSPParser::findEntityByName(char* name) {
 BSPParser::BSPParser(FILE* file, int32_t offset):
         file(file),
         fileOffset(offset) {
-    parseHeader(offset);
-    parseEntities(
-        offset + header.entities.offset,
-        header.entities.size
-    );
-    parseVertices(
-        offset + header.vertices.offset,
-        header.vertices.size
-    );
-    parseEdges(
-        offset + header.edges.offset,
-        header.edges.size
-    );
+    parseHeader();
+    parseEntities();
+    parseVertices();
+    parseEdges();
     parseFaces();
 
     for (int i = 0; i < edges.size(); i++) {

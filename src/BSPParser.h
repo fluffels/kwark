@@ -71,11 +71,11 @@ struct BSPParser {
     
     BSPParser(FILE*, int32_t);
 
-    void parseEdges(int32_t, int32_t);
-    void parseEntities(int32_t, int32_t);
+    void parseEdges();
+    void parseEntities();
     void parseFaces();
-    void parseHeader(int32_t);
-    void parseVertices(int32_t, int32_t);
+    void parseHeader();
+    void parseVertices();
 
     Entity& findEntityByName(char*);
 };
