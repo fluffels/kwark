@@ -35,15 +35,9 @@ struct BSPHeader {
     BSPEntry models;
 };
 
-struct Vec3 {
-    float x;
-    float y;
-    float z;
-};
-
 struct Entity {
     char className[255];
-    Vec3 origin;
+    vec3 origin;
     int angle;
 };
 
@@ -59,7 +53,7 @@ struct BSPParser {
     vector<Entity> entities;
     vector<Edge> edges;
     vector<vec3> lines;
-    vector<Vec3> vertices;
+    vector<vec3> vertices;
     
     BSPParser(FILE*, int32_t);
 

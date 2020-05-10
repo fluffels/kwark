@@ -11,7 +11,7 @@ void BSPParser::parseHeader(int32_t offset) {
     }
 }
 
-void parseOrigin(char *buffer, Vec3 &origin) {
+void parseOrigin(char *buffer, vec3 &origin) {
     char *s = strstr(buffer, " ");
     *s = '\0';
     origin.x = (float)atoi(buffer);
@@ -103,12 +103,21 @@ void BSPParser::parseEntities(int32_t offset, int32_t size) {
 }
 
 void BSPParser::parseVertices(int32_t offset, int32_t size) {
-    const int count = size / sizeof(Vec3);
+    const int count = size / sizeof(vec3);
     vertices.resize(count);
 
     seek(file, offset);
-    int32_t bytes = sizeof(Vec3) * count;
+    int32_t bytes = sizeof(vec3) * count;
     fread_s(vertices.data(), bytes, bytes, 1, file);
+
+    /* NOTE(jan): Translate from BSP coordinate system.
+       See: http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_2.htm#2.1.1 */
+    for (vec3& vertex: vertices) {
+        auto y = -vertex.z;
+        auto z = -vertex.y;
+        vertex.y = y;
+        vertex.z = z;
+    }
 }
 
 void BSPParser::parseEdges(int32_t offset, int32_t size) {
@@ -148,10 +157,8 @@ BSPParser::BSPParser(FILE* file, int32_t offset):
     for (int i = 0; i < edges.size(); i++) {
         auto edge = edges[i];
         if ((edge.v0 < vertices.size()) && (edge.v1 < vertices.size())) {
-            auto v = vertices[edge.v0];
-            lines.push_back(vec3(v.x, -v.z, -v.y));
-            v = vertices[edge.v1];
-            lines.push_back(vec3(v.x, -v.z, -v.y));
+            lines.push_back(vertices[edge.v0]);
+            lines.push_back(vertices[edge.v1]);
         }
     }
 }
