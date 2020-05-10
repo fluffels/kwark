@@ -1,3 +1,5 @@
+#include <iomanip>
+
 #include <Windows.h>
 
 #include "easylogging++.h"
@@ -11,6 +13,9 @@ INITIALIZE_EASYLOGGINGPP
 #include "Win32.h"
 
 using std::exception;
+using std::setprecision;
+using std::fixed;
+using std::setw;
 
 #define WIN32_CHECK(e, m) if (e != S_OK) throw new std::runtime_error(m)
 
@@ -95,7 +100,14 @@ int MainLoop(
     try {
         Win32 platform(instance, window);
 
+        LARGE_INTEGER parseStart, parseEnd;
+        int64_t parseDelta;
+        QueryPerformanceCounter(&parseStart);
         BSPParser* map = parser.loadMap("e1m2");
+        QueryPerformanceCounter(&parseEnd);
+        parseDelta = parseEnd.QuadPart - parseStart.QuadPart;
+        float parseS = (float)parseDelta / counterFrequency.QuadPart;
+        LOG(INFO) << "parsing BSP took " << setprecision(6) << parseS << "s";
 
         Camera camera;
         camera.eye = map->initEye;
