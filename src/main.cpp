@@ -95,15 +95,18 @@ int MainLoop(
     try {
         Win32 platform(instance, window);
 
-        BSPParser& map = *parser.map;
+        BSPParser* map = parser.loadMap("e1m2");
 
         Camera camera;
-        camera.eye = map.initEye;
-        camera.at = map.initEye;
+        camera.eye = map->initEye;
+        camera.at = map->initEye;
         camera.at.x += 1;
 
-        vk = new VulkanApplication(platform, &camera, map.lines);
-        camera.rotateY((float)-map.initAngle);
+        vk = new VulkanApplication(platform, &camera, map->lines);
+        camera.rotateY((float)-map->initAngle);
+
+        delete map;
+        map = nullptr;
 
         DirectInput directInput(instance);
         Controller* controller = directInput.controller;
