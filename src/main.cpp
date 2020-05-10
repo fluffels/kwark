@@ -109,13 +109,16 @@ int MainLoop(
         float parseS = (float)parseDelta / counterFrequency.QuadPart;
         LOG(INFO) << "parsing BSP took " << setprecision(6) << parseS << "s";
 
+        auto playerStart = map->findEntityByName("info_player_start");
+        auto origin = playerStart.origin;
         Camera camera;
-        camera.eye = map->initEye;
-        camera.at = map->initEye;
+        camera.eye = { origin.x, origin.y, origin.z };
+        camera.at = camera.eye;
         camera.at.x += 1;
 
         vk = new VulkanApplication(platform, &camera, map->lines);
-        camera.rotateY((float)-map->initAngle);
+        auto angle = (float)-playerStart.angle;
+        camera.rotateY(angle);
 
         delete map;
         map = nullptr;

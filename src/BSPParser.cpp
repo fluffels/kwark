@@ -3,14 +3,12 @@
 
 using std::runtime_error;
 
-BSPHeader parseBSPHeader(FILE* file, int32_t offset) {
-    BSPHeader result = {};
+void BSPParser::parseHeader(int32_t offset) {
     seek(file, offset);
-    readStruct(file, result);
-    if (result.version != 29) {
+    readStruct(file, header);
+    if (header.version != 29) {
         throw runtime_error("BSP is not version 29");
     }
-    return result;
 }
 
 void parseOrigin(char *buffer, Vec3 &origin) {
@@ -27,14 +25,12 @@ void parseOrigin(char *buffer, Vec3 &origin) {
     origin.y = (float)-atoi(n);
 }
 
-vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
-    vector<Entity> entityList;
-
+void BSPParser::parseEntities(int32_t offset, int32_t size) {
     seek(file, offset);
 
-    char* entities = new char[size];
-    fread_s(entities, size, size, 1, file);
-    char* ePos = entities;
+    char* entityBuffer = new char[size];
+    fread_s(entityBuffer, size, size, 1, file);
+    char* ePos = entityBuffer;
 
     char buffer[255];
     char* bPos = buffer;
@@ -55,7 +51,7 @@ vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
     STATE state = OUTSIDE_ENTITY;
     Entity entity;
 
-    while(ePos < entities + size) {
+    while(ePos < entityBuffer + size) {
         char c = *ePos;
         switch (state) {
             case OUTSIDE_ENTITY:
@@ -71,7 +67,7 @@ vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
                     state = INSIDE_STRING;
                 } else if (*ePos == '}') {
                     state = OUTSIDE_ENTITY;
-                    entityList.push_back(entity);
+                    entities.push_back(entity);
                 }
                 ePos++;
                 break;
@@ -104,59 +100,49 @@ vector<Entity> parseEntities(FILE* file, int32_t offset, int32_t size) {
                 break;
         }
     }
-    return entityList;
 }
 
-vector<Vec3> parseVertices(FILE* file, int32_t offset, int32_t size) {
+void BSPParser::parseVertices(int32_t offset, int32_t size) {
     const int count = size / sizeof(Vec3);
-    vector<Vec3> vertices(count);
+    vertices.resize(count);
 
     seek(file, offset);
     int32_t bytes = sizeof(Vec3) * count;
     fread_s(vertices.data(), bytes, bytes, 1, file);
-
-    return vertices;
 }
 
-vector<Edge> parseEdges(FILE* file, int32_t offset, int32_t size) {
+void BSPParser::parseEdges(int32_t offset, int32_t size) {
     const int count = size / sizeof(Edge);
-    vector<Edge> edges(count);
+    edges.resize(count);
 
     seek(file, offset);
     int32_t bytes = sizeof(Edge) * count;
     fread_s(edges.data(), bytes, bytes, 1, file);
-
-    return edges;
 }
 
-BSPParser::BSPParser(FILE* file, int32_t offset) {
-    auto BSPHeader = parseBSPHeader(file, offset);
-    auto entityList = parseEntities(
-        file,
-        offset + BSPHeader.entities.offset,
-        BSPHeader.entities.size
-    );
-
-    for (auto entity: entityList) {
-        if (strcmp("info_player_start", entity.className) == 0) {
-            initEye = {
-                entity.origin.x,
-                entity.origin.y,
-                entity.origin.z
-            };
-            initAngle = entity.angle;
+Entity& BSPParser::findEntityByName(char* name) {
+    for (Entity& entity: entities) {
+        if (strcmp(name, entity.className) == 0) {
+            return entity;
         }
     }
+    throw runtime_error("could not find entity " + string(name));
+}
 
-    auto vertices = parseVertices(
-        file,
-        offset + BSPHeader.vertices.offset,
-        BSPHeader.vertices.size
+BSPParser::BSPParser(FILE* file, int32_t offset):
+        file(file) {
+    parseHeader(offset);
+    parseEntities(
+        offset + header.entities.offset,
+        header.entities.size
     );
-    auto edges = parseEdges(
-        file,
-        offset + BSPHeader.edges.offset,
-        BSPHeader.edges.size
+    parseVertices(
+        offset + header.vertices.offset,
+        header.vertices.size
+    );
+    parseEdges(
+        offset + header.edges.offset,
+        header.edges.size
     );
 
     for (int i = 0; i < edges.size(); i++) {

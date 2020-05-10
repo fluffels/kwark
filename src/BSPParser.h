@@ -1,12 +1,14 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include <glm/vec3.hpp>
 
 using glm::vec3;
 
+using std::string;
 using std::vector;
 
 struct BSPEntry {
@@ -51,9 +53,20 @@ struct Edge {
 };
 
 struct BSPParser {
+    FILE* file;
+    BSPHeader header;
+
+    vector<Entity> entities;
+    vector<Edge> edges;
     vector<vec3> lines;
-    vec3 initEye;
-    int initAngle;
+    vector<Vec3> vertices;
     
-    BSPParser(FILE* file, int32_t offset);
+    BSPParser(FILE*, int32_t);
+
+    void parseEdges(int32_t, int32_t);
+    void parseEntities(int32_t, int32_t);
+    void parseHeader(int32_t);
+    void parseVertices(int32_t, int32_t);
+
+    Entity& findEntityByName(char*);
 };
