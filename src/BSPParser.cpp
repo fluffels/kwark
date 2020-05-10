@@ -179,6 +179,7 @@ Entity& BSPParser::findEntityByName(char* name) {
 
 void BSPParser::buildWireFrameModel() {
     for (Face& face: faces) {
+        vector<vec3> faceVertices;
         auto edgeListBaseId = face.ledgeId;
         for (uint32_t i = 0; i < face.ledgeNum; i++) {
             auto edgeListId = edgeListBaseId + i;
@@ -187,12 +188,27 @@ void BSPParser::buildWireFrameModel() {
             vec3 v0 = vertices[edge.v0];
             vec3 v1 = vertices[edge.v1];
             if (edgeId < 0) {
-                lines.push_back(v1);
-                lines.push_back(v0);
+                faceVertices.push_back(v1);
+                faceVertices.push_back(v0);
             } else if (edgeId > 0) {
-                lines.push_back(v0);
-                lines.push_back(v1);
+                faceVertices.push_back(v0);
+                faceVertices.push_back(v1);
             }
+        }
+
+        auto& v0 = faceVertices[0];
+        for (uint32_t i = 1; i < face.ledgeNum; i++) {
+            auto& v1 = faceVertices[i*2];
+            auto& v2 = faceVertices[i*2+1];
+
+            lines.push_back(v0);
+            lines.push_back(v1);
+
+            lines.push_back(v1);
+            lines.push_back(v2);
+
+            lines.push_back(v2);
+            lines.push_back(v0);
         }
     }
 }
