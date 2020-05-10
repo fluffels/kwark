@@ -68,37 +68,7 @@ VulkanApplication(const Platform& platform, Camera* camera, vector<vec3>& lines)
     allocateDescriptorSet();
     updateDescriptorSet();
 
-    Vertex v0, v1, v2, v3;
-    v0.pos = {0, 0, 0};
-    v0.color = {0, 0, 0};
-    v1.pos = {1, 0, 0};
-    v1.color = {1, 0, 0};
-    v2.pos = {0, 1, 0};
-    v2.color = {0, 1, 0};
-    v3.pos = {0, 0, 1};
-    v3.color = {0, 0, 1};
-    _mesh.push_back(v0);
-    _mesh.push_back(v1);
-    _mesh.push_back(v0);
-    _mesh.push_back(v2);
-    _mesh.push_back(v0);
-    _mesh.push_back(v3);
-    for (int i = 0; i < lines.size() / 2; i++) {
-        int idx = i * 2;
-        vec3 vc0 = lines[idx];
-        Vertex v0;
-        v0.color = {0, 0, 1};
-        v0.pos = {vc0.x, vc0.y, vc0.z};
-        _mesh.push_back(v0);
-
-        idx++;
-        vec3 vc1 = lines[idx];
-        Vertex v1;
-        v1.color = {0, 0, 1};
-        v1.pos = {vc1.x, vc1.y, vc1.z};
-        _mesh.push_back(v1);
-    }
-
+    prepareVertexData(lines);
     createVertexBuffer();
     allocateVertexBuffer();
     uploadVertexData();
@@ -894,6 +864,24 @@ createBuffer(VkBufferUsageFlags usage, uint32_t size) {
     LOG(INFO) << "created vertex buffer";
 
     return buffer;
+}
+
+void VulkanApplication::prepareVertexData(vector<vec3>& lines) {
+    for (int i = 0; i < lines.size() / 2; i++) {
+        int idx = i * 2;
+        vec3 vc0 = lines[idx];
+        Vertex v0;
+        v0.color = {0, 0, 1};
+        v0.pos = {vc0.x, vc0.y, vc0.z};
+        _mesh.push_back(v0);
+
+        idx++;
+        vec3 vc1 = lines[idx];
+        Vertex v1;
+        v1.color = {0, 0, 1};
+        v1.pos = {vc1.x, vc1.y, vc1.z};
+        _mesh.push_back(v1);
+    }
 }
 
 void VulkanApplication::

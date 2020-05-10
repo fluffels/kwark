@@ -93,6 +93,8 @@ class VulkanApplication {
         void* mapMemory(VkBuffer, VkDeviceMemory);
         void unMapMemory(VkDeviceMemory);
 
+        void prepareVertexData(vector<vec3>&);
+
         void uploadUniformData();
         void uploadVertexData();
 
