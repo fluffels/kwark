@@ -58,6 +58,9 @@ class VulkanApplication {
         VkColorSpaceKHR _swapImageColorSpace;
         vector<VkImage> _swapImages;
         vector<VkImageView> _swapImageViews;
+        VkImage _depthImage;
+        VkImageView _depthView;
+        VkDeviceMemory _depthMemory;
         VkCommandPool _graphicsCommandPool;
         VkRenderPass _renderPass;
         vector<VkFramebuffer> _framebuffers;
@@ -82,6 +85,14 @@ class VulkanApplication {
         void checkSuccess(VkResult result, const string& errorMessage);
         void checkVersion(uint32_t version);
 
+        void getMemories();
+        VkMemoryRequirements getMemoryRequirements(VkBuffer);
+        VkMemoryRequirements getMemoryRequirements(VkImage);
+        uint32_t VulkanApplication::selectMemoryTypeIndex(
+            VkMemoryRequirements,
+            VkMemoryPropertyFlags
+        );
+
         VkDeviceMemory allocateBuffer(VkBuffer);
         void allocateUniformBuffer();
         void allocateVertexBuffer();
@@ -101,6 +112,10 @@ class VulkanApplication {
         void createDescriptorPool();
         void allocateDescriptorSet();
         void updateDescriptorSet();
+
+        void createDepthImage();
+        void createDepthMemory();
+        void createDepthImageView();
 
         void createVulkanInstance();
         void createDebugCallback();
@@ -123,8 +138,6 @@ class VulkanApplication {
         void destroySwapchain(VkSwapchainKHR&);
         void destroySwapImageViews();
 
-        void getMemories();
-        VkMemoryRequirements getMemoryRequirements(VkBuffer);
         void getSwapImagesAndImageViews();
 
         void initCamera();
