@@ -7,6 +7,7 @@ INITIALIZE_EASYLOGGINGPP
 
 #include "Camera.h"
 #include "DirectInput.h"
+#include "Mesh.h"
 #include "Mouse.h"
 #include "PAKParser.h"
 #include "VulkanApplication.h"
@@ -104,6 +105,7 @@ int MainLoop(
         int64_t parseDelta;
         QueryPerformanceCounter(&parseStart);
         BSPParser* map = parser.loadMap("e1m2");
+        Mesh mesh(*map);
         QueryPerformanceCounter(&parseEnd);
         parseDelta = parseEnd.QuadPart - parseStart.QuadPart;
         float parseS = (float)parseDelta / counterFrequency.QuadPart;
@@ -116,7 +118,7 @@ int MainLoop(
         camera.at = camera.eye;
         camera.at.x += 1;
 
-        vk = new VulkanApplication(platform, &camera, map->lines);
+        vk = new VulkanApplication(platform, &camera, mesh.vertices);
         auto angle = (float)-playerStart.angle;
         camera.rotateY(angle);
 

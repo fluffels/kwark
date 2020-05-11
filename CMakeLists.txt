@@ -35,6 +35,7 @@ add_executable (
     src/Camera.cpp
     src/DirectInput.cpp
     src/Controller.cpp
+    src/Mesh.cpp
     src/Mouse.cpp
     src/VulkanApplication.cpp
     src/BSPParser.cpp

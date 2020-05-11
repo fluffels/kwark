@@ -19,7 +19,7 @@ using std::vector;
 
 class VulkanApplication {
     public:
-        VulkanApplication(const Platform&, Camera*, vector<vec3>&);
+        VulkanApplication(const Platform&, Camera*, vector<Vertex>&);
         virtual ~VulkanApplication();
 
         uint32_t getEnabledExtensionCount();
@@ -39,7 +39,7 @@ class VulkanApplication {
         bool _shouldResize;
 
         Camera* _camera;
-        vector<Vertex> _mesh;
+        vector<Vertex>& _mesh;
 
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;
@@ -103,8 +103,6 @@ class VulkanApplication {
 
         void* mapMemory(VkBuffer, VkDeviceMemory);
         void unMapMemory(VkDeviceMemory);
-
-        void prepareVertexData(vector<vec3>&);
 
         void uploadUniformData();
         void uploadVertexData();

@@ -24,14 +24,15 @@ debugCallback(
 }
 
 VulkanApplication::
-VulkanApplication(const Platform& platform, Camera* camera, vector<vec3>& lines):
+VulkanApplication(const Platform& platform, Camera* camera, vector<Vertex>& mesh):
         _enabledExtensions({
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME
         }),
         _enabledLayers({ "VK_LAYER_KHRONOS_validation" }),
         _shouldResize(false),
-        _camera(camera) {
+        _camera(camera),
+        _mesh(mesh) {
     auto platformRequiredExtensions = platform.getExtensions();
     _enabledExtensions.insert(
         _enabledExtensions.end(),
@@ -70,7 +71,6 @@ VulkanApplication(const Platform& platform, Camera* camera, vector<vec3>& lines)
     allocateDescriptorSet();
     updateDescriptorSet();
 
-    prepareVertexData(lines);
     createVertexBuffer();
     allocateVertexBuffer();
     uploadVertexData();
@@ -972,24 +972,6 @@ createBuffer(VkBufferUsageFlags usage, uint32_t size) {
     LOG(INFO) << "created vertex buffer";
 
     return buffer;
-}
-
-void VulkanApplication::prepareVertexData(vector<vec3>& lines) {
-    for (int i = 0; i < lines.size() / 2; i++) {
-        int idx = i * 2;
-        vec3 vc0 = lines[idx];
-        Vertex v0;
-        v0.color = {0, 0, 1};
-        v0.pos = {vc0.x, vc0.y, vc0.z};
-        _mesh.push_back(v0);
-
-        idx++;
-        vec3 vc1 = lines[idx];
-        Vertex v1;
-        v1.color = {0, 0, 1};
-        v1.pos = {vc1.x, vc1.y, vc1.z};
-        _mesh.push_back(v1);
-    }
 }
 
 void VulkanApplication::
