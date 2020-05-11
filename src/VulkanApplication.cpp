@@ -804,6 +804,7 @@ void VulkanApplication::createPipeline(
     pipelineCreateInfo.renderPass = _renderPass;
     pipelineCreateInfo.layout = _layout;
     pipelineCreateInfo.subpass = 0;
+    
     result = vkCreateGraphicsPipelines(
         _device,
         VK_NULL_HANDLE,
@@ -812,12 +813,10 @@ void VulkanApplication::createPipeline(
         nullptr,
         &_pipeline
     );
-
     checkSuccess(
         result,
         "could not create pipeline"
     );
-
     LOG(INFO) << "created pipeline";
 }
 
@@ -1481,6 +1480,8 @@ resizeSwapChain() {
     LOG(INFO) << "swap chain resized";
 
     vkDestroyPipeline(_device, _pipeline, nullptr);
+    vkDestroyPipelineLayout(_device, _layout, nullptr);
+    vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
     vkDestroyRenderPass(_device, _renderPass, nullptr);
     vkDestroySemaphore(_device, _imageReady, nullptr);
     vkDestroySemaphore(_device, _presentReady, nullptr);
