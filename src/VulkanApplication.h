@@ -138,6 +138,9 @@ class VulkanApplication {
         void destroySwapchain(VkSwapchainKHR&);
         void destroySwapImageViews();
 
+        void createDepthBuffer();
+        void destroyDepthBuffer();
+
         void getSwapImagesAndImageViews();
 
         void initCamera();

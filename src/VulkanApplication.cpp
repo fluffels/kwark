@@ -50,10 +50,9 @@ VulkanApplication(const Platform& platform, Camera* camera, vector<vec3>& lines)
     checkSurfaceCapabilities();
     createDeviceAndQueues();
     getMemories();
+
     createSwapChain();
-    createDepthImage();
-    createDepthMemory();
-    createDepthImageView();
+    createDepthBuffer();
     getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();
@@ -109,9 +108,7 @@ VulkanApplication::
     vkDestroyRenderPass(_device, _renderPass, nullptr);
     destroySwapchain(_swapChain);
 
-    vkFreeMemory(_device, _depthMemory, nullptr);
-    vkDestroyImageView(_device, _depthView, nullptr);
-    vkDestroyImage(_device, _depthImage, nullptr);
+    destroyDepthBuffer();
 
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
@@ -239,6 +236,18 @@ createDepthImageView() {
     createInfo.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
     auto result = vkCreateImageView(_device, &createInfo, nullptr, &_depthView);
     checkSuccess(result, "could not create depth image view");
+}
+
+void VulkanApplication::createDepthBuffer() {
+    createDepthImage();
+    createDepthMemory();
+    createDepthImageView();
+}
+
+void VulkanApplication::destroyDepthBuffer() {
+    vkFreeMemory(_device, _depthMemory, nullptr);
+    vkDestroyImageView(_device, _depthView, nullptr);
+    vkDestroyImage(_device, _depthImage, nullptr);
 }
 
 void VulkanApplication::
@@ -1481,7 +1490,9 @@ resizeSwapChain() {
     _swapImageViews.clear();
     _swapCommandBuffers.clear();
     destroySwapchain(createInfo.oldSwapchain);
+    destroyDepthBuffer();
 
+    createDepthBuffer();
     getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();
