@@ -13,7 +13,7 @@ void Atlas::parseHeader() {
     readStruct(file, header.numtex);
 
     auto count = header.numtex;
-    auto elementSize = sizeof(TextureHeader);
+    auto elementSize = sizeof(int32_t);
 
     header.offset.resize(count);
     auto readCount = fread_s(
