@@ -3,6 +3,7 @@
 
 layout(location=0) in vec3 inColor;
 layout(location=1) in float inDistance;
+layout(location=2) in vec4 inNormal;
 
 layout(location=0) out vec4 outColor;
 
@@ -14,6 +15,6 @@ void main() {
         discard;
     }
     float fade = inDistance / MAX_D;
-    vec3 mixColor = mix(inColor, BACKGROUND, fade);
+    vec3 mixColor = mix(inNormal.xyz, BACKGROUND, fade);
     outColor = vec4(mixColor, 1.0);
 }

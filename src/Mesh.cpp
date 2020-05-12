@@ -25,10 +25,20 @@ void Mesh::buildWireFrameModel() {
             }
         }
 
+        auto light = 1.0f - face.baseLight / 255.0f;
+        if (face.lightmap != -1) {
+        }
+
+        auto& plane = bsp.planes[face.planeId];
+        auto& normal = plane.normal;
+
         Vertex v0, v1, v2;
-        v0.color = { 0, 0, 1 };
-        v1.color = { 0, 0, 1 };
-        v2.color = { 0, 0, 1 };
+        v0.color = { 0, light, 1 };
+        v1.color = { 0, light, 1 };
+        v2.color = { 0, light, 1 };
+        v0.normal = normal;
+        v1.normal = normal;
+        v2.normal = normal;
 
         auto& p0 = faceVertices[0];
         v0.pos = p0;

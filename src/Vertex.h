@@ -10,10 +10,11 @@ class Vertex {
     public:
         glm::vec3 pos;
         glm::vec3 color;
+        glm::vec3 normal;
 
         static VkVertexInputBindingDescription
         getInputBindingDescription();
 
-        static std::array<VkVertexInputAttributeDescription, 2>
+        static std::array<VkVertexInputAttributeDescription, 3>
         getInputAttributeDescriptions();
 };
