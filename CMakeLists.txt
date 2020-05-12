@@ -37,6 +37,7 @@ add_executable (
     src/Controller.cpp
     src/Mesh.cpp
     src/Mouse.cpp
+    src/Texture.cpp
     src/VulkanApplication.cpp
     src/BSPParser.cpp
     src/PAKParser.cpp
