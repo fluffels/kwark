@@ -17,6 +17,7 @@ Types mentioned in the link appear to be defined as follows:
 #include "easylogging++.h"
 
 #include "BSPParser.h"
+#include "Palette.h"
 
 using std::runtime_error;
 using std::string;
@@ -38,8 +39,7 @@ struct PAKParser {
     FILE* file;
     PAKHeader header;
     vector<PAKFileEntry> entries;
-
-    BSPParser* map;
+    Palette* palette;
 
     PAKParser(const char*);
     ~PAKParser();
@@ -49,4 +49,5 @@ struct PAKParser {
     PAKFileEntry& findEntry(const string&);
 
     BSPParser* loadMap(const string&);
+    Palette* loadPalette();
 };

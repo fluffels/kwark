@@ -31,7 +31,7 @@ void PAKParser::parseEntries() {
 
 PAKParser::PAKParser(const char* path):
         file(NULL),
-        map(nullptr) {
+        palette(nullptr) {
     errno_t error = fopen_s(&file, path, "rb");
     if (error != 0) {
         throw runtime_error("could not open PAK file");
@@ -39,11 +39,12 @@ PAKParser::PAKParser(const char* path):
 
     parseHeader();
     parseEntries();
+    palette = loadPalette();
 }
 
 PAKParser::~PAKParser() {
     fclose(file);
-    delete map;
+    delete palette;
 }
 
 PAKFileEntry& PAKParser::findEntry(const string& name) {
@@ -56,9 +57,15 @@ PAKFileEntry& PAKParser::findEntry(const string& name) {
 }
 
 BSPParser* PAKParser::loadMap(const string& name) {
+    auto palette = loadPalette();
     string entryName = "maps/" + name + ".bsp";
     auto& entry = findEntry(entryName);
     return new BSPParser(file, entry.offset);
+}
+
+Palette* PAKParser::loadPalette() {
+    auto& entry = findEntry("gfx/palette.lmp");
+    return new Palette(file, entry.offset, entry.size);
 }
 
 
