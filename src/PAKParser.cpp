@@ -46,12 +46,19 @@ PAKParser::~PAKParser() {
     delete map;
 }
 
-BSPParser* PAKParser::loadMap(const string& name) {
-    string entryName = "maps/" + name + ".bsp";
-    for (auto entry: entries) {
-        if (strcmp(entryName.c_str(), entry.name) == 0) {
-            return new BSPParser(file, entry.offset);
+PAKFileEntry& PAKParser::findEntry(const string& name) {
+    for (auto& entry: entries) {
+        if (strcmp(name.c_str(), entry.name) == 0) {
+            return entry;
         }
     }
-    throw std::runtime_error("could not find map " + entryName);
+    throw std::runtime_error("could not find entity " + name);
 }
+
+BSPParser* PAKParser::loadMap(const string& name) {
+    string entryName = "maps/" + name + ".bsp";
+    auto& entry = findEntry(entryName);
+    return new BSPParser(file, entry.offset);
+}
+
+

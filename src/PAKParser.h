@@ -46,5 +46,7 @@ struct PAKParser {
     void parseHeader();
     void parseEntries();
 
+    PAKFileEntry& findEntry(const string&);
+
     BSPParser* loadMap(const string&);
 };
