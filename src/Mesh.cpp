@@ -49,10 +49,10 @@ void Mesh::buildWireFrameModel() {
 
             vertices.push_back(v0);
             vertices.push_back(v1);
-            vertices.push_back(v1);
+            // vertices.push_back(v1);
             vertices.push_back(v2);
-            vertices.push_back(v2);
-            vertices.push_back(v0);
+            // vertices.push_back(v2);
+            // vertices.push_back(v0);
         }
     }
 }

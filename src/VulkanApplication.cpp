@@ -701,7 +701,7 @@ void VulkanApplication::createPipeline(
     inputAssemblyStateCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyStateCreateInfo.topology =
-        VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
     
     // VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo = {};
