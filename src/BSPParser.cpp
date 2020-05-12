@@ -129,9 +129,30 @@ void BSPParser::parseLightMap() {
     lightMap.resize(count);
 
     seek(file, offset);
-    size_t readCount = fread_s(
+    auto readCount = fread_s(
         lightMap.data(),
-        size * elementSize,
+        count * elementSize,
+        elementSize,
+        count,
+        file
+    );
+    if (readCount != count) {
+        throw runtime_error("unexpected EOF");
+    }
+}
+
+void BSPParser::parsePlanes() {
+    auto offset = fileOffset + header.planes.offset;
+    auto size = header.planes.size;
+    auto elementSize = sizeof(Plane);
+
+    const auto count = size / elementSize;
+    planes.resize(count);
+
+    seek(file, offset);
+    auto readCount = fread_s(
+        planes.data(),
+        count * elementSize,
         elementSize,
         count,
         file
@@ -209,4 +230,5 @@ BSPParser::BSPParser(FILE* file, int32_t offset):
     parseEdges();
     parseFaces();
     parseLightMap();
+    parsePlanes();
 }

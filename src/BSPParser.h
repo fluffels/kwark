@@ -58,6 +58,12 @@ struct Face {
     int32_t lightmap;
 };
 
+struct Plane {
+    vec3 normal;
+    float dist;
+    int32_t type;
+};
+
 struct BSPParser {
     FILE* file;
     int32_t fileOffset;
@@ -69,6 +75,7 @@ struct BSPParser {
     vector<Face> faces;
     vector<vec3> lines;
     vector<uint8_t> lightMap;
+    vector<Plane> planes;
     vector<vec3> vertices;
     
     BSPParser(FILE*, int32_t);
@@ -79,6 +86,7 @@ struct BSPParser {
     void parseFaces();
     void parseHeader();
     void parseLightMap();
+    void parsePlanes();
     void parseVertices();
 
     void buildWireFrameModel();
