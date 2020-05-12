@@ -21,12 +21,12 @@ getInputAttributeDescriptions() {
     i[1].binding = 0;
     i[1].location = 1;
     i[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    i[1].offset = offsetof(Vertex, color);
+    i[1].offset = offsetof(Vertex, normal);
 
     i[2].binding = 0;
     i[2].location = 2;
     i[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-    i[2].offset = offsetof(Vertex, normal);
+    i[2].offset = offsetof(Vertex, light);
 
     return i;
 }

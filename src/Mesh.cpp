@@ -25,7 +25,7 @@ void Mesh::buildWireFrameModel() {
             }
         }
 
-        auto light = 1.0f - face.baseLight / 255.0f;
+        auto light = 1.f - face.baseLight / 255.0f;
         if (face.lightmap != -1) {
         }
 
@@ -33,9 +33,9 @@ void Mesh::buildWireFrameModel() {
         auto& normal = plane.normal;
 
         Vertex v0, v1, v2;
-        v0.color = { 0, light, 1 };
-        v1.color = { 0, light, 1 };
-        v2.color = { 0, light, 1 };
+        v0.light = { light, light, light };
+        v1.light = { light, light, light };
+        v2.light = { light, light, light };
         v0.normal = normal;
         v1.normal = normal;
         v2.normal = normal;

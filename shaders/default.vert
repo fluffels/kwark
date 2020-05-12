@@ -10,16 +10,20 @@ layout(binding=0) uniform Uniform {
 } uniforms;
 
 layout(location=0) in vec3 inPosition;
-layout(location=1) in vec3 inColor;
-layout(location=2) in vec3 inNormal;
+layout(location=1) in vec3 inNormal;
+layout(location=2) in vec3 inLight;
 
-layout(location=0) out vec3 outColor;
-layout(location=1) out float outDistance;
-layout(location=2) out vec4 outNormal;
+layout(location=0) out float outDistance;
+layout(location=1) out vec3 outNormal;
+layout(location=2) out vec3 outLight;
 
 void main() {
     gl_Position = uniforms.mvp * vec4(inPosition, 1.0);
-    outNormal = uniforms.mvp * vec4(inNormal, 0);
-    outDistance = sqrt(gl_Position.x * gl_Position.x + gl_Position.y * gl_Position.y + gl_Position.z * gl_Position.z);
-    outColor = inColor;
+    outDistance = sqrt(
+        gl_Position.x * gl_Position.x +
+        gl_Position.y * gl_Position.y +
+        gl_Position.z * gl_Position.z
+    );
+    outNormal = inNormal;
+    outLight = inLight;
 }
