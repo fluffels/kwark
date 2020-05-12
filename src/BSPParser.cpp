@@ -120,6 +120,27 @@ void BSPParser::parseEntities() {
     }
 }
 
+void BSPParser::parseLightMap() {
+    auto offset = fileOffset + header.lightmaps.offset;
+    auto size = header.lightmaps.size;
+    auto elementSize = sizeof(uint8_t);
+
+    const auto count = size / elementSize;
+    lightMap.resize(count);
+
+    seek(file, offset);
+    size_t readCount = fread_s(
+        lightMap.data(),
+        size * elementSize,
+        elementSize,
+        count,
+        file
+    );
+    if (readCount != count) {
+        throw runtime_error("unexpected EOF");
+    }
+}
+
 void BSPParser::parseVertices() {
     auto offset = fileOffset + header.vertices.offset;
     auto size = header.vertices.size;
@@ -187,4 +208,5 @@ BSPParser::BSPParser(FILE* file, int32_t offset):
     parseEdgeList();
     parseEdges();
     parseFaces();
+    parseLightMap();
 }

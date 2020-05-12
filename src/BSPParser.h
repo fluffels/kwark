@@ -68,6 +68,7 @@ struct BSPParser {
     vector<int32_t> edgeList;
     vector<Face> faces;
     vector<vec3> lines;
+    vector<uint8_t> lightMap;
     vector<vec3> vertices;
     
     BSPParser(FILE*, int32_t);
@@ -77,6 +78,7 @@ struct BSPParser {
     void parseEntities();
     void parseFaces();
     void parseHeader();
+    void parseLightMap();
     void parseVertices();
 
     void buildWireFrameModel();
