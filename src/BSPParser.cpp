@@ -220,10 +220,14 @@ Entity& BSPParser::findEntityByName(char* name) {
 }
 
 BSPParser::BSPParser(FILE* file, int32_t offset):
+        atlas(nullptr),
         file(file),
         fileOffset(offset)
 {
     parseHeader();
+
+    atlas = new Atlas(file, fileOffset + header.miptex.offset);
+
     parseEntities();
     parseVertices();
     parseEdgeList();
@@ -231,4 +235,8 @@ BSPParser::BSPParser(FILE* file, int32_t offset):
     parseFaces();
     parseLightMap();
     parsePlanes();
+}
+
+BSPParser::~BSPParser() {
+    delete atlas;
 }

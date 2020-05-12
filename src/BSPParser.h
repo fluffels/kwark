@@ -6,6 +6,8 @@
 
 #include <glm/vec3.hpp>
 
+#include "Texture.h"
+
 using glm::vec3;
 
 using std::string;
@@ -69,6 +71,7 @@ struct BSPParser {
     int32_t fileOffset;
     BSPHeader header;
 
+    Atlas* atlas;
     vector<Entity> entities;
     vector<Edge> edges;
     vector<int32_t> edgeList;
@@ -79,6 +82,7 @@ struct BSPParser {
     vector<vec3> vertices;
     
     BSPParser(FILE*, int32_t);
+    ~BSPParser();
 
     void parseEdges();
     void parseEdgeList();
