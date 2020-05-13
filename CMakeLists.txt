@@ -29,6 +29,7 @@ add_executable (
     Shaders
     src/easylogging++.cc
     src/main.cpp
+    src/BSPParser.cpp
     src/FileSystem.cpp
     src/util.cpp
     src/Vertex.cpp
@@ -37,11 +38,11 @@ add_executable (
     src/Controller.cpp
     src/Mesh.cpp
     src/Mouse.cpp
+    src/PAKParser.cpp
     src/Palette.cpp
     src/Texture.cpp
     src/VulkanApplication.cpp
-    src/BSPParser.cpp
-    src/PAKParser.cpp
+    src/VulkanImage.cpp
     src/Win32.cpp
 )
 target_link_libraries(
