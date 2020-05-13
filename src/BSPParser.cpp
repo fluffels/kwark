@@ -219,14 +219,14 @@ Entity& BSPParser::findEntityByName(char* name) {
     throw runtime_error("could not find entity " + string(name));
 }
 
-BSPParser::BSPParser(FILE* file, int32_t offset):
+BSPParser::BSPParser(FILE* file, int32_t offset, Palette& palette):
         atlas(nullptr),
         file(file),
         fileOffset(offset)
 {
     parseHeader();
 
-    atlas = new Atlas(file, fileOffset + header.miptex.offset);
+    atlas = new Atlas(file, fileOffset + header.miptex.offset, palette);
 
     parseEntities();
     parseVertices();

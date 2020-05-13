@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "FileSystem.h"
+#include "Palette.h"
 
 using std::runtime_error;
 using std::vector;
@@ -29,9 +30,12 @@ struct Atlas {
 
     AtlasHeader header;
     vector<TextureHeader> textureHeaders;
+    vector<uint8_t> textureColorIndices;
+    vector<Color> texture;
 
-    Atlas(FILE*, int32_t);
+    Atlas(FILE*, int32_t, Palette&);
 
     void parseHeader();
     void parseTextureHeaders();
+    void parseTexture(Palette& palette);
 };

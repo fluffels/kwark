@@ -60,7 +60,7 @@ BSPParser* PAKParser::loadMap(const string& name) {
     auto palette = loadPalette();
     string entryName = "maps/" + name + ".bsp";
     auto& entry = findEntry(entryName);
-    return new BSPParser(file, entry.offset);
+    return new BSPParser(file, entry.offset, *palette);
 }
 
 Palette* PAKParser::loadPalette() {

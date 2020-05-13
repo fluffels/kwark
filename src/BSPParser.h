@@ -6,6 +6,7 @@
 
 #include <glm/vec3.hpp>
 
+#include "Palette.h"
 #include "Texture.h"
 
 using glm::vec3;
@@ -81,7 +82,7 @@ struct BSPParser {
     vector<Plane> planes;
     vector<vec3> vertices;
     
-    BSPParser(FILE*, int32_t);
+    BSPParser(FILE*, int32_t, Palette&);
     ~BSPParser();
 
     void parseEdges();
