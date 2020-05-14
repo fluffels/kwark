@@ -53,7 +53,7 @@ VulkanApplication(const Platform& platform, Camera* camera, vector<Vertex>& mesh
     getMemories();
 
     createSwapChain();
-    createDepthBuffer();
+    depth = new VulkanImage(_device, _memories, _swapChainExtent, _gfxFamily);
     getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();
@@ -108,7 +108,7 @@ VulkanApplication::
     vkDestroyRenderPass(_device, _renderPass, nullptr);
     destroySwapchain(_swapChain);
 
-    destroyDepthBuffer();
+    delete depth;
 
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
@@ -173,81 +173,6 @@ checkVersion(uint32_t version) {
     if ((major < 1) || (minor < 1) || (patch < 126)) {
         throw runtime_error("you need at least Vulkan 1.1.126");
     }
-}
-
-void VulkanApplication::
-createDepthImage() {
-    VkImageCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    createInfo.arrayLayers = 1;
-    createInfo.extent = { _swapChainExtent.width, _swapChainExtent.height, 1 };
-    createInfo.format = VK_FORMAT_D32_SFLOAT;
-    createInfo.imageType = VK_IMAGE_TYPE_2D;
-    createInfo.mipLevels = 1;
-    createInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    createInfo.queueFamilyIndexCount = 1;
-    createInfo.pQueueFamilyIndices = &_gfxFamily;
-    createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    createInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    createInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    createInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    auto result = vkCreateImage(_device, &createInfo, nullptr, &_depthImage);
-    checkSuccess(result, "could not create depth buffer image");
-}
-
-void VulkanApplication::
-createDepthMemory() {
-    auto requirements = getMemoryRequirements(_depthImage);
-    auto typeIndex = selectMemoryTypeIndex(requirements, 0);
-
-    VkMemoryAllocateInfo allocateInfo = {};
-    allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocateInfo.allocationSize = requirements.size;
-    allocateInfo.memoryTypeIndex = typeIndex;
-    
-    auto result = vkAllocateMemory(
-        _device,
-        &allocateInfo,
-        nullptr,
-        &_depthMemory
-    );
-    checkSuccess(
-        result,
-        "could not allocate depth memory"
-    );
-
-    vkBindImageMemory(_device, _depthImage, _depthMemory, 0);
-}
-
-void VulkanApplication::
-createDepthImageView() {
-    VkImageViewCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    createInfo.format = VK_FORMAT_D32_SFLOAT;
-    createInfo.image = _depthImage;
-    createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-    createInfo.subresourceRange.baseArrayLayer = 0;
-    createInfo.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-    createInfo.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-    auto result = vkCreateImageView(_device, &createInfo, nullptr, &_depthView);
-    checkSuccess(result, "could not create depth image view");
-}
-
-void VulkanApplication::createDepthBuffer() {
-    createDepthImage();
-    createDepthMemory();
-    createDepthImageView();
-}
-
-void VulkanApplication::destroyDepthBuffer() {
-    vkFreeMemory(_device, _depthMemory, nullptr);
-    vkDestroyImageView(_device, _depthView, nullptr);
-    vkDestroyImage(_device, _depthImage, nullptr);
 }
 
 void VulkanApplication::
@@ -547,7 +472,7 @@ createRenderPass() {
 void VulkanApplication::
 createFramebuffers() {
     for (auto imageView: _swapImageViews) {
-        VkImageView imageViews[] = { imageView, _depthView };
+        VkImageView imageViews[] = { imageView, depth->view };
         VkFramebufferCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         createInfo.attachmentCount = 2;
@@ -990,28 +915,6 @@ createUniformBuffer() {
     );
 }
 
-uint32_t VulkanApplication::selectMemoryTypeIndex(
-        VkMemoryRequirements requirements,
-        VkMemoryPropertyFlags extraFlags
-) {
-    uint32_t typeIndex = 0;
-    bool found = false;
-    for (; typeIndex < _memories.memoryTypeCount; typeIndex++) {
-        if (requirements.memoryTypeBits & (1 << typeIndex)) {
-            auto flags = _memories.memoryTypes[typeIndex].propertyFlags;
-            flags &= extraFlags; 
-            if (flags == extraFlags) {
-                found = true;
-                break;
-            }
-        }
-    }
-    if (!found) {
-        throw std::runtime_error("could not find memory type");
-    }
-    return typeIndex;
-}
-
 VkDeviceMemory VulkanApplication::
 allocateBuffer(VkBuffer buffer) {
     VkDeviceMemory memory;
@@ -1021,7 +924,7 @@ allocateBuffer(VkBuffer buffer) {
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     );
-    auto typeIndex = selectMemoryTypeIndex(requirements, extraFlags);
+    auto typeIndex = selectMemoryTypeIndex(_memories, requirements, extraFlags);
 
     VkMemoryAllocateInfo allocateInfo = {};
     allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -1197,17 +1100,6 @@ getMemoryRequirements(VkBuffer buffer) {
     vkGetBufferMemoryRequirements(
         _device,
         buffer,
-        &requirements
-    );
-    return requirements;
-}  
-
-VkMemoryRequirements VulkanApplication::
-getMemoryRequirements(VkImage image) {
-    VkMemoryRequirements requirements = {};
-    vkGetImageMemoryRequirements(
-        _device,
-        image,
         &requirements
     );
     return requirements;
@@ -1473,9 +1365,9 @@ resizeSwapChain() {
     _swapImageViews.clear();
     _swapCommandBuffers.clear();
     destroySwapchain(createInfo.oldSwapchain);
-    destroyDepthBuffer();
+    delete depth;
 
-    createDepthBuffer();
+    depth = new VulkanImage(_device, _memories, _swapChainExtent, _gfxFamily);
     getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();

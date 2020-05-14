@@ -43,6 +43,7 @@ add_executable (
     src/Texture.cpp
     src/VulkanApplication.cpp
     src/VulkanImage.cpp
+    src/VulkanUtils.cpp
     src/Win32.cpp
 )
 target_link_libraries(

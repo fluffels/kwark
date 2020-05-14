@@ -12,6 +12,7 @@
 #include "Platform.h"
 #include "util.h"
 #include "Vertex.h"
+#include "VulkanImage.h"
 
 using std::runtime_error;
 using std::string;
@@ -41,6 +42,8 @@ class VulkanApplication {
         Camera* _camera;
         vector<Vertex>& _mesh;
 
+        VulkanImage* depth;
+
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;
         VkPhysicalDevice _physicalDevice;
@@ -58,9 +61,6 @@ class VulkanApplication {
         VkColorSpaceKHR _swapImageColorSpace;
         vector<VkImage> _swapImages;
         vector<VkImageView> _swapImageViews;
-        VkImage _depthImage;
-        VkImageView _depthView;
-        VkDeviceMemory _depthMemory;
         VkCommandPool _graphicsCommandPool;
         VkRenderPass _renderPass;
         vector<VkFramebuffer> _framebuffers;
@@ -87,11 +87,6 @@ class VulkanApplication {
 
         void getMemories();
         VkMemoryRequirements getMemoryRequirements(VkBuffer);
-        VkMemoryRequirements getMemoryRequirements(VkImage);
-        uint32_t VulkanApplication::selectMemoryTypeIndex(
-            VkMemoryRequirements,
-            VkMemoryPropertyFlags
-        );
 
         VkDeviceMemory allocateBuffer(VkBuffer);
         void allocateUniformBuffer();
@@ -110,10 +105,6 @@ class VulkanApplication {
         void createDescriptorPool();
         void allocateDescriptorSet();
         void updateDescriptorSet();
-
-        void createDepthImage();
-        void createDepthMemory();
-        void createDepthImageView();
 
         void createVulkanInstance();
         void createDebugCallback();
@@ -135,9 +126,6 @@ class VulkanApplication {
         void destroyFramebuffers();
         void destroySwapchain(VkSwapchainKHR&);
         void destroySwapImageViews();
-
-        void createDepthBuffer();
-        void destroyDepthBuffer();
 
         void getSwapImagesAndImageViews();
 
