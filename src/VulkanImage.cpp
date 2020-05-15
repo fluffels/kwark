@@ -1,4 +1,9 @@
+#include <stdexcept>
+
 #include "VulkanImage.h"
+#include "VulkanUtils.h"
+
+using std::runtime_error;
 
 VulkanImage::VulkanImage(VkDevice device,
                          VkPhysicalDeviceMemoryProperties& memories,

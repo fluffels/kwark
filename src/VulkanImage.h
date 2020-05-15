@@ -1,12 +1,6 @@
 #pragma once
 
-#include <stdexcept>
-
 #include <vulkan/vulkan.h>
-
-#include "VulkanUtils.h"
-
-using std::runtime_error;
 
 struct VulkanImage {
     VkImage image;
