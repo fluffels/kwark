@@ -48,8 +48,8 @@ class VulkanApplication {
         Atlas* _atlas;
         vector<Vertex>& _mesh;
 
-        VulkanImage* depth;
-        VulkanImage* texture;
+        VulkanImage depth;
+        VulkanImage texture;
 
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;

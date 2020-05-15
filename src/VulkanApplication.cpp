@@ -58,13 +58,20 @@ VulkanApplication(const Platform& platform,
     getMemories();
 
     createSwapChain();
-    depth = new VulkanImage(_device, _memories, _swapChainExtent, _gfxFamily);
-    texture = new VulkanImage(
+    depth = createVulkanDepthBuffer(
+        _device,
+        _memories,
+        _swapChainExtent,
+        _gfxFamily
+    );
+    texture = createVulkanTexture(
         _device,
         _memories,
         { _atlas->textureHeaders[0].width, _atlas->textureHeaders[0].height },
         _gfxFamily
     );
+    mapMemory(_device, texture.handle, texture.memory);
+    unMapMemory(_device, texture.memory);
     getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();
@@ -119,8 +126,8 @@ VulkanApplication::
     vkDestroyRenderPass(_device, _renderPass, nullptr);
     destroySwapchain(_swapChain);
 
-    delete depth;
-    delete texture;
+    destroyVulkanImage(_device, depth);
+    destroyVulkanImage(_device, texture);
 
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
@@ -484,7 +491,7 @@ createRenderPass() {
 void VulkanApplication::
 createFramebuffers() {
     for (auto imageView: _swapImageViews) {
-        VkImageView imageViews[] = { imageView, depth->view };
+        VkImageView imageViews[] = { imageView, depth.view };
         VkFramebufferCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         createInfo.attachmentCount = 2;
@@ -1342,9 +1349,14 @@ resizeSwapChain() {
     _swapImageViews.clear();
     _swapCommandBuffers.clear();
     destroySwapchain(createInfo.oldSwapchain);
-    delete depth;
+    destroyVulkanImage(_device, depth);
 
-    depth = new VulkanImage(_device, _memories, _swapChainExtent, _gfxFamily);
+    depth = createVulkanDepthBuffer(
+        _device,
+        _memories,
+        _swapChainExtent,
+        _gfxFamily
+    );
     getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();
