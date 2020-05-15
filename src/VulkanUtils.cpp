@@ -2,6 +2,28 @@
 
 #include "VulkanUtils.h"
 
+using std::runtime_error;
+
+VkMemoryRequirements getMemoryRequirements(VkDevice device, VkBuffer buffer) {
+    VkMemoryRequirements requirements = {};
+    vkGetBufferMemoryRequirements(
+        device,
+        buffer,
+        &requirements
+    );
+    return requirements;
+}  
+
+VkMemoryRequirements getMemoryRequirements(VkDevice device, VkImage image) {
+    VkMemoryRequirements requirements = {};
+    vkGetImageMemoryRequirements(
+        device,
+        image,
+        &requirements
+    );
+    return requirements;
+}  
+
 uint32_t selectMemoryTypeIndex(
     VkPhysicalDeviceMemoryProperties& memories,
     VkMemoryRequirements requirements,
@@ -20,7 +42,50 @@ uint32_t selectMemoryTypeIndex(
         }
     }
     if (!found) {
-        throw std::runtime_error("could not find memory type");
+        throw runtime_error("could not find memory type");
     }
     return typeIndex;
+}
+
+void* mapMemory(
+    VkDevice device,
+    VkMemoryRequirements requirements,
+    VkDeviceMemory memory
+) {
+    void* data = 0;
+    auto result = vkMapMemory(
+        device,
+        memory,
+        0,
+        requirements.size,
+        0,
+        &data
+    );
+
+    if (result != VK_SUCCESS) {
+        throw runtime_error("could not map vertex memory");
+    }
+    return data;
+}
+
+void* mapMemory(
+    VkDevice device,
+    VkBuffer buffer,
+    VkDeviceMemory memory
+) {
+    auto requirements = getMemoryRequirements(device, buffer);
+    return mapMemory(device, requirements, memory);
+}
+
+void* mapMemory(
+    VkDevice device,
+    VkImage image,
+    VkDeviceMemory memory
+) {
+    auto requirements = getMemoryRequirements(device, image);
+    return mapMemory(device, requirements, memory);
+}
+
+void unMapMemory(VkDevice device, VkDeviceMemory memory) {
+    vkUnmapMemory(device, memory);
 }

@@ -24,6 +24,8 @@ struct VulkanImage {
     void createImage();
     void createView();
     VkMemoryRequirements getMemoryRequirements();
+    void mapMemory();
+    void unMapMemory();
 
     private:
         VkDevice device;

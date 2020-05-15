@@ -5,3 +5,10 @@ uint32_t selectMemoryTypeIndex(
     VkMemoryRequirements,
     VkMemoryPropertyFlags
 );
+
+VkMemoryRequirements getMemoryRequirements(VkDevice, VkBuffer);
+VkMemoryRequirements getMemoryRequirements(VkDevice, VkImage);
+void* mapMemory(VkDevice, VkMemoryRequirements, VkDeviceMemory);
+void* mapMemory(VkDevice, VkImage, VkDeviceMemory);
+void* mapMemory(VkDevice, VkBuffer, VkDeviceMemory);
+void unMapMemory(VkDevice, VkDeviceMemory);

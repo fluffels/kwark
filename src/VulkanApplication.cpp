@@ -1,4 +1,5 @@
 #include "VulkanApplication.h"
+#include "VulkanUtils.h"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debugCallback(
@@ -930,7 +931,7 @@ VkDeviceMemory VulkanApplication::
 allocateBuffer(VkBuffer buffer) {
     VkDeviceMemory memory;
 
-    auto requirements = getMemoryRequirements(buffer);
+    auto requirements = getMemoryRequirements(_device, buffer);
     auto extraFlags = (
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -977,43 +978,19 @@ allocateVertexBuffer() {
     );
 }
 
-void* VulkanApplication::
-mapMemory(VkBuffer buffer, VkDeviceMemory memory) {
-    void* data = 0;
-    auto result = vkMapMemory(
-        _device,
-        memory,
-        0,
-        getMemoryRequirements(buffer).size,
-        0,
-        &data
-    );
-
-    checkSuccess(
-        result,
-        "could not map vertex memory"
-    );
-    return data;
-}
-
-void VulkanApplication::
-unMapMemory(VkDeviceMemory memory) {
-    vkUnmapMemory(_device, memory);
-}
-
 void VulkanApplication::
 uploadUniformData() {
     auto mvp = _camera->get();
-    auto dst = mapMemory(_uniformBuffer, _uniformMemory);
+    auto dst = mapMemory(_device, _uniformBuffer, _uniformMemory);
     memcpy(dst, &mvp, sizeof(mvp));
-    unMapMemory(_uniformMemory);
+    unMapMemory(_device, _uniformMemory);
 }
 
 void VulkanApplication::
 uploadVertexData() {
-    void* data = mapMemory(_vertexBuffer, _vertexMemory);
+    void* data = mapMemory(_device, _vertexBuffer, _vertexMemory);
         memcpy(data, _mesh.data(), sizeof(Vertex)*_mesh.size());
-    unMapMemory(_vertexMemory);
+    unMapMemory(_device, _vertexMemory);
 }
 
 void VulkanApplication::
@@ -1104,17 +1081,6 @@ getMemories() {
         &_memories
     );
 }
-
-VkMemoryRequirements VulkanApplication::
-getMemoryRequirements(VkBuffer buffer) {
-    VkMemoryRequirements requirements = {};
-    vkGetBufferMemoryRequirements(
-        _device,
-        buffer,
-        &requirements
-    );
-    return requirements;
-}  
 
 void VulkanApplication::
 getSwapImagesAndImageViews() {

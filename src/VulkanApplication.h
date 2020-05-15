@@ -93,7 +93,6 @@ class VulkanApplication {
         void checkVersion(uint32_t version);
 
         void getMemories();
-        VkMemoryRequirements getMemoryRequirements(VkBuffer);
 
         VkDeviceMemory allocateBuffer(VkBuffer);
         void allocateUniformBuffer();
@@ -102,9 +101,6 @@ class VulkanApplication {
         VkBuffer createBuffer(VkBufferUsageFlags, uint32_t);
         void createUniformBuffer();
         void createVertexBuffer();
-
-        void* mapMemory(VkBuffer, VkDeviceMemory);
-        void unMapMemory(VkDeviceMemory);
 
         void uploadUniformData();
         void uploadVertexData();
