@@ -24,13 +24,17 @@ debugCallback(
 }
 
 VulkanApplication::
-VulkanApplication(const Platform& platform, Camera* camera, vector<Vertex>& mesh):
+VulkanApplication(const Platform& platform,
+                  Camera* camera,
+                  vector<Vertex>& mesh,
+                  Atlas* atlas):
         _enabledExtensions({
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME
         }),
         _enabledLayers({ "VK_LAYER_KHRONOS_validation" }),
         _shouldResize(false),
+        _atlas(atlas),
         _camera(camera),
         _mesh(mesh) {
     auto platformRequiredExtensions = platform.getExtensions();
@@ -54,6 +58,12 @@ VulkanApplication(const Platform& platform, Camera* camera, vector<Vertex>& mesh
 
     createSwapChain();
     depth = new VulkanImage(_device, _memories, _swapChainExtent, _gfxFamily);
+    texture = new VulkanImage(
+        _device,
+        _memories,
+        { _atlas->textureHeaders[0].width, _atlas->textureHeaders[0].height },
+        _gfxFamily
+    );
     getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();
@@ -109,6 +119,7 @@ VulkanApplication::
     destroySwapchain(_swapChain);
 
     delete depth;
+    delete texture;
 
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);

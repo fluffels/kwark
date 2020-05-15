@@ -10,9 +10,11 @@
 #include "Camera.h"
 #include "FileSystem.h"
 #include "Platform.h"
-#include "util.h"
+#include "Texture.h"
 #include "Vertex.h"
 #include "VulkanImage.h"
+
+#include "util.h"
 
 using std::runtime_error;
 using std::string;
@@ -20,7 +22,10 @@ using std::vector;
 
 class VulkanApplication {
     public:
-        VulkanApplication(const Platform&, Camera*, vector<Vertex>&);
+        VulkanApplication(const Platform&,
+                          Camera*,
+                          vector<Vertex>&,
+                          Atlas*);
         virtual ~VulkanApplication();
 
         uint32_t getEnabledExtensionCount();
@@ -40,9 +45,11 @@ class VulkanApplication {
         bool _shouldResize;
 
         Camera* _camera;
+        Atlas* _atlas;
         vector<Vertex>& _mesh;
 
         VulkanImage* depth;
+        VulkanImage* texture;
 
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;
