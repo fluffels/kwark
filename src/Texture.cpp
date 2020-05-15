@@ -62,6 +62,9 @@ void Atlas::parseTexture(Palette& palette) {
 
     for (uint32_t i = 0; i < size; i++) {
         auto colorIdx = textureColorIndices[i];
-        texture[i] = palette.colors[colorIdx];
+        auto paletteColor = palette.colors[colorIdx];
+        texture[i].r = paletteColor.r / 255.f;
+        texture[i].g = paletteColor.g / 255.f;
+        texture[i].b = paletteColor.b / 255.f;
     }
 }

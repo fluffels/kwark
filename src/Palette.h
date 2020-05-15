@@ -9,14 +9,14 @@ using glm::vec3;
 using std::runtime_error;
 using std::vector;
 
-struct Color {
+struct PaletteColor {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 };
 
 struct Palette {
-    vector<Color> colors;
+    vector<PaletteColor> colors;
 
     Palette(FILE*, int32_t offset, int32_t size);
 };

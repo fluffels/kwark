@@ -3,8 +3,12 @@
 #include <exception>
 #include <vector>
 
+#include <glm/vec3.hpp>
+
 #include "FileSystem.h"
 #include "Palette.h"
+
+using glm::vec3;
 
 using std::runtime_error;
 using std::vector;
@@ -31,7 +35,7 @@ struct Atlas {
     AtlasHeader header;
     vector<TextureHeader> textureHeaders;
     vector<uint8_t> textureColorIndices;
-    vector<Color> texture;
+    vector<vec3> texture;
 
     Atlas(FILE*, int32_t, Palette&);
 

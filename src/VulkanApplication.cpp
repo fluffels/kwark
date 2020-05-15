@@ -64,14 +64,21 @@ VulkanApplication(const Platform& platform,
         _swapChainExtent,
         _gfxFamily
     );
+    
     texture = createVulkanTexture(
         _device,
         _memories,
         { _atlas->textureHeaders[0].width, _atlas->textureHeaders[0].height },
         _gfxFamily
     );
-    mapMemory(_device, texture.handle, texture.memory);
+    void* textureMemory = mapMemory(
+        _device,
+        texture.handle,
+        texture.memory
+    );
+    memcpy(textureMemory, _atlas->texture.data(), _atlas->texture.size() * sizeof(float));
     unMapMemory(_device, texture.memory);
+
     getSwapImagesAndImageViews();
     createRenderPass();
     createFramebuffers();
