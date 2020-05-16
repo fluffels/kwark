@@ -44,18 +44,19 @@ void Mesh::buildWireFrameModel() {
             }
         }
 
+        Vertex v0, v1, v2;
+
         auto light = 1.f - face.baseLight / 255.0f;
-        if (face.lightmap != -1) {
-            // TODO(jan): calculate light values from light map and send to shaders
+        if (face.lightmap >= 0) {
+            auto lightMap = bsp.lightMap[face.lightmap] / 255.0f;
+            light += lightMap;
         }
+        v0.light = light;
+        v1.light = light;
+        v2.light = light;
 
         auto& texInfo = bsp.texInfos[face.texinfoId];
         auto& texHeader = bsp.atlas->textureHeaders[texInfo.textureID];
-
-        Vertex v0, v1, v2;
-        v0.light = { light, light, light };
-        v1.light = { light, light, light };
-        v2.light = { light, light, light };
 
         auto texNum = bsp.atlas->textureIDMap[texInfo.textureID];
         v0.texIdx = texNum;

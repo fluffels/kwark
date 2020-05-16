@@ -12,7 +12,7 @@ class Vertex {
         glm::vec3 pos;
         glm::vec2 texCoord;
         uint32_t texIdx;
-        glm::vec3 light;
+        float light;
 
         static VkVertexInputBindingDescription
         getInputBindingDescription();

@@ -12,11 +12,11 @@ layout(binding=0) uniform Uniform {
 layout(location=0) in vec3 inPosition;
 layout(location=1) in vec2 inTexCoord;
 layout(location=2) in uint inTexIdx;
-layout(location=3) in vec3 inLight;
+layout(location=3) in float inLight;
 
 layout(location=0) out vec2 outTexCoord;
 layout(location=1) out flat uint outTexIdx;
-layout(location=2) out vec3 outLight;
+layout(location=2) out float outLight;
 
 void main() {
     gl_Position = uniforms.mvp * vec4(inPosition, 1.0);

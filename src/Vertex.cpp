@@ -30,7 +30,7 @@ getInputAttributeDescriptions() {
 
     i[3].binding = 0;
     i[3].location = 3;
-    i[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+    i[3].format = VK_FORMAT_R32_SFLOAT;
     i[3].offset = offsetof(Vertex, light);
 
     return i;
