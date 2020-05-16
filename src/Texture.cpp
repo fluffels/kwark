@@ -50,12 +50,13 @@ void Atlas::parseTextureHeaders() {
 }
 
 void Atlas::parseTexture(Palette& palette) {
+    auto headerOffset = header.offset[0];
     auto& header = textureHeaders[0];
     auto size = header.width * header.height;
 
     textureColorIndices.resize(size);
 
-    seek(file, baseOffset + header.offset1);
+    seek(file, baseOffset + headerOffset + header.offset1);
     fread_s(textureColorIndices.data(), size, size, 1, file);
 
     texture.resize(size);
