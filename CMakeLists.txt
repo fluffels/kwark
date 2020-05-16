@@ -17,7 +17,7 @@ foreach(GLSL_FILE ${GLSL_FILES})
     )
     list(APPEND SPIRV_FILES ${SPIRV_FILE})
 endforeach(GLSL_FILE)
-add_custom_target(Shaders DEPENDS ${SPIRV_FILES})
+add_custom_target(Shaders ALL DEPENDS ${SPIRV_FILES})
 
 include_directories (${CMAKE_HOME_DIRECTORY}/src)
 include_directories (${CMAKE_HOME_DIRECTORY}/lib)
