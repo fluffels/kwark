@@ -1004,8 +1004,9 @@ uploadVertexData() {
 
 void VulkanApplication::
 uploadTextureData() {
-    auto& header = _atlas->textureHeaders[0];
-    auto& texture = _atlas->texture;
+    auto idx = 1;
+    auto& header = _atlas->textureHeaders[idx];
+    auto& texture = _atlas->textures[idx];
     VkExtent2D extent = { header.width, header.height };
 
     sampler = createVulkanSampler(

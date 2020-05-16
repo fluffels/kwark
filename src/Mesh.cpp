@@ -7,16 +7,15 @@ using glm::dot;
 using glm::normalize;
 using glm::vec2;
 
-vec2 calculateTexCoord(vec3& vertex, TexInfo& texInfo) {
-    vec2 result;
-    if (texInfo.textureID == 0) {
-        result = {
-            (dot(vertex, texInfo.uVector) + texInfo.uOffset) / 16.f,
-            (dot(vertex, texInfo.vVector) + texInfo.vOffset) / 64.f
-        };
-    } else {
-        result = {0, 0};
-    }
+vec2 calculateTexCoord(
+    vec3& vertex,
+    TexInfo& texInfo,
+    TextureHeader& texHeader
+) {
+    vec2 result = {
+        (dot(vertex, texInfo.uVector) + texInfo.uOffset) / texHeader.width,
+        (dot(vertex, texInfo.vVector) + texInfo.vOffset) / texHeader.height
+    };
     return result;
 }
 
@@ -51,6 +50,7 @@ void Mesh::buildWireFrameModel() {
         }
 
         auto& texInfo = bsp.texInfos[face.texinfoId];
+        auto& texHeader = bsp.atlas->textureHeaders[texInfo.textureID];
 
         Vertex v0, v1, v2;
         v0.light = { light, light, light };
@@ -59,17 +59,17 @@ void Mesh::buildWireFrameModel() {
 
         auto& p0 = faceVertices[0];
         v0.pos = p0;
-        v0.texCoord = calculateTexCoord(v0.pos, texInfo);
+        v0.texCoord = calculateTexCoord(v0.pos, texInfo, texHeader);
 
         for (uint32_t i = 1; i < face.ledgeNum; i++) {
             vertices.push_back(v0);
 
             v1.pos = faceVertices[i*2];
-            v1.texCoord = calculateTexCoord(v1.pos, texInfo);
+            v1.texCoord = calculateTexCoord(v1.pos, texInfo, texHeader);
             vertices.push_back(v1);
 
             v2.pos = faceVertices[i*2+1];
-            v2.texCoord = calculateTexCoord(v2.pos, texInfo);
+            v2.texCoord = calculateTexCoord(v2.pos, texInfo, texHeader);
             vertices.push_back(v2);
         }
     }

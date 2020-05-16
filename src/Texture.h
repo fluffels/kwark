@@ -29,17 +29,18 @@ struct TextureHeader {
 };
 
 struct Atlas {
-    FILE* file;
     int32_t baseOffset;
+    FILE* file;
+    Palette& palette;
 
     AtlasHeader header;
     vector<TextureHeader> textureHeaders;
-    vector<uint8_t> textureColorIndices;
-    vector<uint8_t> texture;
+    vector<vector<uint8_t>> textures;
 
     Atlas(FILE*, int32_t, Palette&);
 
     void parseHeader();
     void parseTextureHeaders();
-    void parseTexture(Palette& palette);
+    void parseTexture(int, vector<uint8_t>&);
+    void parseTextures();
 };

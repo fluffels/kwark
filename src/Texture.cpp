@@ -1,12 +1,13 @@
 #include "Texture.h"
 
 Atlas::Atlas(FILE* file, int32_t offset, Palette& palette):
+    baseOffset(offset),
     file(file),
-    baseOffset(offset)
+    palette(palette)
 {
     parseHeader();
     parseTextureHeaders();
-    parseTexture(palette);
+    parseTextures();
 }
 
 void Atlas::parseHeader() {
@@ -49,12 +50,12 @@ void Atlas::parseTextureHeaders() {
     }
 }
 
-void Atlas::parseTexture(Palette& palette) {
-    auto headerOffset = header.offset[0];
-    auto& header = textureHeaders[0];
+void Atlas::parseTexture(int idx, vector<uint8_t>& texture) {
+    auto headerOffset = header.offset[idx];
+    auto& header = textureHeaders[idx];
     auto size = header.width * header.height;
 
-    textureColorIndices.resize(size);
+    vector<uint8_t> textureColorIndices(size);
 
     seek(file, baseOffset + headerOffset + header.offset1);
     fread_s(textureColorIndices.data(), size, size, 1, file);
@@ -68,5 +69,13 @@ void Atlas::parseTexture(Palette& palette) {
         texture[i*4+1] = paletteColor.g;
         texture[i*4+2] = paletteColor.b;
         texture[i*4+3] = 255;
+    }
+}
+
+void Atlas::parseTextures() {
+    textures.resize(header.numtex);
+    for (int idx = 0; idx < textures.size(); idx++) {
+        auto& texture = textures[idx];
+        parseTexture(idx, texture);
     }
 }
