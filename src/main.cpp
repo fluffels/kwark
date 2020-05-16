@@ -20,8 +20,8 @@ using std::setw;
 
 #define WIN32_CHECK(e, m) if (e != S_OK) throw new std::runtime_error(m)
 
-const int WIDTH = 640;
-const int HEIGHT = 480;
+const int WIDTH = 800;
+const int HEIGHT = 800;
 
 const float DELTA_MOVE_PER_S = 200.f;
 const float DELTA_ROTATE_PER_S = 3.14f;
