@@ -14,7 +14,7 @@ const float MAX_D = 1000.f;
 
 void main() {
     // TODO(jan): replace with actual texture color
-    vec2 texCoord = vec2(.5f, .5f);
+    vec2 texCoord = vec2(0, 0);
     vec3 texturedColor = texture(atlas, texCoord).rgb;
     // vec3 texturedColor = inNormal;
     vec3 lightedColor = texturedColor * (inLight + .5f);
