@@ -2,14 +2,15 @@
 
 #include <array>
 
-#include "vulkan/vulkan.h"
+#include <vulkan/vulkan.h>
 
-#include <glm/glm.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 class Vertex {
     public:
         glm::vec3 pos;
-        glm::vec3 normal;
+        glm::vec2 texCoord;
         glm::vec3 light;
 
         static VkVertexInputBindingDescription

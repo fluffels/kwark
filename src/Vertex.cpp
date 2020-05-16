@@ -20,8 +20,8 @@ getInputAttributeDescriptions() {
 
     i[1].binding = 0;
     i[1].location = 1;
-    i[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    i[1].offset = offsetof(Vertex, normal);
+    i[1].format = VK_FORMAT_R32G32_SFLOAT;
+    i[1].offset = offsetof(Vertex, texCoord);
 
     i[2].binding = 0;
     i[2].location = 2;

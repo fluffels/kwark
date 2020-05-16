@@ -5,6 +5,15 @@
 
 using std::runtime_error;
 
+void fixCoords(vec3& v) {
+    /* NOTE(jan): Translate from BSP coordinate system.
+       See: http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_2.htm#2.1.1 */
+    auto y = -v.z;
+    auto z = -v.y;
+    v.y = y;
+    v.z = z;
+}
+
 void BSPParser::parseHeader() {
     seek(file, fileOffset);
     readStruct(file, header);
@@ -181,6 +190,13 @@ void BSPParser::parseTexInfos() {
     if (readCount != count) {
         throw runtime_error("unexpected EOF");
     }
+
+    /* NOTE(jan): Translate from BSP coordinate system.
+       See: http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_2.htm#2.1.1 */
+    for (auto& texInfo: texInfos) {
+        fixCoords(texInfo.uVector);
+        fixCoords(texInfo.vVector);
+    }
 }
 
 void BSPParser::parseVertices() {
@@ -194,13 +210,8 @@ void BSPParser::parseVertices() {
     int32_t bytes = sizeof(vec3) * count;
     fread_s(vertices.data(), bytes, bytes, 1, file);
 
-    /* NOTE(jan): Translate from BSP coordinate system.
-       See: http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_2.htm#2.1.1 */
     for (vec3& vertex: vertices) {
-        auto y = -vertex.z;
-        auto z = -vertex.y;
-        vertex.y = y;
-        vertex.z = z;
+        fixCoords(vertex);
     }
 }
 

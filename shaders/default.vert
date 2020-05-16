@@ -10,11 +10,11 @@ layout(binding=0) uniform Uniform {
 } uniforms;
 
 layout(location=0) in vec3 inPosition;
-layout(location=1) in vec3 inNormal;
+layout(location=1) in vec2 inTexCoord;
 layout(location=2) in vec3 inLight;
 
 layout(location=0) out float outDistance;
-layout(location=1) out vec3 outNormal;
+layout(location=1) out vec2 outTexCoord;
 layout(location=2) out vec3 outLight;
 
 void main() {
@@ -24,6 +24,6 @@ void main() {
         gl_Position.y * gl_Position.y +
         gl_Position.z * gl_Position.z
     );
-    outNormal = inNormal;
+    outTexCoord = inTexCoord;
     outLight = inLight;
 }
