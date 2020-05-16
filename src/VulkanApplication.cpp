@@ -562,20 +562,27 @@ void VulkanApplication::createPipeline(
     VkShaderModule& vertexShaderModule,
     VkShaderModule& fragmentShaderModule
 ) {
-    VkDescriptorSetLayoutBinding uniformDescriptorSetBinding = {};
-    uniformDescriptorSetBinding.binding = 0;
-    uniformDescriptorSetBinding.descriptorCount = 1;
-    uniformDescriptorSetBinding.descriptorType =
+    vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings(2);
+
+    descriptorSetLayoutBindings[0].binding = 0;
+    descriptorSetLayoutBindings[0].descriptorCount = 1;
+    descriptorSetLayoutBindings[0].descriptorType =
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uniformDescriptorSetBinding.stageFlags =
-        VK_SHADER_STAGE_VERTEX_BIT;
+    descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    
+    descriptorSetLayoutBindings[1].binding = 1;
+    descriptorSetLayoutBindings[1].descriptorCount = 1;
+    descriptorSetLayoutBindings[1].descriptorType =
+        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     VkDescriptorSetLayoutCreateInfo uniformDescriptorSetLayoutCreateInfo = {};
     uniformDescriptorSetLayoutCreateInfo.sType =
         VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    uniformDescriptorSetLayoutCreateInfo.bindingCount = 1;
+    uniformDescriptorSetLayoutCreateInfo.bindingCount =
+        (uint32_t)descriptorSetLayoutBindings.size();
     uniformDescriptorSetLayoutCreateInfo.pBindings =
-        &uniformDescriptorSetBinding;
+        descriptorSetLayoutBindings.data();
     
     vkCreateDescriptorSetLayout(
         _device,
@@ -816,21 +823,31 @@ updateDescriptorSet() {
     bufferInfo.offset = 0;
     bufferInfo.range = VK_WHOLE_SIZE;
 
-    VkWriteDescriptorSet writeSet = {};
-    writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeSet.descriptorCount = 1;
-    writeSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writeSet.dstArrayElement = 0;
-    writeSet.dstBinding = 0;
-    writeSet.dstSet = _descriptorSet;
-    writeSet.pBufferInfo = &bufferInfo;
-    writeSet.pImageInfo = nullptr;
-    writeSet.pTexelBufferView = nullptr;
+    VkWriteDescriptorSet writeSets[2] = {};
+
+    writeSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeSets[0].descriptorCount = 1;
+    writeSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    writeSets[0].dstBinding = 0;
+    writeSets[0].dstSet = _descriptorSet;
+    writeSets[0].pBufferInfo = &bufferInfo;
+
+    VkDescriptorImageInfo imageInfo = {};
+    imageInfo.imageView = sampler.image.view;
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.sampler = sampler.handle;
+
+    writeSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeSets[1].descriptorCount = 1;
+    writeSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writeSets[1].dstBinding = 1;
+    writeSets[1].dstSet = _descriptorSet;
+    writeSets[1].pImageInfo = &imageInfo;
 
     vkUpdateDescriptorSets(
         _device,
-        1,
-        &writeSet,
+        2,
+        writeSets,
         0,
         nullptr
     );
