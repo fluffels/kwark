@@ -50,16 +50,17 @@ void Mesh::buildWireFrameModel() {
         }
 
         auto& texInfo = bsp.texInfos[face.texinfoId];
-        auto texIdx = texInfo.textureID;
-        auto& texHeader = bsp.atlas->textureHeaders[texIdx];
+        auto& texHeader = bsp.atlas->textureHeaders[texInfo.textureID];
 
         Vertex v0, v1, v2;
         v0.light = { light, light, light };
-        v0.texIdx = texIdx;
         v1.light = { light, light, light };
-        v1.texIdx = texIdx;
         v2.light = { light, light, light };
-        v2.texIdx = texIdx;
+
+        auto texNum = bsp.atlas->textureIDMap[texInfo.textureID];
+        v0.texIdx = texNum;
+        v1.texIdx = texNum;
+        v2.texIdx = texNum;
 
         auto& p0 = faceVertices[0];
         v0.pos = p0;

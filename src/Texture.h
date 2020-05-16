@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <map>
 #include <vector>
 
 #include <glm/vec3.hpp>
@@ -10,6 +11,7 @@
 
 using glm::vec3;
 
+using std::map;
 using std::runtime_error;
 using std::vector;
 
@@ -35,6 +37,7 @@ struct Atlas {
 
     AtlasHeader header;
     vector<TextureHeader> textureHeaders;
+    map<uint32_t, uint32_t> textureIDMap;
     vector<vector<uint8_t>> textures;
 
     Atlas(FILE*, int32_t, Palette&);

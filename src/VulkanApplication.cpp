@@ -563,7 +563,8 @@ void VulkanApplication::createPipeline(
     descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     
     descriptorSetLayoutBindings[1].binding = 1;
-    descriptorSetLayoutBindings[1].descriptorCount = 60;
+    descriptorSetLayoutBindings[1].descriptorCount =
+        samplers.size();
     descriptorSetLayoutBindings[1].descriptorType =
         VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -824,8 +825,9 @@ updateDescriptorSet() {
     writeSets[0].dstSet = _descriptorSet;
     writeSets[0].pBufferInfo = &bufferInfo;
 
-    VkDescriptorImageInfo imageInfos[textureArraySize] = {};
-    for (int i = 0; i < textureArraySize; i++) {
+    auto samplerCount = samplers.size();
+    vector<VkDescriptorImageInfo> imageInfos(samplerCount);
+    for (int i = 0; i < samplerCount; i++) {
         auto& imageInfo = imageInfos[i];
         auto& sampler = samplers[i];
         imageInfo.imageView = sampler.image.view;
@@ -834,11 +836,11 @@ updateDescriptorSet() {
     }
 
     writeSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeSets[1].descriptorCount = textureArraySize;
     writeSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    writeSets[1].dstBinding = 1;
     writeSets[1].dstSet = _descriptorSet;
-    writeSets[1].pImageInfo = imageInfos;
+    writeSets[1].dstBinding = 1;
+    writeSets[1].descriptorCount = (uint32_t)imageInfos.size();
+    writeSets[1].pImageInfo = imageInfos.data();
 
     vkUpdateDescriptorSets(
         _device,
@@ -1010,14 +1012,17 @@ uploadVertexData() {
 
 void VulkanApplication::
 uploadTextures() {
-    samplers.resize(textureArraySize);
-    for (int idx = 0; idx < textureArraySize; idx++) {
+    auto textureCount = _atlas->textures.size();
+    samplers.resize(textureCount);
+    for (int idx = 0; idx < _atlas->textureHeaders.size(); idx++) {
         auto& header = _atlas->textureHeaders[idx];
-        auto& texture = _atlas->textures[idx];
-        auto& sampler = samplers[idx];
-        uploadTexture(header, texture, sampler);
+        if ((header.width > 0) && (header.height > 0)) {
+            auto texNum = _atlas->textureIDMap[idx];
+            auto& texture = _atlas->textures[texNum];
+            auto& sampler = samplers[texNum];
+            uploadTexture(header, texture, sampler);
+        }
     }
-    samplers[2] = samplers[1];
 }
 
 void VulkanApplication::
@@ -1027,11 +1032,6 @@ uploadTexture(
     VulkanSampler& sampler
 ) {
     VkExtent2D extent = { header.width, header.height };
-
-    if ((header.width == 0) && (header.height == 0)) {
-        sampler = {};
-        return;
-    }
 
     sampler = createVulkanSampler(
         _device,

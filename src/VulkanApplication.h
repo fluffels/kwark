@@ -20,8 +20,6 @@ using std::runtime_error;
 using std::string;
 using std::vector;
 
-const int textureArraySize = 60;
-
 class VulkanApplication {
     public:
         VulkanApplication(const Platform&,
