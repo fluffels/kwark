@@ -67,6 +67,15 @@ struct Plane {
     int32_t type;
 };
 
+struct TexInfo {
+    vec3 uVector;
+    float uOffset;
+    vec3 vVector;
+    float vOffset;
+    uint32_t textureID;
+    uint32_t animated;
+};
+
 struct BSPParser {
     FILE* file;
     int32_t fileOffset;
@@ -80,6 +89,7 @@ struct BSPParser {
     vector<vec3> lines;
     vector<uint8_t> lightMap;
     vector<Plane> planes;
+    vector<TexInfo> texInfos;
     vector<vec3> vertices;
     
     BSPParser(FILE*, int32_t, Palette&);
@@ -92,6 +102,7 @@ struct BSPParser {
     void parseHeader();
     void parseLightMap();
     void parsePlanes();
+    void parseTexInfos();
     void parseVertices();
 
     void buildWireFrameModel();

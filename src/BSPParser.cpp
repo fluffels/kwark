@@ -162,6 +162,27 @@ void BSPParser::parsePlanes() {
     }
 }
 
+void BSPParser::parseTexInfos() {
+    auto offset = fileOffset + header.texinfo.offset;
+    auto size = header.texinfo.size;
+    auto elementSize = sizeof(TexInfo);
+
+    auto count = size / elementSize;
+    texInfos.resize(count);
+
+    seek(file, offset);
+    auto readCount = fread_s(
+        texInfos.data(),
+        size,
+        elementSize,
+        count,
+        file
+    );
+    if (readCount != count) {
+        throw runtime_error("unexpected EOF");
+    }
+}
+
 void BSPParser::parseVertices() {
     auto offset = fileOffset + header.vertices.offset;
     auto size = header.vertices.size;
@@ -235,6 +256,7 @@ BSPParser::BSPParser(FILE* file, int32_t offset, Palette& palette):
     parseFaces();
     parseLightMap();
     parsePlanes();
+    parseTexInfos();
 }
 
 BSPParser::~BSPParser() {
