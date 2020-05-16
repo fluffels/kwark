@@ -1019,7 +1019,7 @@ uploadTextureData() {
         sampler.image.handle,
         sampler.image.memory
     );
-    memcpy(memory, texture.data(), texture.size() * 3 * sizeof(float));
+    memcpy(memory, texture.data(), texture.size() * sizeof(uint8_t));
     unMapMemory(_device, sampler.image.memory);
 
     auto commands = allocateCommandBuffer(_device, _transientCommandPool);

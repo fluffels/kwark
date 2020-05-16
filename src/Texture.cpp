@@ -59,13 +59,14 @@ void Atlas::parseTexture(Palette& palette) {
     seek(file, baseOffset + headerOffset + header.offset1);
     fread_s(textureColorIndices.data(), size, size, 1, file);
 
-    texture.resize(size);
+    texture.resize(size * 4);
 
     for (uint32_t i = 0; i < size; i++) {
         auto colorIdx = textureColorIndices[i];
         auto paletteColor = palette.colors[colorIdx];
-        texture[i].r = paletteColor.r / 255.f;
-        texture[i].g = paletteColor.g / 255.f;
-        texture[i].b = paletteColor.b / 255.f;
+        texture[i*4] = paletteColor.r;
+        texture[i*4+1] = paletteColor.g;
+        texture[i*4+2] = paletteColor.b;
+        texture[i*4+3] = 255;
     }
 }

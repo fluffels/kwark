@@ -35,7 +35,7 @@ struct Atlas {
     AtlasHeader header;
     vector<TextureHeader> textureHeaders;
     vector<uint8_t> textureColorIndices;
-    vector<vec3> texture;
+    vector<uint8_t> texture;
 
     Atlas(FILE*, int32_t, Palette&);
 
