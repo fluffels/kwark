@@ -134,6 +134,11 @@ void destroyVulkanImage(VkDevice device, VulkanImage image) {
     vkDestroyImage(device, image.handle, nullptr);
 }
 
+void destroyVulkanSampler(VkDevice device, VulkanSampler sampler) {
+    vkDestroySampler(device, sampler.handle, nullptr);
+    destroyVulkanImage(device, sampler.image);
+}
+
 VulkanImage createVulkanDepthBuffer(
     VkDevice device,
     VkPhysicalDeviceMemoryProperties& memories,
@@ -154,13 +159,15 @@ VulkanImage createVulkanDepthBuffer(
     return result;
 }
 
-VulkanImage createVulkanTexture(
+VulkanSampler createVulkanSampler(
     VkDevice device,
     VkPhysicalDeviceMemoryProperties& memories,
     VkExtent2D extent,
     uint32_t family
 ) {
-    auto result = createVulkanImage(
+    VulkanSampler result = {};
+
+    result.image = createVulkanImage(
         device,
         memories,
         extent,
@@ -171,5 +178,28 @@ VulkanImage createVulkanTexture(
         VK_IMAGE_TILING_LINEAR,
         true
     );
+
+    VkSamplerCreateInfo createInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+    // TODO(jan): Better filtering.
+    createInfo.magFilter = VK_FILTER_NEAREST;
+    createInfo.minFilter = VK_FILTER_NEAREST;
+    // TODO(jan): Implement mipmap.
+    createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    createInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    createInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    createInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    // TODO(jan): Enable anisotropic filtering.
+    createInfo.anisotropyEnable = VK_FALSE;
+    // createInfo.maxAnisotropy = ;
+    createInfo.compareEnable = VK_FALSE;
+    // createInfo.minLod = ;
+    // createInfo.maxLod = ;
+    // createInfo.mipLodBias = ;
+
+    auto code = vkCreateSampler(device, &createInfo, nullptr, &result.handle);
+    if (code != VK_SUCCESS) {
+        throw runtime_error("could not create sampler");
+    }
+
     return result;
 }

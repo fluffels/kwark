@@ -49,7 +49,7 @@ class VulkanApplication {
         vector<Vertex>& _mesh;
 
         VulkanImage depth;
-        VulkanImage texture;
+        VulkanSampler sampler;
 
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;

@@ -8,6 +8,11 @@ struct VulkanImage {
     VkDeviceMemory memory;
 };
 
+struct VulkanSampler {
+    VulkanImage image;
+    VkSampler handle;
+};
+
 VulkanImage createVulkanDepthBuffer(
     VkDevice,
     VkPhysicalDeviceMemoryProperties&,
@@ -15,7 +20,7 @@ VulkanImage createVulkanDepthBuffer(
     uint32_t
 );
 
-VulkanImage createVulkanTexture(
+VulkanSampler createVulkanSampler(
     VkDevice,
     VkPhysicalDeviceMemoryProperties&,
     VkExtent2D,
@@ -26,3 +31,9 @@ void destroyVulkanImage(
     VkDevice device,
     VulkanImage image
 );
+
+void destroyVulkanSampler(
+    VkDevice device,
+    VulkanSampler sampler
+);
+

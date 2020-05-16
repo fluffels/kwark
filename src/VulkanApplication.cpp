@@ -65,7 +65,7 @@ VulkanApplication(const Platform& platform,
         _gfxFamily
     );
     
-    texture = createVulkanTexture(
+    sampler = createVulkanSampler(
         _device,
         _memories,
         { _atlas->textureHeaders[0].width, _atlas->textureHeaders[0].height },
@@ -73,11 +73,11 @@ VulkanApplication(const Platform& platform,
     );
     void* textureMemory = mapMemory(
         _device,
-        texture.handle,
-        texture.memory
+        sampler.image.handle,
+        sampler.image.memory
     );
     memcpy(textureMemory, _atlas->texture.data(), _atlas->texture.size() * sizeof(float));
-    unMapMemory(_device, texture.memory);
+    unMapMemory(_device, sampler.image.memory);
 
     getSwapImagesAndImageViews();
     createRenderPass();
@@ -134,7 +134,7 @@ VulkanApplication::
     destroySwapchain(_swapChain);
 
     destroyVulkanImage(_device, depth);
-    destroyVulkanImage(_device, texture);
+    destroyVulkanSampler(_device, sampler);
 
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
