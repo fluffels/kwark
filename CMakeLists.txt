@@ -42,6 +42,7 @@ add_executable (
     src/Palette.cpp
     src/Texture.cpp
     src/VulkanApplication.cpp
+    src/VulkanCommandBuffer.cpp
     src/VulkanImage.cpp
     src/VulkanUtils.cpp
     src/Win32.cpp

@@ -69,6 +69,7 @@ class VulkanApplication {
         vector<VkImage> _swapImages;
         vector<VkImageView> _swapImageViews;
         VkCommandPool _graphicsCommandPool;
+        VkCommandPool _transientCommandPool;
         VkRenderPass _renderPass;
         vector<VkFramebuffer> _framebuffers;
         VkShaderModule _vertexShader;
@@ -104,6 +105,7 @@ class VulkanApplication {
 
         void uploadUniformData();
         void uploadVertexData();
+        void uploadTextureData();
 
         void createDescriptorPool();
         void allocateDescriptorSet();
@@ -119,8 +121,7 @@ class VulkanApplication {
         VkShaderModule createShaderModule(const string&);
         VkShaderModule createShaderModule(const vector<char>& code);
         void createPipeline(VkShaderModule&, VkShaderModule&);
-        void createGraphicsCommandPool();
-        void createPresentCommandPool();
+        void createCommandPools();
         void createSwapCommandBuffers();
         void createSemaphores();
 

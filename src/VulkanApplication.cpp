@@ -1,4 +1,5 @@
 #include "VulkanApplication.h"
+#include "VulkanCommandBuffer.h"
 #include "VulkanUtils.h"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -58,26 +59,14 @@ VulkanApplication(const Platform& platform,
     getMemories();
 
     createSwapChain();
+    createCommandPools();
     depth = createVulkanDepthBuffer(
         _device,
         _memories,
         _swapChainExtent,
         _gfxFamily
     );
-    
-    sampler = createVulkanSampler(
-        _device,
-        _memories,
-        { _atlas->textureHeaders[0].width, _atlas->textureHeaders[0].height },
-        _gfxFamily
-    );
-    void* textureMemory = mapMemory(
-        _device,
-        sampler.image.handle,
-        sampler.image.memory
-    );
-    memcpy(textureMemory, _atlas->texture.data(), _atlas->texture.size() * sizeof(float));
-    unMapMemory(_device, sampler.image.memory);
+    uploadTextureData();
 
     getSwapImagesAndImageViews();
     createRenderPass();
@@ -100,7 +89,6 @@ VulkanApplication(const Platform& platform,
     allocateVertexBuffer();
     uploadVertexData();
 
-    createGraphicsCommandPool();
     createSwapCommandBuffers();
     recordCommandBuffers();
 
@@ -113,7 +101,9 @@ VulkanApplication::
 
     vkDestroySemaphore(_device, _imageReady, nullptr);
     vkDestroySemaphore(_device, _presentReady, nullptr);
+
     vkDestroyCommandPool(_device, _graphicsCommandPool, nullptr);
+    vkDestroyCommandPool(_device, _transientCommandPool, nullptr);
 
     vkFreeMemory(_device, _vertexMemory, nullptr);
     vkDestroyBuffer(_device, _vertexBuffer, nullptr);
@@ -834,7 +824,7 @@ updateDescriptorSet() {
 
     VkDescriptorImageInfo imageInfo = {};
     imageInfo.imageView = sampler.image.view;
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     imageInfo.sampler = sampler.handle;
 
     writeSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -854,21 +844,9 @@ updateDescriptorSet() {
 }
 
 void VulkanApplication::
-createGraphicsCommandPool() {
-    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
-    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    commandPoolCreateInfo.queueFamilyIndex = _gfxFamily;
-    auto result = vkCreateCommandPool(
-        _device,
-        &commandPoolCreateInfo,
-        nullptr,
-        &_graphicsCommandPool
-    );
-    checkSuccess(
-        result,
-        "could not create graphics queue command pool"
-    );
-    LOG(INFO) << "created graphics queue command pool";
+createCommandPools() {
+    _graphicsCommandPool = createCommandPool(_device, _gfxFamily);
+    _transientCommandPool = createCommandPool(_device, _gfxFamily, true);
 }
 
 void VulkanApplication::
@@ -1022,6 +1000,66 @@ uploadVertexData() {
     void* data = mapMemory(_device, _vertexBuffer, _vertexMemory);
         memcpy(data, _mesh.data(), sizeof(Vertex)*_mesh.size());
     unMapMemory(_device, _vertexMemory);
+}
+
+void VulkanApplication::
+uploadTextureData() {
+    auto& header = _atlas->textureHeaders[0];
+    auto& texture = _atlas->texture;
+    VkExtent2D extent = { header.width, header.height };
+
+    sampler = createVulkanSampler(
+        _device,
+        _memories,
+        extent,
+        _gfxFamily
+    );
+    void* memory = mapMemory(
+        _device,
+        sampler.image.handle,
+        sampler.image.memory
+    );
+    memcpy(memory, texture.data(), texture.size() * sizeof(float));
+    unMapMemory(_device, sampler.image.memory);
+
+    auto commands = allocateCommandBuffer(_device, _transientCommandPool);
+    beginCommandBuffer(commands);
+
+    VkImageMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.image = sampler.image.handle;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier(
+        commands,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0,
+        0,
+        nullptr,
+        0,
+        nullptr,
+        1,
+        &barrier
+    );
+
+    endCommandBuffer(commands);
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commands;
+    vkQueueSubmit(_gfxQueue, 1, &submitInfo, 0);
 }
 
 void VulkanApplication::
