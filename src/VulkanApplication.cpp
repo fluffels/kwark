@@ -66,7 +66,7 @@ VulkanApplication(const Platform& platform,
         _swapChainExtent,
         _gfxFamily
     );
-    uploadTextureData();
+    uploadTextures();
 
     getSwapImagesAndImageViews();
     createRenderPass();
@@ -124,7 +124,9 @@ VulkanApplication::
     destroySwapchain(_swapChain);
 
     destroyVulkanImage(_device, depth);
-    destroyVulkanSampler(_device, sampler);
+    for (auto& sampler: samplers) {
+        destroyVulkanSampler(_device, sampler);
+    }
 
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
@@ -561,7 +563,7 @@ void VulkanApplication::createPipeline(
     descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     
     descriptorSetLayoutBindings[1].binding = 1;
-    descriptorSetLayoutBindings[1].descriptorCount = 1;
+    descriptorSetLayoutBindings[1].descriptorCount = 60;
     descriptorSetLayoutBindings[1].descriptorType =
         VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -822,17 +824,21 @@ updateDescriptorSet() {
     writeSets[0].dstSet = _descriptorSet;
     writeSets[0].pBufferInfo = &bufferInfo;
 
-    VkDescriptorImageInfo imageInfo = {};
-    imageInfo.imageView = sampler.image.view;
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.sampler = sampler.handle;
+    VkDescriptorImageInfo imageInfos[textureArraySize] = {};
+    for (int i = 0; i < textureArraySize; i++) {
+        auto& imageInfo = imageInfos[i];
+        auto& sampler = samplers[i];
+        imageInfo.imageView = sampler.image.view;
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.sampler = sampler.handle;
+    }
 
     writeSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeSets[1].descriptorCount = 1;
+    writeSets[1].descriptorCount = textureArraySize;
     writeSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     writeSets[1].dstBinding = 1;
     writeSets[1].dstSet = _descriptorSet;
-    writeSets[1].pImageInfo = &imageInfo;
+    writeSets[1].pImageInfo = imageInfos;
 
     vkUpdateDescriptorSets(
         _device,
@@ -1003,11 +1009,29 @@ uploadVertexData() {
 }
 
 void VulkanApplication::
-uploadTextureData() {
-    auto idx = 1;
-    auto& header = _atlas->textureHeaders[idx];
-    auto& texture = _atlas->textures[idx];
+uploadTextures() {
+    samplers.resize(textureArraySize);
+    for (int idx = 0; idx < textureArraySize; idx++) {
+        auto& header = _atlas->textureHeaders[idx];
+        auto& texture = _atlas->textures[idx];
+        auto& sampler = samplers[idx];
+        uploadTexture(header, texture, sampler);
+    }
+    samplers[2] = samplers[1];
+}
+
+void VulkanApplication::
+uploadTexture(
+    TextureHeader& header,
+    std::vector<uint8_t>& texture,
+    VulkanSampler& sampler
+) {
     VkExtent2D extent = { header.width, header.height };
+
+    if ((header.width == 0) && (header.height == 0)) {
+        sampler = {};
+        return;
+    }
 
     sampler = createVulkanSampler(
         _device,

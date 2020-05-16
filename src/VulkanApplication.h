@@ -20,6 +20,8 @@ using std::runtime_error;
 using std::string;
 using std::vector;
 
+const int textureArraySize = 60;
+
 class VulkanApplication {
     public:
         VulkanApplication(const Platform&,
@@ -49,7 +51,7 @@ class VulkanApplication {
         vector<Vertex>& _mesh;
 
         VulkanImage depth;
-        VulkanSampler sampler;
+        vector<VulkanSampler> samplers;
 
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;
@@ -105,7 +107,12 @@ class VulkanApplication {
 
         void uploadUniformData();
         void uploadVertexData();
-        void uploadTextureData();
+        void uploadTextures();
+        void uploadTexture(
+            TextureHeader&,
+            std::vector<uint8_t>&,
+            VulkanSampler&
+        );
 
         void createDescriptorPool();
         void allocateDescriptorSet();
