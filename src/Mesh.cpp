@@ -83,14 +83,16 @@ void Mesh::buildWireFrameModel() {
         auto texelHeight = int(uvMax.y - uvMin.y) / 16;
 
         auto baseLight = 1.f - face.baseLight / 255.f;
-        if (face.lightmap >= 0) {
-            for (auto& vertex: faceVertices) {
+        for (auto& vertex: faceVertices) {
+            if (face.lightmap >= 0) {
                 auto& uv = vertex.texCoord;
                 auto u = int(uv.x - uvMin.x) / 16;
                 auto v = int(uv.y - uvMin.y) / 16;
                 auto lightIdx = face.lightmap + v*texelWidth + u;
                 auto lightMap = bsp.lightMap[lightIdx];
                 vertex.light = baseLight + lightMap / 255.f;
+            } else {
+                vertex.light = 0;
             }
         }
 
