@@ -25,7 +25,8 @@ Mesh::Mesh(BSPParser& bsp):
 }
 
 void Mesh::buildWireFrameModel() {
-    for (Face& face: bsp.faces) {
+    for (int faceIdx = 0; faceIdx < bsp.faces.size(); faceIdx++) {
+        auto& face = bsp.faces[faceIdx];
         vector<vec3> faceCoords;
         auto edgeListBaseId = face.ledgeId;
         for (uint32_t i = 0; i < face.ledgeNum; i++) {
@@ -56,6 +57,9 @@ void Mesh::buildWireFrameModel() {
         auto& p0 = faceCoords[0];
         v0.pos = p0;
         v0.texCoord = calculateUV(v0.pos, texInfo);
+        // TODO(jan): What should these be if there's no lightmap?
+        v0.lightCoord = {0, 0};
+        v0.lightIdx = -1;
 
         vector<Vertex> faceVertices;
         for (uint32_t i = 1; i < face.ledgeNum; i++) {
@@ -63,36 +67,55 @@ void Mesh::buildWireFrameModel() {
 
             v1.pos = faceCoords[i*2];
             v1.texCoord = calculateUV(v1.pos, texInfo);
+            // TODO(jan): What should these be if there's no lightmap?
+            v1.lightCoord = {0, 0};
+            v1.lightIdx = -1;
             faceVertices.push_back(v1);
 
             v2.pos = faceCoords[i*2+1];
             v2.texCoord = calculateUV(v2.pos, texInfo);
+            // TODO(jan): What should these be if there's no lightmap?
+            v2.lightCoord = {0, 0};
+            v2.lightIdx = -1;
             faceVertices.push_back(v2);
         }
 
         vec2 uvMin = faceVertices[0].texCoord;
         vec2 uvMax = faceVertices[0].texCoord;
-        for (auto& v: faceVertices) {
-            auto& uv = v.texCoord;
-            if (uv.x < uvMin.x) uvMin.x = uv.x;
-            if (uv.y < uvMin.y) uvMin.y = uv.y;
-            if (uv.x > uvMax.x) uvMax.x = uv.x;
-            if (uv.y > uvMax.y) uvMax.y = uv.y;
-        }
-        auto texelWidth = int(uvMax.x - uvMin.x) / 16;
-        auto texelHeight = int(uvMax.y - uvMin.y) / 16;
+        // TODO(jan): Find a way to load all faces
+        if ((faceIdx < 1000) && (face.lightmap >= 0)) {
+            for (auto& v: faceVertices) {
+                auto& uv = v.texCoord;
+                if (uv.x < uvMin.x) uvMin.x = uv.x;
+                if (uv.y < uvMin.y) uvMin.y = uv.y;
+                if (uv.x > uvMax.x) uvMax.x = uv.x;
+                if (uv.y > uvMax.y) uvMax.y = uv.y;
+            }
 
-        auto baseLight = 1.f - face.baseLight / 255.f;
-        for (auto& vertex: faceVertices) {
-            if (face.lightmap >= 0) {
-                auto& uv = vertex.texCoord;
-                auto u = int(uv.x - uvMin.x) / 16;
-                auto v = int(uv.y - uvMin.y) / 16;
-                auto lightIdx = face.lightmap + v*texelWidth + u;
-                auto lightMap = bsp.lightMap[lightIdx];
-                vertex.light = baseLight + lightMap / 255.f;
-            } else {
-                vertex.light = 0;
+            auto& extent = lightMapExtents.emplace_back();
+            // TODO(jan): No idea if this is correct re ceil, maybe needs a +1
+            extent.x = int(ceil((uvMax.x - uvMin.x) / 16.f));
+            extent.y = int(ceil((uvMax.y - uvMin.y) / 16.f));
+
+            auto& lightMap = lightMaps.emplace_back(extent.x * extent.y * 4);
+
+            for (int y = 0; y < extent.y; y++) {
+                for (int x = 0; x < extent.x; x++) {
+                    auto idx = y * extent.x * 4 + x * 4;
+                    lightMap[idx] = bsp.lightMap[face.lightmap + idx];
+                    lightMap[idx+1] = bsp.lightMap[face.lightmap + idx];
+                    lightMap[idx+2] = bsp.lightMap[face.lightmap + idx];
+                    lightMap[idx+3] = bsp.lightMap[face.lightmap + idx];
+                }
+            }
+
+            for (auto& v: faceVertices) {
+                auto& uv = v.texCoord;
+                // TODO(jan): Add base light
+                // auto baseLight = 1.f - face.baseLight / 255.f;
+                v.lightCoord.s = ((uv.x - uvMin.x) / 16) / extent.s;
+                v.lightCoord.t = ((uv.y - uvMin.y) / 16) / extent.t;
+                v.lightIdx = lightMaps.size() - 1;
             }
         }
 
@@ -100,9 +123,6 @@ void Mesh::buildWireFrameModel() {
             auto& uv = v.texCoord;
             uv.x /= texHeader.width;
             uv.y /= texHeader.height;
-        }
-
-        for (auto& v: faceVertices) {
             vertices.push_back(v);
         }
     }

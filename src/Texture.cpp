@@ -73,8 +73,8 @@ void Atlas::parseTexture(int idx, vector<uint8_t>& texture) {
 }
 
 void Atlas::parseTextures() {
-    // NOTE(jan): for some reason, textures can sometimes have a zero area
-    // to prevent this causing problems we skip such textures and map
+    // NOTE(jan): for some reason, textures can sometimes have a zero area.
+    // To prevent this causing problems we skip such textures and map
     // their indices to a large texture index so the error is obvious.
     for (int idx = 0; idx < header.numtex; idx++) {
         auto& textureHeader = textureHeaders[idx];

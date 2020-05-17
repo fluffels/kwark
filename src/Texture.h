@@ -37,6 +37,9 @@ struct Atlas {
 
     AtlasHeader header;
     vector<TextureHeader> textureHeaders;
+    // TODO(jan): this can be removed when we integrate this into Mesh / Model
+    // because that class fills the Vertex data and we can put the texture idx
+    // in there directly?
     map<uint32_t, uint32_t> textureIDMap;
     vector<vector<uint8_t>> textures;
 

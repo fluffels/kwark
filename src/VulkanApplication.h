@@ -9,6 +9,7 @@
 
 #include "Camera.h"
 #include "FileSystem.h"
+#include "Mesh.h"
 #include "Platform.h"
 #include "Texture.h"
 #include "Vertex.h"
@@ -22,10 +23,7 @@ using std::vector;
 
 class VulkanApplication {
     public:
-        VulkanApplication(const Platform&,
-                          Camera*,
-                          vector<Vertex>&,
-                          Atlas*);
+        VulkanApplication(const Platform&, Camera*, Mesh&, Atlas*);
         virtual ~VulkanApplication();
 
         uint32_t getEnabledExtensionCount();
@@ -46,10 +44,11 @@ class VulkanApplication {
 
         Camera* _camera;
         Atlas* _atlas;
-        vector<Vertex>& _mesh;
+        Mesh& _mesh;
 
         VulkanImage depth;
-        vector<VulkanSampler> samplers;
+        vector<VulkanSampler> textureSamplers;
+        vector<VulkanSampler> lightMapSamplers;
 
         VkInstance _instance;
         VkDebugReportCallbackEXT _debugCallback;
@@ -106,8 +105,10 @@ class VulkanApplication {
         void uploadUniformData();
         void uploadVertexData();
         void uploadTextures();
+        void uploadLightMaps();
         void uploadTexture(
-            TextureHeader&,
+            uint32_t,
+            uint32_t,
             std::vector<uint8_t>&,
             VulkanSampler&
         );
