@@ -17,8 +17,20 @@ layout(location=0) out vec4 outColor;
 void main() {
     vec3 texturedColor = texture(atlas[inTexIdx], inTexCoord).rgb;
     int lightIdx = int(
-        inLightIdx + inLightCoord.x + inLightCoord.y * inExtent.x
+        inLightIdx + int(inLightCoord.x) + int(inLightCoord.y) * int(inExtent.x)
     );
     float lightValue = texelFetch(lightMap, lightIdx).r;
+    /*
+    lightValue += texelFetch(lightMap, lightIdx + 1).r;
+    lightValue += texelFetch(lightMap, lightIdx - 1).r;
+    lightValue += texelFetch(lightMap, lightIdx + int(inExtent.x)).r;
+    lightValue += texelFetch(lightMap, lightIdx - int(inExtent.x)).r;
+    lightValue += texelFetch(lightMap, lightIdx + int(inExtent.x) + 1).r;
+    lightValue += texelFetch(lightMap, lightIdx - int(inExtent.x) + 1).r;
+    lightValue += texelFetch(lightMap, lightIdx + int(inExtent.x) - 1).r;
+    lightValue += texelFetch(lightMap, lightIdx - int(inExtent.x) - 1).r;
+    lightValue /= 9;
+    */
     outColor = vec4(lightValue);
+    // outColor = vec4(inLightCoord.x / inExtent.x, inLightCoord.y / inExtent.y, 0, 1);
 }
