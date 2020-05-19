@@ -15,22 +15,36 @@ layout(location=4) in flat vec2 inExtent;
 layout(location=0) out vec4 outColor;
 
 void main() {
+    float s = inLightCoord.x;
+    int sLeft = int(s);
+    int sRight = sLeft + 1;
+    float sLerp = s - sLeft;
+
+    float t = inLightCoord.y;
+    int tTop = int(t);
+    int tBot = tTop + 1;
+    float tLerp = t - tTop;
+
+    int w = int(inExtent.x);
+
+    int topLeftIdx = inLightIdx + sLeft + tTop * w;
+    float topLeft = texelFetch(lightMap, topLeftIdx).r;
+
+    int topRightIdx = inLightIdx + sRight + tTop * w;
+    float topRight = texelFetch(lightMap, topRightIdx).r;
+
+    float top = mix(topLeft, topRight, sLerp);
+
+    int bottomLeftIdx = inLightIdx + sLeft + tBot * w;
+    float bottomLeft = texelFetch(lightMap, bottomLeftIdx).r;
+
+    int bottomRightIdx = inLightIdx + sRight + tBot * w;
+    float bottomRight = texelFetch(lightMap, bottomRightIdx).r;
+
+    float bottom = mix(bottomLeft, bottomRight, sLerp);
+
+    float lightValue = mix(top, bottom, tLerp);
+
     vec3 texturedColor = texture(atlas[inTexIdx], inTexCoord).rgb;
-    int lightIdx = int(
-        inLightIdx + int(inLightCoord.x) + int(inLightCoord.y) * int(inExtent.x)
-    );
-    float lightValue = texelFetch(lightMap, lightIdx).r;
-    /*
-    lightValue += texelFetch(lightMap, lightIdx + 1).r;
-    lightValue += texelFetch(lightMap, lightIdx - 1).r;
-    lightValue += texelFetch(lightMap, lightIdx + int(inExtent.x)).r;
-    lightValue += texelFetch(lightMap, lightIdx - int(inExtent.x)).r;
-    lightValue += texelFetch(lightMap, lightIdx + int(inExtent.x) + 1).r;
-    lightValue += texelFetch(lightMap, lightIdx - int(inExtent.x) + 1).r;
-    lightValue += texelFetch(lightMap, lightIdx + int(inExtent.x) - 1).r;
-    lightValue += texelFetch(lightMap, lightIdx - int(inExtent.x) - 1).r;
-    lightValue /= 9;
-    */
-    outColor = vec4(lightValue);
-    // outColor = vec4(inLightCoord.x / inExtent.x, inLightCoord.y / inExtent.y, 0, 1);
+    outColor = vec4(texturedColor * lightValue, 1);
 }
