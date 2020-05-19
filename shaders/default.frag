@@ -15,35 +15,38 @@ layout(location=4) in flat vec2 inExtent;
 layout(location=0) out vec4 outColor;
 
 void main() {
-    float s = inLightCoord.x;
-    int sLeft = int(s);
-    int sRight = sLeft + 1;
-    float sLerp = s - sLeft;
+    float lightValue = 1.f;
+    if (inLightIdx >= 0) {
+        float s = inLightCoord.x;
+        int sLeft = int(s);
+        int sRight = sLeft + 1;
+        float sLerp = s - sLeft;
 
-    float t = inLightCoord.y;
-    int tTop = int(t);
-    int tBot = tTop + 1;
-    float tLerp = t - tTop;
+        float t = inLightCoord.y;
+        int tTop = int(t);
+        int tBot = tTop + 1;
+        float tLerp = t - tTop;
 
-    int w = int(inExtent.x);
+        int w = int(inExtent.x);
 
-    int topLeftIdx = inLightIdx + sLeft + tTop * w;
-    float topLeft = texelFetch(lightMap, topLeftIdx).r;
+        int topLeftIdx = inLightIdx + sLeft + tTop * w;
+        float topLeft = texelFetch(lightMap, topLeftIdx).r;
 
-    int topRightIdx = inLightIdx + sRight + tTop * w;
-    float topRight = texelFetch(lightMap, topRightIdx).r;
+        int topRightIdx = inLightIdx + sRight + tTop * w;
+        float topRight = texelFetch(lightMap, topRightIdx).r;
 
-    float top = mix(topLeft, topRight, sLerp);
+        float top = mix(topLeft, topRight, sLerp);
 
-    int bottomLeftIdx = inLightIdx + sLeft + tBot * w;
-    float bottomLeft = texelFetch(lightMap, bottomLeftIdx).r;
+        int bottomLeftIdx = inLightIdx + sLeft + tBot * w;
+        float bottomLeft = texelFetch(lightMap, bottomLeftIdx).r;
 
-    int bottomRightIdx = inLightIdx + sRight + tBot * w;
-    float bottomRight = texelFetch(lightMap, bottomRightIdx).r;
+        int bottomRightIdx = inLightIdx + sRight + tBot * w;
+        float bottomRight = texelFetch(lightMap, bottomRightIdx).r;
 
-    float bottom = mix(bottomLeft, bottomRight, sLerp);
+        float bottom = mix(bottomLeft, bottomRight, sLerp);
 
-    float lightValue = mix(top, bottom, tLerp);
+        lightValue = mix(top, bottom, tLerp);
+    }
 
     vec3 texturedColor = texture(atlas[inTexIdx], inTexCoord).rgb;
     outColor = vec4(texturedColor * lightValue, 1);
