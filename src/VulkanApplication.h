@@ -84,8 +84,11 @@ class VulkanApplication {
         VkDescriptorSet _descriptorSet;
 
         VkBuffer _vertexBuffer;
-        VkBuffer _uniformBuffer;
+        VkBuffer _mvpBuffer;
+        VkBuffer _lightMapBuffer;
+        VkBufferView lightMapView;
 
+        VkDeviceMemory _lightMapMemory;
         VkDeviceMemory _vertexMemory;
         VkDeviceMemory _uniformMemory;
 
@@ -99,13 +102,13 @@ class VulkanApplication {
         void allocateVertexBuffer();
 
         VkBuffer createBuffer(VkBufferUsageFlags, uint32_t);
-        void createUniformBuffer();
+        void createLightMapBuffer();
+        void createMVPBuffer();
         void createVertexBuffer();
 
         void uploadUniformData();
         void uploadVertexData();
         void uploadTextures();
-        void uploadLightMaps();
         void uploadTexture(
             uint32_t,
             uint32_t,

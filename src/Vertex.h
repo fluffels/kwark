@@ -14,10 +14,11 @@ class Vertex {
         uint32_t texIdx;
         glm::vec2 lightCoord;
         int32_t lightIdx;
+        glm::vec2 extent;
 
         static VkVertexInputBindingDescription
         getInputBindingDescription();
 
-        static std::array<VkVertexInputAttributeDescription, 5>
+        static std::array<VkVertexInputAttributeDescription, 6>
         getInputAttributeDescriptions();
 };

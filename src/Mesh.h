@@ -15,9 +15,9 @@ using std::vector;
 struct Mesh {
     BSPParser& bsp;
     vector<Vertex> vertices;
-    vector<ivec2> lightMapExtents;
-    vector<vector<uint8_t>> lightMaps;
+    vector<float> lightMap;
 
     Mesh(BSPParser& BSPParser);
+    void buildLightMap();
     void buildWireFrameModel();
 };

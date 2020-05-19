@@ -9,9 +9,9 @@ getInputBindingDescription() {
     return i;
 }
 
-std::array<VkVertexInputAttributeDescription, 5> Vertex::
+std::array<VkVertexInputAttributeDescription, 6> Vertex::
 getInputAttributeDescriptions() {
-    std::array<VkVertexInputAttributeDescription, 5> i = {};
+    std::array<VkVertexInputAttributeDescription, 6> i = {};
 
     i[0].binding = 0;
     i[0].location = 0;
@@ -37,6 +37,11 @@ getInputAttributeDescriptions() {
     i[4].location = 4;
     i[4].format = VK_FORMAT_R32_SINT;
     i[4].offset = offsetof(Vertex, lightIdx);
+
+    i[5].binding = 0;
+    i[5].location = 5;
+    i[5].format = VK_FORMAT_R32G32_SFLOAT;
+    i[5].offset = offsetof(Vertex, extent);
 
     return i;
 }

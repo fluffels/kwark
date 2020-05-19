@@ -21,10 +21,21 @@ vec2 calculateUV(
 Mesh::Mesh(BSPParser& bsp):
     bsp(bsp)
 {
+    buildLightMap();
     buildWireFrameModel();
 }
 
+void Mesh::buildLightMap() {
+    auto count = bsp.lightMap.size();
+    lightMap.resize(count);
+
+    for (int i = 0; i < count; i++) {
+        lightMap[i] = bsp.lightMap[i] / 255.f;
+    }
+}
+
 void Mesh::buildWireFrameModel() {
+
     for (int faceIdx = 0; faceIdx < bsp.faces.size(); faceIdx++) {
         auto& face = bsp.faces[faceIdx];
         vector<vec3> faceCoords;
@@ -80,10 +91,10 @@ void Mesh::buildWireFrameModel() {
             faceVertices.push_back(v2);
         }
 
-        vec2 uvMin = faceVertices[0].texCoord;
-        vec2 uvMax = faceVertices[0].texCoord;
         // TODO(jan): Find a way to load all faces
         if ((faceIdx < 1000) && (face.typeLight == 0)) {
+            vec2 uvMin = faceVertices[0].texCoord;
+            vec2 uvMax = faceVertices[0].texCoord;
             for (auto& v: faceVertices) {
                 auto& uv = v.texCoord;
                 if (uv.x < uvMin.x) uvMin.x = uv.x;
@@ -97,33 +108,19 @@ void Mesh::buildWireFrameModel() {
             uvMax.x = ceil(uvMax.x / 16);
             uvMax.y = ceil(uvMax.y / 16);
 
-            auto& extent = lightMapExtents.emplace_back();
-            // NOTE(jan): r_brush.c: 452 -- 453
-            extent.x = int(uvMax.x - uvMin.x) + 1;
-            extent.y = int(uvMax.y - uvMin.y) + 1;
-
-            auto& lightMap = lightMaps.emplace_back(extent.x * extent.y * 4);
-
-            for (int y = 0; y < extent.y; y++) {
-                for (int x = 0; x < extent.x; x++) {
-                    auto bspIdx = face.lightmap + y * extent.x + x;
-                    auto lightSample = bsp.lightMap[bspIdx];
-
-                    auto lightMapIdx = y * extent.x * 4 + x * 4;
-                    lightMap[lightMapIdx] = lightSample;
-                    lightMap[lightMapIdx+1] = lightSample;
-                    lightMap[lightMapIdx+2] = lightSample;
-                    lightMap[lightMapIdx+3] = lightSample;
-                }
-            }
+            vec2 extent = {
+                int(uvMax.x - uvMin.x) + 1,
+                int(uvMax.y - uvMin.y) + 1
+            };
 
             for (auto& v: faceVertices) {
                 auto& uv = v.texCoord;
                 // TODO(jan): Add base light
                 // auto baseLight = 1.f - face.baseLight / 255.f;
-                v.lightCoord.s = ((uv.x/16) - uvMin.x) / extent.s;
-                v.lightCoord.t = ((uv.y/16) - uvMin.y) / extent.t;
-                v.lightIdx = lightMaps.size() - 1;
+                v.lightCoord.s = (uv.x/16) - uvMin.x;
+                v.lightCoord.t = (uv.y/16) - uvMin.y;
+                v.lightIdx = face.lightmap;
+                v.extent = extent;
             }
         }
 

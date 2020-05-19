@@ -67,7 +67,6 @@ VulkanApplication(const Platform& platform,
         _gfxFamily
     );
     uploadTextures();
-    uploadLightMaps();
 
     getSwapImagesAndImageViews();
     createRenderPass();
@@ -78,7 +77,8 @@ VulkanApplication(const Platform& platform,
     createPipeline(_vertexShader, _fragmentShader);
 
     initCamera();
-    createUniformBuffer();
+    createLightMapBuffer();
+    createMVPBuffer();
     allocateUniformBuffer();
     uploadUniformData();
 
@@ -110,7 +110,11 @@ VulkanApplication::
     vkDestroyBuffer(_device, _vertexBuffer, nullptr);
 
     vkFreeMemory(_device, _uniformMemory, nullptr);
-    vkDestroyBuffer(_device, _uniformBuffer, nullptr);
+    vkDestroyBuffer(_device, _mvpBuffer, nullptr);
+
+    vkDestroyBufferView(_device, lightMapView, nullptr);
+    vkFreeMemory(_device, _lightMapMemory, nullptr);
+    vkDestroyBuffer(_device, _lightMapBuffer, nullptr);
 
     vkDestroyPipeline(_device, _pipeline, nullptr);
     vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
@@ -574,10 +578,9 @@ void VulkanApplication::createPipeline(
     descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
     
     descriptorSetLayoutBindings[2].binding = 2;
-    descriptorSetLayoutBindings[2].descriptorCount =
-        5404;
+    descriptorSetLayoutBindings[2].descriptorCount = 1;
     descriptorSetLayoutBindings[2].descriptorType =
-        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     descriptorSetLayoutBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     VkDescriptorSetLayoutCreateInfo uniformDescriptorSetLayoutCreateInfo = {};
@@ -822,10 +825,10 @@ allocateDescriptorSet() {
 
 void VulkanApplication::
 updateDescriptorSet() {
-    VkDescriptorBufferInfo bufferInfo;
-    bufferInfo.buffer = _uniformBuffer;
-    bufferInfo.offset = 0;
-    bufferInfo.range = VK_WHOLE_SIZE;
+    VkDescriptorBufferInfo mvpBufferInfo;
+    mvpBufferInfo.buffer = _mvpBuffer;
+    mvpBufferInfo.offset = 0;
+    mvpBufferInfo.range = VK_WHOLE_SIZE;
 
     VkWriteDescriptorSet writeSets[3] = {};
 
@@ -834,23 +837,13 @@ updateDescriptorSet() {
     writeSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     writeSets[0].dstBinding = 0;
     writeSets[0].dstSet = _descriptorSet;
-    writeSets[0].pBufferInfo = &bufferInfo;
+    writeSets[0].pBufferInfo = &mvpBufferInfo;
 
     auto samplerCount = textureSamplers.size();
     vector<VkDescriptorImageInfo> imageInfos(samplerCount);
     for (int i = 0; i < samplerCount; i++) {
         auto& imageInfo = imageInfos[i];
         auto& sampler = textureSamplers[i];
-        imageInfo.imageView = sampler.image.view;
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.sampler = sampler.handle;
-    }
-
-    auto lightMapSamplerCount = lightMapSamplers.size();
-    vector<VkDescriptorImageInfo> lightMapImageInfos(lightMapSamplerCount);
-    for (int i = 0; i < lightMapSamplerCount; i++) {
-        auto& imageInfo = lightMapImageInfos[i];
-        auto& sampler = lightMapSamplers[i];
         imageInfo.imageView = sampler.image.view;
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         imageInfo.sampler = sampler.handle;
@@ -864,11 +857,11 @@ updateDescriptorSet() {
     writeSets[1].pImageInfo = imageInfos.data();
 
     writeSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeSets[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writeSets[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     writeSets[2].dstSet = _descriptorSet;
     writeSets[2].dstBinding = 2;
-    writeSets[2].descriptorCount = (uint32_t)lightMapImageInfos.size();
-    writeSets[2].pImageInfo = lightMapImageInfos.data();
+    writeSets[2].descriptorCount = 1;
+    writeSets[2].pTexelBufferView = &lightMapView;
 
     vkUpdateDescriptorSets(
         _device,
@@ -957,18 +950,50 @@ createBuffer(VkBufferUsageFlags usage, uint32_t size) {
 }
 
 void VulkanApplication::
-createVertexBuffer() {
-    _vertexBuffer = createBuffer(
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        (uint32_t)(_mesh.vertices.size() * sizeof(Vertex))
+createLightMapBuffer() {
+    auto bufferSize = _mesh.lightMap.size() * 4;
+    _lightMapBuffer = createBuffer(
+        VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,
+        bufferSize
+    );
+
+    _lightMapMemory = allocateBuffer(
+        _lightMapBuffer
+    );
+
+    void* memory = mapMemory(_device, _lightMapBuffer, _lightMapMemory);
+    memcpy(memory, _mesh.lightMap.data(), bufferSize);
+    unMapMemory(_device, _lightMapMemory);
+
+    VkBufferViewCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+    createInfo.buffer = _lightMapBuffer;
+    createInfo.format = VK_FORMAT_R32_SFLOAT;
+    createInfo.range = VK_WHOLE_SIZE;
+    auto code = vkCreateBufferView(
+        _device,
+        &createInfo,
+        nullptr,
+        &lightMapView
+    );
+    if (code != VK_SUCCESS) {
+        throw runtime_error("could not create buffer view");
+    }
+}
+
+void VulkanApplication::
+createMVPBuffer() {
+    _mvpBuffer = createBuffer(
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        1024
     );
 }
 
 void VulkanApplication::
-createUniformBuffer() {
-    _uniformBuffer = createBuffer(
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        1024
+createVertexBuffer() {
+    _vertexBuffer = createBuffer(
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        (uint32_t)(_mesh.vertices.size() * sizeof(Vertex))
     );
 }
 
@@ -1012,7 +1037,7 @@ allocateBuffer(VkBuffer buffer) {
 void VulkanApplication::
 allocateUniformBuffer() {
     _uniformMemory = allocateBuffer(
-        _uniformBuffer
+        _mvpBuffer
     );
 }
 
@@ -1026,7 +1051,7 @@ allocateVertexBuffer() {
 void VulkanApplication::
 uploadUniformData() {
     auto mvp = _camera->get();
-    auto dst = mapMemory(_device, _uniformBuffer, _uniformMemory);
+    auto dst = mapMemory(_device, _mvpBuffer, _uniformMemory);
     memcpy(dst, &mvp, sizeof(mvp));
     unMapMemory(_device, _uniformMemory);
 }
@@ -1050,19 +1075,6 @@ uploadTextures() {
             auto& sampler = textureSamplers[texNum];
             uploadTexture(header.width, header.height, texture, sampler);
         }
-    }
-}
-
-void VulkanApplication::
-uploadLightMaps() {
-    auto lightMapCount = _mesh.lightMaps.size();
-    lightMapSamplers.resize(lightMapCount);
-    for (int idx = 0; idx < lightMapCount; idx++) {
-        auto& lightMap = _mesh.lightMaps[idx];
-        auto& extents = _mesh.lightMapExtents[idx];
-        auto& sampler = lightMapSamplers[idx];
-
-        uploadTexture(extents.x, extents.y, lightMap, sampler);
     }
 }
 
