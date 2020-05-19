@@ -129,6 +129,27 @@ void BSPParser::parseEntities() {
     }
 }
 
+void BSPParser::parseModels() {
+    auto offset = fileOffset + header.models.offset;
+    auto size = header.models.size;
+    auto elementSize = sizeof(Model);
+
+    const auto count = size / elementSize;
+    models.resize(count);
+
+    seek(file, offset);
+    auto readCount = fread_s(
+        models.data(),
+        count * elementSize,
+        elementSize,
+        count,
+        file
+    );
+    if (readCount != count) {
+        throw runtime_error("unexpected EOF");
+    }
+}
+
 void BSPParser::parseLightMap() {
     auto offset = fileOffset + header.lightmaps.offset;
     auto size = header.lightmaps.size;
@@ -260,6 +281,7 @@ BSPParser::BSPParser(FILE* file, int32_t offset, Palette& palette):
 
     atlas = new Atlas(file, fileOffset + header.miptex.offset, palette);
 
+    parseModels();
     parseEntities();
     parseVertices();
     parseEdgeList();

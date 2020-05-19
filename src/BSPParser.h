@@ -38,6 +38,11 @@ struct BSPHeader {
     BSPEntry models;
 };
 
+struct BoundingBox {
+    vec3 min;
+    vec3 max;
+};
+
 struct Entity {
     char className[255];
     vec3 origin;
@@ -59,6 +64,18 @@ struct Face {
     uint8_t baseLight;
     uint8_t light[2];
     int32_t lightmap;
+};
+
+struct Model {
+    BoundingBox bounds;
+    vec3 origin;
+    int32_t bsp;
+    int32_t clip1;
+    int32_t clip2;
+    int32_t node3;
+    int32_t leafCount;
+    int32_t faceID;
+    int32_t faceCount;
 };
 
 struct Plane {
@@ -88,6 +105,7 @@ struct BSPParser {
     vector<Face> faces;
     vector<vec3> lines;
     vector<uint8_t> lightMap;
+    vector<Model> models;
     vector<Plane> planes;
     vector<TexInfo> texInfos;
     vector<vec3> vertices;
@@ -101,6 +119,7 @@ struct BSPParser {
     void parseFaces();
     void parseHeader();
     void parseLightMap();
+    void parseModels();
     void parsePlanes();
     void parseTexInfos();
     void parseVertices();
