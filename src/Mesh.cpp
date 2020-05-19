@@ -83,7 +83,7 @@ void Mesh::buildWireFrameModel() {
         vec2 uvMin = faceVertices[0].texCoord;
         vec2 uvMax = faceVertices[0].texCoord;
         // TODO(jan): Find a way to load all faces
-        if ((faceIdx < 1000) && (face.lightmap >= 0)) {
+        if ((faceIdx < 1000) && (face.typeLight == 0)) {
             for (auto& v: faceVertices) {
                 auto& uv = v.texCoord;
                 if (uv.x < uvMin.x) uvMin.x = uv.x;
@@ -91,21 +91,29 @@ void Mesh::buildWireFrameModel() {
                 if (uv.x > uvMax.x) uvMax.x = uv.x;
                 if (uv.y > uvMax.y) uvMax.y = uv.y;
             }
+            // NOTE(jan): gl_model.c:1049--1050
+            uvMin.x = floor(uvMin.x / 16);
+            uvMin.y = floor(uvMin.y / 16);
+            uvMax.x = ceil(uvMax.x / 16);
+            uvMax.y = ceil(uvMax.y / 16);
 
             auto& extent = lightMapExtents.emplace_back();
-            // TODO(jan): No idea if this is correct re ceil, maybe needs a +1
-            extent.x = int(ceil((uvMax.x - uvMin.x) / 16.f));
-            extent.y = int(ceil((uvMax.y - uvMin.y) / 16.f));
+            // NOTE(jan): r_brush.c: 452 -- 453
+            extent.x = int(uvMax.x - uvMin.x) + 1;
+            extent.y = int(uvMax.y - uvMin.y) + 1;
 
             auto& lightMap = lightMaps.emplace_back(extent.x * extent.y * 4);
 
             for (int y = 0; y < extent.y; y++) {
                 for (int x = 0; x < extent.x; x++) {
-                    auto idx = y * extent.x * 4 + x * 4;
-                    lightMap[idx] = bsp.lightMap[face.lightmap + idx];
-                    lightMap[idx+1] = bsp.lightMap[face.lightmap + idx];
-                    lightMap[idx+2] = bsp.lightMap[face.lightmap + idx];
-                    lightMap[idx+3] = bsp.lightMap[face.lightmap + idx];
+                    auto bspIdx = face.lightmap + y * extent.x + x;
+                    auto lightSample = bsp.lightMap[bspIdx];
+
+                    auto lightMapIdx = y * extent.x * 4 + x * 4;
+                    lightMap[lightMapIdx] = lightSample;
+                    lightMap[lightMapIdx+1] = lightSample;
+                    lightMap[lightMapIdx+2] = lightSample;
+                    lightMap[lightMapIdx+3] = lightSample;
                 }
             }
 
@@ -113,8 +121,8 @@ void Mesh::buildWireFrameModel() {
                 auto& uv = v.texCoord;
                 // TODO(jan): Add base light
                 // auto baseLight = 1.f - face.baseLight / 255.f;
-                v.lightCoord.s = ((uv.x - uvMin.x) / 16) / extent.s;
-                v.lightCoord.t = ((uv.y - uvMin.y) / 16) / extent.t;
+                v.lightCoord.s = ((uv.x/16) - uvMin.x) / extent.s;
+                v.lightCoord.t = ((uv.y/16) - uvMin.y) / extent.t;
                 v.lightIdx = lightMaps.size() - 1;
             }
         }

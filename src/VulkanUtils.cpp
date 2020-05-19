@@ -57,7 +57,7 @@ void* mapMemory(
         device,
         memory,
         0,
-        requirements.size,
+        VK_WHOLE_SIZE,
         0,
         &data
     );

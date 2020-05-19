@@ -3,7 +3,7 @@
 
 // TODO(jan): Somehow bind this the the number of textures in the BSP.
 layout(binding=1) uniform sampler2D atlas[59];
-layout(binding=2) uniform sampler2D lightmaps[5404];
+layout(binding=2) uniform sampler2D lightmaps[800];
 
 layout(location=0) in vec2 inTexCoord;
 layout(location=1) in flat uint inTexIdx;
