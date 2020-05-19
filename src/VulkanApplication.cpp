@@ -1428,7 +1428,7 @@ recordCommandBuffers() {
         );
         vkCmdDraw(
             commandBuffer,
-            (uint32_t)_mesh.vertices.size() / 2, 1,
+            (uint32_t)_mesh.vertices.size(), 1,
             0, 0
         );
 
