@@ -35,7 +35,6 @@ void Mesh::buildLightMap() {
 }
 
 void Mesh::buildWireFrameModel() {
-
     for (int faceIdx = 0; faceIdx < bsp.faces.size(); faceIdx++) {
         auto& face = bsp.faces[faceIdx];
         vector<vec3> faceCoords;
