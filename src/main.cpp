@@ -82,7 +82,7 @@ int MainLoop(
     HWND window = CreateWindowEx(
         0,
         "MainWindowClass",
-        "studious-octo-enigma",
+        "quark",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
