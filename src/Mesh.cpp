@@ -91,8 +91,7 @@ void Mesh::buildWireFrameModel() {
             faceVertices.push_back(v2);
         }
 
-        // TODO(jan): Find a way to load all faces
-        if ((faceIdx < 1000) && (face.typeLight == 0)) {
+        if (face.typeLight == 0) {
             vec2 uvMin = faceVertices[0].texCoord;
             vec2 uvMax = faceVertices[0].texCoord;
             for (auto& v: faceVertices) {
