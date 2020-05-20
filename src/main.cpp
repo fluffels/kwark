@@ -25,7 +25,7 @@ const int HEIGHT = 800;
 
 const float DELTA_MOVE_PER_S = 200.f;
 const float DELTA_ROTATE_PER_S = 3.14f;
-const float MOUSE_SENSITIVITY = 5;
+const float MOUSE_SENSITIVITY = 0.1f;
 const float JOYSTICK_SENSITIVITY = 100;
 
 VulkanApplication* vk;
@@ -186,8 +186,9 @@ int MainLoop(
                 }
 
                 float deltaMouseRotate =
-                    DELTA_ROTATE_PER_S * MOUSE_SENSITIVITY * s;
+                    MOUSE_SENSITIVITY;
                 auto mouseDelta = mouse->getDelta();
+
                 camera.rotateY((float)mouseDelta.x * deltaMouseRotate);
                 camera.rotateX((float)-mouseDelta.y * deltaMouseRotate);
 
