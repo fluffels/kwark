@@ -62,9 +62,9 @@ void Mesh::buildWireFrameModel() {
             Vertex v0, v1, v2;
 
             auto& texInfo = bsp.texInfos[face.texinfoId];
-            auto& texHeader = bsp.atlas->textureHeaders[texInfo.textureID];
+            auto& texHeader = bsp.textures->textureHeaders[texInfo.textureID];
 
-            auto texNum = bsp.atlas->textureIDMap[texInfo.textureID];
+            auto texNum = bsp.textures->textureIDMap[texInfo.textureID];
             v0.texIdx = texNum;
             v1.texIdx = texNum;
             v2.texIdx = texNum;

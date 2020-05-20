@@ -29,7 +29,7 @@ VulkanApplication::
 VulkanApplication(const Platform& platform,
                   Camera* camera,
                   Mesh& mesh,
-                  Atlas* atlas):
+                  BSPTextureParser* atlas):
         _enabledExtensions({
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME

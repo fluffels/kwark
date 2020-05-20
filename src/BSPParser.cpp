@@ -136,13 +136,13 @@ void BSPParser::parseLump(BSPEntry& entry, vector<T>& vec) {
 }
 
 BSPParser::BSPParser(FILE* file, int32_t offset, Palette& palette):
-        atlas(nullptr),
+        textures(nullptr),
         file(file),
         fileOffset(offset)
 {
     parseHeader();
 
-    atlas = new Atlas(file, fileOffset + header.miptex.offset, palette);
+    textures = new BSPTextureParser(file, fileOffset + header.miptex.offset, palette);
 
     parseLump(header.models, models);
     parseEntities();
@@ -164,5 +164,5 @@ BSPParser::BSPParser(FILE* file, int32_t offset, Palette& palette):
 }
 
 BSPParser::~BSPParser() {
-    delete atlas;
+    delete textures;
 }

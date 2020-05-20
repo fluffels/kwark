@@ -129,7 +129,7 @@ int MainLoop(
         camera.at = camera.eye;
         camera.at.x += 1;
 
-        vk = new VulkanApplication(platform, &camera, mesh, map->atlas);
+        vk = new VulkanApplication(platform, &camera, mesh, map->textures);
         auto angle = (float)-playerStart.angle;
         camera.rotateY(angle);
 

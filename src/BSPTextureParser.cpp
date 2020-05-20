@@ -1,6 +1,6 @@
-#include "Texture.h"
+#include "BSPTextureParser.h"
 
-Atlas::Atlas(FILE* file, int32_t offset, Palette& palette):
+BSPTextureParser::BSPTextureParser(FILE* file, int32_t offset, Palette& palette):
     baseOffset(offset),
     file(file),
     palette(palette)
@@ -10,7 +10,7 @@ Atlas::Atlas(FILE* file, int32_t offset, Palette& palette):
     parseTextures();
 }
 
-void Atlas::parseHeader() {
+void BSPTextureParser::parseHeader() {
     seek(file, baseOffset);
     readStruct(file, header.numtex);
 
@@ -30,7 +30,7 @@ void Atlas::parseHeader() {
     }
 }
 
-void Atlas::parseTextureHeaders() {
+void BSPTextureParser::parseTextureHeaders() {
     auto count = header.numtex;
     auto elementSize = sizeof(TextureHeader);
 
@@ -50,7 +50,7 @@ void Atlas::parseTextureHeaders() {
     }
 }
 
-void Atlas::parseTexture(int idx, vector<uint8_t>& texture) {
+void BSPTextureParser::parseTexture(int idx, vector<uint8_t>& texture) {
     auto headerOffset = header.offset[idx];
     auto& header = textureHeaders[idx];
     auto size = header.width * header.height;
@@ -72,7 +72,7 @@ void Atlas::parseTexture(int idx, vector<uint8_t>& texture) {
     }
 }
 
-void Atlas::parseTextures() {
+void BSPTextureParser::parseTextures() {
     // NOTE(jan): for some reason, textures can sometimes have a zero area.
     // To prevent this causing problems we skip such textures and map
     // their indices to a large texture index so the error is obvious.

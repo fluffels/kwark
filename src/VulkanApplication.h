@@ -7,11 +7,11 @@
 
 #include "easylogging++.h"
 
+#include "BSPTextureParser.h"
 #include "Camera.h"
 #include "FileSystem.h"
 #include "Mesh.h"
 #include "Platform.h"
-#include "Texture.h"
 #include "Vertex.h"
 #include "VulkanImage.h"
 
@@ -23,7 +23,7 @@ using std::vector;
 
 class VulkanApplication {
     public:
-        VulkanApplication(const Platform&, Camera*, Mesh&, Atlas*);
+        VulkanApplication(const Platform&, Camera*, Mesh&, BSPTextureParser*);
         virtual ~VulkanApplication();
 
         uint32_t getEnabledExtensionCount();
@@ -43,7 +43,7 @@ class VulkanApplication {
         bool _shouldResize;
 
         Camera* _camera;
-        Atlas* _atlas;
+        BSPTextureParser* _atlas;
         Mesh& _mesh;
 
         VulkanImage depth;

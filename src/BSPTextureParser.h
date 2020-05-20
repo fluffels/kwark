@@ -15,7 +15,7 @@ using std::map;
 using std::runtime_error;
 using std::vector;
 
-struct AtlasHeader {
+struct TextureIndex {
     int32_t numtex;
     vector<int32_t> offset;
 };
@@ -30,20 +30,19 @@ struct TextureHeader {
     uint32_t offset8;
 };
 
-struct Atlas {
+struct BSPTextureParser {
+    vector<vector<uint8_t>> textures;
+    vector<TextureHeader> textureHeaders;
+    map<uint32_t, uint32_t> textureIDMap;
+
+    BSPTextureParser(FILE*, int32_t, Palette&);
+
+private:
     int32_t baseOffset;
     FILE* file;
     Palette& palette;
 
-    AtlasHeader header;
-    vector<TextureHeader> textureHeaders;
-    // TODO(jan): this can be removed when we integrate this into Mesh / Model
-    // because that class fills the Vertex data and we can put the texture idx
-    // in there directly?
-    map<uint32_t, uint32_t> textureIDMap;
-    vector<vector<uint8_t>> textures;
-
-    Atlas(FILE*, int32_t, Palette&);
+    TextureIndex header;
 
     void parseHeader();
     void parseTextureHeaders();

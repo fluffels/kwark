@@ -6,8 +6,8 @@
 
 #include <glm/vec3.hpp>
 
+#include "BSPTextureParser.h"
 #include "Palette.h"
-#include "Texture.h"
 
 using glm::vec3;
 
@@ -96,7 +96,7 @@ struct TexInfo {
 struct BSPParser {
     BSPHeader header;
 
-    Atlas* atlas;
+    BSPTextureParser* textures;
 
     vector<Entity> entities;
     vector<Edge> edges;
