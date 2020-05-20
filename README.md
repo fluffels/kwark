@@ -8,15 +8,15 @@ Using the models and textures stored in Quake's `pak0` is an easy way to get mod
 ## Current Progress
 ![](screenshot.png)
 
-- [X] Level models
-- [X] Textures
-- [X] Light maps
-- [ ] Texture animation
-- [ ] Sprites
-- [ ] Monster models
-- [ ] View models (i.e. weapons the player may be holding)
-- [ ] Particle systems
-- [ ] Level animation (triggers)
+- :white_check_mark: Level models
+- :white_check_mark: Textures
+- :white_check_mark: Light maps
+- :black_square_button: Texture animation
+- :black_square_button: Sprites
+- :black_square_button: Monster models
+- :black_square_button: View models (i.e. weapons the player may be holding)
+- :black_square_button: Particle systems
+- :black_square_button: Level animation (triggers)
 
 It's not clear how many of these I will end up doing.
 Some of these are not straight forward to reverse engineer from the descriptions of the BSP format online.
