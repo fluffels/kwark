@@ -94,11 +94,10 @@ struct TexInfo {
 };
 
 struct BSPParser {
-    FILE* file;
-    int32_t fileOffset;
     BSPHeader header;
 
     Atlas* atlas;
+
     vector<Entity> entities;
     vector<Edge> edges;
     vector<int32_t> edgeList;
@@ -113,16 +112,13 @@ struct BSPParser {
     BSPParser(FILE*, int32_t, Palette&);
     ~BSPParser();
 
-    void parseEdges();
-    void parseEdgeList();
-    void parseEntities();
-    void parseFaces();
-    void parseHeader();
-    void parseLightMap();
-    void parseModels();
-    void parsePlanes();
-    void parseTexInfos();
-    void parseVertices();
-
     Entity& findEntityByName(char*);
+
+private:
+    FILE* file;
+    int32_t fileOffset;
+
+    void parseEntities();
+    void parseHeader();
+    template<class T> void parseLump(BSPEntry& entry, vector<T>& vec);
 };
