@@ -83,7 +83,7 @@ int MainLoop(
         0,
         "MainWindowClass",
         "quark",
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        WS_POPUP | WS_VISIBLE,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         WIDTH,
@@ -96,6 +96,16 @@ int MainLoop(
     if (window == NULL) {
         LOG(ERROR) << "could not create window";
     }
+
+    SetWindowPos(
+        window,
+        HWND_TOP,
+        0,
+        0,
+        GetSystemMetrics(SM_CXSCREEN),
+        GetSystemMetrics(SM_CYSCREEN),
+        SWP_FRAMECHANGED
+    );
 
     int errorCode = 0;
     try {
