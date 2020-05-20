@@ -184,6 +184,17 @@ int MainLoop(
                 if (keyboard['D']) {
                     camera.right(deltaMove);
                 }
+                if (keyboard['F']) {
+                    SetWindowPos(
+                        window,
+                        HWND_TOP,
+                        0,
+                        0,
+                        WIDTH,
+                        HEIGHT,
+                        SWP_FRAMECHANGED
+                    );
+                }
 
                 float deltaMouseRotate =
                     MOUSE_SENSITIVITY;
