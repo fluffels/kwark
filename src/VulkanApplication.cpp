@@ -572,7 +572,7 @@ void VulkanApplication::createPipeline(
     
     descriptorSetLayoutBindings[1].binding = 1;
     descriptorSetLayoutBindings[1].descriptorCount =
-        textureSamplers.size();
+        (uint32_t)textureSamplers.size();
     descriptorSetLayoutBindings[1].descriptorType =
         VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
