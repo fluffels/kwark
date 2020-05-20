@@ -106,6 +106,7 @@ int MainLoop(
         GetSystemMetrics(SM_CYSCREEN),
         SWP_FRAMECHANGED
     );
+    ShowCursor(FALSE);
 
     int errorCode = 0;
     try {
