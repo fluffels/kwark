@@ -124,7 +124,5 @@ struct BSPParser {
     void parseTexInfos();
     void parseVertices();
 
-    void buildWireFrameModel();
-
     Entity& findEntityByName(char*);
 };
