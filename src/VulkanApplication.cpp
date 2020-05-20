@@ -951,7 +951,7 @@ createBuffer(VkBufferUsageFlags usage, uint32_t size) {
 
 void VulkanApplication::
 createLightMapBuffer() {
-    auto bufferSize = _mesh.lightMap.size() * 4;
+    auto bufferSize = (uint32_t)_mesh.lightMap.size() * 4;
     _lightMapBuffer = createBuffer(
         VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,
         bufferSize
