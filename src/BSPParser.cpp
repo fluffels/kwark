@@ -14,6 +14,20 @@ void fixCoords(vec3& v) {
     v.z = z;
 }
 
+void parseOrigin(char *buffer, vec3 &origin) {
+    char *s = strstr(buffer, " ");
+    *s = '\0';
+    origin.x = (float)atoi(buffer);
+
+    char *n = s + 1;
+    s = strstr(n, " ");
+    *s = '\0';
+    origin.z = (float)-atoi(n);
+
+    n = s + 1;
+    origin.y = (float)-atoi(n);
+}
+
 void BSPParser::parseHeader() {
     seek(file, fileOffset);
     readStruct(file, header);
@@ -34,20 +48,6 @@ void BSPParser::parseFaces() {
     if (readCount != count) {
         throw runtime_error("unexpected eof");
     }
-}
-
-void parseOrigin(char *buffer, vec3 &origin) {
-    char *s = strstr(buffer, " ");
-    *s = '\0';
-    origin.x = (float)atoi(buffer);
-
-    char *n = s + 1;
-    s = strstr(n, " ");
-    *s = '\0';
-    origin.z = (float)-atoi(n);
-
-    n = s + 1;
-    origin.y = (float)-atoi(n);
 }
 
 void BSPParser::parseEntities() {
