@@ -82,7 +82,7 @@ int MainLoop(
     HWND window = CreateWindowEx(
         0,
         "MainWindowClass",
-        "quark",
+        "kwark",
         WS_POPUP | WS_VISIBLE,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
