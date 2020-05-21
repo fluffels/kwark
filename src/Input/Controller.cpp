@@ -1,4 +1,4 @@
-#include "Controller.h"
+#include "Input/Controller.h"
 
 #define DI_CHECK(e, m) if (e != DI_OK) throw new std::exception(m)
 

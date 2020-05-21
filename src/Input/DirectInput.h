@@ -5,8 +5,8 @@
 
 #include "easylogging++.h"
 
-#include "Controller.h"
-#include "Mouse.h"
+#include "Input/Controller.h"
+#include "Input/Mouse.h"
 
 #define DI_CHECK(e, m) if (e != DI_OK) throw new std::exception(m)
 
