@@ -36,11 +36,11 @@ add_executable (
     src/util.cpp
     src/Vertex.cpp
     src/Camera.cpp
-    src/Quake/BSPTextureParser.cpp
-    src/Quake/BSPParser.cpp
-    src/Quake/Mesh.cpp
-    src/Quake/PAKParser.cpp
-    src/Quake/Palette.cpp
+    src/Mesh.cpp
+    src/Palette.cpp
+    src/BSPTextureParser.cpp
+    src/BSPParser.cpp
+    src/PAKParser.cpp
     src/VulkanApplication.cpp
     src/VulkanCommandBuffer.cpp
     src/VulkanImage.cpp
