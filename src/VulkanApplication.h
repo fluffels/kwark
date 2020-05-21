@@ -7,10 +7,10 @@
 
 #include "easylogging++.h"
 
-#include "BSPTextureParser.h"
+#include "Quake/BSPTextureParser.h"
+#include "Quake/Mesh.h"
 #include "Camera.h"
 #include "FileSystem.h"
-#include "Mesh.h"
 #include "Platform.h"
 #include "Vertex.h"
 #include "VulkanImage.h"

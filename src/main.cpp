@@ -7,8 +7,8 @@ INITIALIZE_EASYLOGGINGPP
 
 #include "Input/DirectInput.h"
 #include "Camera.h"
-#include "Mesh.h"
-#include "PAKParser.h"
+#include "Quake/Mesh.h"
+#include "Quake/PAKParser.h"
 #include "VulkanApplication.h"
 #include "Win32.h"
 
