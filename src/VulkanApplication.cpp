@@ -1,6 +1,6 @@
 #include "VulkanApplication.h"
 #include "VulkanCommandBuffer.h"
-#include "VulkanUtils.h"
+#include "VulkanMemory.h"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debugCallback(

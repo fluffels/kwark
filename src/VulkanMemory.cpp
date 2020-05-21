@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "VulkanUtils.h"
+#include "VulkanMemory.h"
 
 using std::runtime_error;
 

@@ -1,7 +1,7 @@
 #include <stdexcept>
 
 #include "VulkanImage.h"
-#include "VulkanUtils.h"
+#include "VulkanMemory.h"
 
 using std::runtime_error;
 

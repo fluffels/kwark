@@ -44,7 +44,7 @@ add_executable (
     src/VulkanApplication.cpp
     src/VulkanCommandBuffer.cpp
     src/VulkanImage.cpp
-    src/VulkanUtils.cpp
+    src/VulkanMemory.cpp
     src/Win32.cpp
 )
 target_link_libraries(
