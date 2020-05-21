@@ -1,4 +1,4 @@
-#include "Input/Mouse.h"
+#include "Mouse.h"
 
 #include <exception>
 

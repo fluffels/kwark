@@ -29,14 +29,14 @@ add_executable (
     Shaders
     src/easylogging++.cc
     src/main.cpp
-    src/Input/DirectInput.cpp
-    src/Input/Controller.cpp
-    src/Input/Mouse.cpp
     src/FileSystem.cpp
     src/util.cpp
     src/Vertex.cpp
     src/Camera.cpp
+    src/DirectInput.cpp
+    src/Controller.cpp
     src/Mesh.cpp
+    src/Mouse.cpp
     src/Palette.cpp
     src/BSPTextureParser.cpp
     src/BSPParser.cpp

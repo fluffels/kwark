@@ -5,9 +5,10 @@
 #include "easylogging++.h"
 INITIALIZE_EASYLOGGINGPP
 
-#include "Input/DirectInput.h"
 #include "Camera.h"
+#include "DirectInput.h"
 #include "Mesh.h"
+#include "Mouse.h"
 #include "PAKParser.h"
 #include "VulkanApplication.h"
 #include "Win32.h"
