@@ -34,6 +34,8 @@ void BSPTextureParser::parseTextureHeaders() {
     auto count = header.numtex;
     auto elementSize = sizeof(TextureHeader);
 
+    textureIsVisible.resize(count);
+
     textureHeaders.resize(count);
 
     for (int i = 0; i < count; i++) {
@@ -53,6 +55,16 @@ void BSPTextureParser::parseTextureHeaders() {
 void BSPTextureParser::parseTexture(int idx, vector<uint8_t>& texture) {
     auto headerOffset = header.offset[idx];
     auto& header = textureHeaders[idx];
+
+    if (
+        (strncmp(header.name, "clip", 4) == 0) ||
+        (strncmp(header.name, "trigger", 7) == 0)
+    ) {
+        textureIsVisible[idx] = false;
+    } else {
+        textureIsVisible[idx] = true;
+    }
+
     auto size = header.width * header.height;
 
     vector<uint8_t> textureColorIndices(size);

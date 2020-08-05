@@ -34,6 +34,7 @@ struct BSPTextureParser {
     vector<vector<uint8_t>> textures;
     vector<TextureHeader> textureHeaders;
     map<uint32_t, uint32_t> textureIDMap;
+    vector<boolean> textureIsVisible;
 
     BSPTextureParser(FILE*, int32_t, Palette&);
 

@@ -42,6 +42,14 @@ void Mesh::buildWireFrameModel() {
 
         for (int faceIdx = firstFace; faceIdx < lastFace; faceIdx++) {
             auto& face = bsp.faces[faceIdx];
+
+            auto& texInfo = bsp.texInfos[face.texinfoId];
+            auto& texID = texInfo.textureID;
+            if (!bsp.textures->textureIsVisible[texID]) {
+                continue;
+            }
+            auto& texHeader = bsp.textures->textureHeaders[texInfo.textureID];
+
             vector<vec3> faceCoords;
             auto edgeListBaseId = face.ledgeId;
             for (uint32_t i = 0; i < face.ledgeNum; i++) {
@@ -60,9 +68,6 @@ void Mesh::buildWireFrameModel() {
             }
 
             Vertex v0, v1, v2;
-
-            auto& texInfo = bsp.texInfos[face.texinfoId];
-            auto& texHeader = bsp.textures->textureHeaders[texInfo.textureID];
 
             auto texNum = bsp.textures->textureIDMap[texInfo.textureID];
             v0.texIdx = texNum;
