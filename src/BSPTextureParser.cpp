@@ -34,7 +34,7 @@ void BSPTextureParser::parseTextureHeaders() {
     auto count = header.numtex;
     auto elementSize = sizeof(TextureHeader);
 
-    textureIsVisible.resize(count);
+    texTypes.resize(count);
 
     textureHeaders.resize(count);
 
@@ -55,17 +55,17 @@ void BSPTextureParser::parseTextureHeaders() {
 void BSPTextureParser::parseTexture(int idx, vector<uint8_t>& texture) {
     auto headerOffset = header.offset[idx];
     auto& header = textureHeaders[idx];
-
-    if (
-        (strncmp(header.name, "clip", 4) == 0) ||
-        (strncmp(header.name, "trigger", 7) == 0)
-    ) {
-        textureIsVisible[idx] = false;
-    } else {
-        textureIsVisible[idx] = true;
-    }
-
     auto size = header.width * header.height;
+
+    if ((strncmp(header.name, "clip", 4) == 0) ||
+            (strncmp(header.name, "trigger", 7) == 0) ||
+            (size == 0)) {
+        texTypes[idx] = TEXTYPE::DEBUG;
+    } else if (strncmp(header.name, "sky", 3) == 0) {
+        texTypes[idx] = TEXTYPE::SKY;
+    } else {
+        texTypes[idx] = TEXTYPE::DEFAULT;
+    }
 
     vector<uint8_t> textureColorIndices(size);
 
@@ -84,19 +84,55 @@ void BSPTextureParser::parseTexture(int idx, vector<uint8_t>& texture) {
     }
 }
 
+void BSPTextureParser::splitSkyTexture(
+    int idx,
+    vector<uint8_t>& texture,
+    vector<uint8_t>& front,
+    vector<uint8_t>& back
+) {
+    auto& header = textureHeaders[idx];
+    auto halfSize = header.width * header.height * 4 / 2;
+    front.resize(halfSize);
+    back.resize(halfSize);
+    auto src = texture.data();
+    auto f = front.data();
+    auto b = back.data();
+    for (uint32_t y = 0; y < header.height; y++) {
+        for (uint32_t x = 0; x < header.width / 2; x++) {
+            for (uint32_t c = 0; c < 4; c++) {
+                *f++ = *src++;
+            }
+        }
+        for (uint32_t x = header.width / 2; x < header.width; x++) {
+            for (uint32_t c = 0; c < 4; c++) {
+                *b++ = *src++;
+            }
+        }
+    }
+
+}
+
 void BSPTextureParser::parseTextures() {
     // NOTE(jan): for some reason, textures can sometimes have a zero area.
     // To prevent this causing problems we skip such textures and map
     // their indices to a large texture index so the error is obvious.
     for (int idx = 0; idx < header.numtex; idx++) {
         auto& textureHeader = textureHeaders[idx];
-        if ((textureHeader.width > 0) && (textureHeader.height > 0)) {
-            vector<uint8_t> texture = {};
-            parseTexture(idx, texture);
-            textures.push_back(texture);
-            textureIDMap[idx] = (uint32_t)textures.size() - 1;
+        vector<uint8_t> texture = {};
+        parseTexture(idx, texture);
+        auto texType = texTypes[idx];
+        if (texType == TEXTYPE::DEBUG) {
+            texNums[idx] = -1;
+        } else if (texType == TEXTYPE::SKY) {
+            vector<uint8_t> front = {};
+            vector<uint8_t> back = {};
+            splitSkyTexture(idx, texture, front, back);
+            texNums[idx] = (uint32_t)skyTextures.size();
+            skyTextures.push_back(front);
+            skyTextures.push_back(back);
         } else {
-            textureIDMap[idx] = -1;
+            textures.push_back(texture);
+            texNums[idx] = (uint32_t)textures.size() - 1;
         }
     }
 }

@@ -45,7 +45,8 @@ void Mesh::buildWireFrameModel() {
 
             auto& texInfo = bsp.texInfos[face.texinfoId];
             auto& texID = texInfo.textureID;
-            if (!bsp.textures->textureIsVisible[texID]) {
+            auto texType = bsp.textures->texTypes[texID];
+            if (texType == TEXTYPE::DEBUG) {
                 continue;
             }
             auto& texHeader = bsp.textures->textureHeaders[texInfo.textureID];
@@ -69,7 +70,7 @@ void Mesh::buildWireFrameModel() {
 
             Vertex v0, v1, v2;
 
-            auto texNum = bsp.textures->textureIDMap[texInfo.textureID];
+            auto texNum = bsp.textures->texNums[texID];
             v0.texIdx = texNum;
             v1.texIdx = texNum;
             v2.texIdx = texNum;
@@ -136,7 +137,12 @@ void Mesh::buildWireFrameModel() {
                 auto& uv = v.texCoord;
                 uv.x /= texHeader.width;
                 uv.y /= texHeader.height;
-                vertices.push_back(v);
+
+                if (texType == TEXTYPE::SKY) {
+                    skyVertices.push_back(v);
+                } else {
+                    vertices.push_back(v);
+                }
             }
         }
     }

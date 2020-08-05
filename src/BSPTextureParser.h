@@ -15,6 +15,12 @@ using std::map;
 using std::runtime_error;
 using std::vector;
 
+enum TEXTYPE {
+    DEFAULT = 0,
+    SKY,
+    DEBUG
+};
+
 struct TextureIndex {
     int32_t numtex;
     vector<int32_t> offset;
@@ -32,9 +38,11 @@ struct TextureHeader {
 
 struct BSPTextureParser {
     vector<vector<uint8_t>> textures;
+    vector<vector<uint8_t>> skyTextures;
+    // NOTE(jan): Maps Quake texId to the Vulkan texture array
+    map<uint32_t, uint32_t> texNums;
+    vector<TEXTYPE> texTypes;
     vector<TextureHeader> textureHeaders;
-    map<uint32_t, uint32_t> textureIDMap;
-    vector<boolean> textureIsVisible;
 
     BSPTextureParser(FILE*, int32_t, Palette&);
 
@@ -49,4 +57,10 @@ private:
     void parseTextureHeaders();
     void parseTexture(int, vector<uint8_t>&);
     void parseTextures();
+    void splitSkyTexture(
+        int idx,
+        vector<uint8_t>& texture,
+        vector<uint8_t>& front,
+        vector<uint8_t>& back
+    );
 };

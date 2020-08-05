@@ -15,6 +15,7 @@ using std::vector;
 struct Mesh {
     BSPParser& bsp;
     vector<Vertex> vertices;
+    vector<Vertex> skyVertices;
     vector<float> lightMap;
 
     Mesh(BSPParser& BSPParser);

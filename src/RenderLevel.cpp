@@ -10,49 +10,81 @@ void renderLevel(
     BSPParser& map,
     vector<VkCommandBuffer>& cmds
 ) {
-    VulkanPipeline pipeline;
-    initVKPipeline(
-        vk,
-        "default",
-        pipeline
+    const int DEFAULT = 0;
+    const int SKY = 1;
+    vector<VulkanPipeline> pipelines(2);
+    initVKPipeline(vk, "default", pipelines[DEFAULT]);
+    initVKPipeline(vk, "sky", pipelines[SKY]);
+
+    auto& textures = *map.textures;
+    vector<VulkanSampler> defaultSamplers;
+    vector<VulkanSampler> skySamplers;
+    for (int idx = 0; idx < textures.textureHeaders.size(); idx++) {
+        auto texType = textures.texTypes[idx];
+        auto& header = textures.textureHeaders[idx];
+        auto texNum = textures.texNums[idx];
+        VulkanSampler* sampler = nullptr;
+        vector<uint8_t>* texture = nullptr;
+        if (texType == TEXTYPE::DEFAULT) {
+            sampler = &defaultSamplers.emplace_back();
+            texture = &textures.textures[texNum];
+        } else if (texType == TEXTYPE::SKY) {
+            sampler = &skySamplers.emplace_back();
+            texture = &textures.skyTextures[texNum];
+            header.width /= 2;
+        } else {
+            continue;
+        }
+        uint32_t size = texture->size() * sizeof(uint8_t);
+        uploadTexture(
+            vk.device,
+            vk.memories,
+            vk.queue,
+            vk.queueFamily,
+            vk.cmdPoolTransient,
+            header.width,
+            header.height,
+            texture->data(),
+            size,
+            *sampler
+        );
+    }
+    updateCombinedImageSampler(
+        vk.device,
+        pipelines[DEFAULT].descriptorSet,
+        1,
+        defaultSamplers.data(),
+        defaultSamplers.size()
+    );
+    updateCombinedImageSampler(
+        vk.device,
+        pipelines[SKY].descriptorSet,
+        1,
+        skySamplers.data(),
+        skySamplers.size()
     );
 
-    auto& textures = map.textures;
-    auto textureCount = textures->textures.size();
-    vector<VulkanSampler> samplers(textureCount);
-    for (int idx = 0; idx < textures->textureHeaders.size(); idx++) {
-        auto& header = textures->textureHeaders[idx];
-        if ((header.width > 0) && (header.height > 0)) {
-            auto texNum = textures->textureIDMap[idx];
-            auto& texture = textures->textures[texNum];
-            auto& sampler = samplers[texNum];
-            uint32_t size = texture.size() * sizeof(uint8_t);
-            uploadTexture(
-                vk.device,
-                vk.memories,
-                vk.queue,
-                vk.queueFamily,
-                vk.cmdPoolTransient,
-                header.width,
-                header.height,
-                texture.data(),
-                size,
-                sampler
-            );
-        }
-    }
-
     Mesh mesh(map);
-    VulkanMesh vulkanMesh;
+    VulkanMesh defaultMesh;
     uploadMesh(
         vk.device,
         vk.memories,
         vk.queueFamily,
         mesh.vertices.data(),
         mesh.vertices.size()*sizeof(Vertex),
-        vulkanMesh
+        defaultMesh
     );
-    vulkanMesh.vCount = mesh.vertices.size();
+    defaultMesh.vCount = mesh.vertices.size();
+    VulkanMesh skyMesh;
+    uploadMesh(
+        vk.device,
+        vk.memories,
+        vk.queueFamily,
+        mesh.skyVertices.data(),
+        mesh.skyVertices.size()*sizeof(Vertex),
+        skyMesh
+    );
+    skyMesh.vCount = mesh.skyVertices.size();
 
     VulkanBuffer lightMapBuffer;
     uploadTexelBuffer(
@@ -64,27 +96,20 @@ void renderLevel(
         lightMapBuffer
     );
 
-    updateUniformBuffer(
-        vk.device,
-        pipeline.descriptorSet,
-        0,
-        vk.mvp.handle
-    );
-
-    updateCombinedImageSampler(
-        vk.device,
-        pipeline.descriptorSet,
-        1,
-        samplers.data(),
-        samplers.size()
-    );
-
-    updateUniformTexelBuffer(
-        vk.device,
-        pipeline.descriptorSet,
-        2,
-        lightMapBuffer.view
-    );
+    for (auto& pipeline: pipelines) {
+        updateUniformBuffer(
+            vk.device,
+            pipeline.descriptorSet,
+            0,
+            vk.mvp.handle
+        );
+        updateUniformTexelBuffer(
+            vk.device,
+            pipeline.descriptorSet,
+            2,
+            lightMapBuffer.view
+        );
+    }
 
     uint32_t framebufferCount = vk.swap.images.size();
     cmds.resize(framebufferCount);
@@ -113,28 +138,57 @@ void renderLevel(
         vkCmdBindPipeline(
             cmd,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipeline.handle
+            pipelines[DEFAULT].handle
         );
         vkCmdBindDescriptorSets(
             cmd,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipeline.layout,
+            pipelines[DEFAULT].layout,
             0,
             1,
-            &pipeline.descriptorSet,
+            &pipelines[DEFAULT].descriptorSet,
             0,
             nullptr
         );
         VkDeviceSize offsets[] = {0};
+
         vkCmdBindVertexBuffers(
             cmd,
             0, 1,
-            &vulkanMesh.vBuff.handle,
+            &defaultMesh.vBuff.handle,
             offsets
         );
         vkCmdDraw(
             cmd,
-            vulkanMesh.vCount, 1,
+            defaultMesh.vCount, 1,
+            0, 0
+        );
+
+        vkCmdBindPipeline(
+            cmd,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelines[SKY].handle
+        );
+        vkCmdBindDescriptorSets(
+            cmd,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelines[SKY].layout,
+            0,
+            1,
+            &pipelines[SKY].descriptorSet,
+            0,
+            nullptr
+        );
+
+        vkCmdBindVertexBuffers(
+            cmd,
+            0, 1,
+            &skyMesh.vBuff.handle,
+            offsets
+        );
+        vkCmdDraw(
+            cmd,
+            skyMesh.vCount, 1,
             0, 0
         );
 
