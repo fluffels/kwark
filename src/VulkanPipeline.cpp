@@ -3,11 +3,14 @@
 #include "SPIRV-Reflect/spirv_reflect.h"
 
 #include <io.h>
+#include <map>
 
 #include "util.h"
 #include "FileSystem.h"
 #include "Vertex.h"
 #include "VulkanPipeline.h"
+
+using std::map;
 
 void createDescriptorLayout(
     Vulkan& vk,
@@ -16,16 +19,24 @@ void createDescriptorLayout(
 ) {
     vector<VkDescriptorSetLayoutBinding> bindings;
 
+    map<uint32_t, VkDescriptorSetLayoutBinding*> bindingDescMap;
+
     for (auto& shader: shaders) {
         for (auto& set: shader.sets) {
             for (uint32_t i = set->set; i < set->binding_count; i++) {
                 auto& spirv = *(set->bindings[i]);
 
-                auto& desc = bindings.emplace_back();
-                desc.binding = spirv.binding;
-                desc.descriptorCount = spirv.count;
-                desc.descriptorType = (VkDescriptorType)spirv.descriptor_type;
-                desc.stageFlags = shader.reflect.shader_stage;
+                auto existingDesc = bindingDescMap[spirv.binding];
+                if (existingDesc) {
+                    existingDesc->stageFlags |= shader.reflect.shader_stage;
+                } else {
+                    auto& desc = bindings.emplace_back();
+                    bindingDescMap[spirv.binding] = &desc;
+                    desc.binding = spirv.binding;
+                    desc.descriptorCount = spirv.count;
+                    desc.descriptorType = (VkDescriptorType)spirv.descriptor_type;
+                    desc.stageFlags = shader.reflect.shader_stage;
+                }
             }
         }
     }

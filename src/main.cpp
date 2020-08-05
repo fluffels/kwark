@@ -27,6 +27,11 @@ using std::setw;
 
 #define WIN32_CHECK(e, m) if (e != S_OK) throw new std::runtime_error(m)
 
+struct Uniforms {
+    mat4 mvp;
+    float elapsedS;
+};
+
 const int WIDTH = 800;
 const int HEIGHT = 800;
 
@@ -169,6 +174,9 @@ int MainLoop(
     Controller* controller = directInput.controller;
     Mouse* mouse = directInput.mouse;
 
+    LARGE_INTEGER epoch = {};
+    QueryPerformanceCounter(&epoch);
+
     LARGE_INTEGER frameStart = {}, frameEnd = {};
     int64_t frameDelta = {};
     float fps = 0;
@@ -202,8 +210,11 @@ int MainLoop(
             recordTextCommandBuffers(vk, textCmds, debugString);
 
             QueryPerformanceCounter(&frameStart);
-                auto mvp = camera.get();
-                updateMVP(vk, &mvp, sizeof(mvp));
+                Uniforms uniforms = {};
+                uniforms.mvp = camera.get();
+                uniforms.elapsedS = (frameStart.QuadPart - epoch.QuadPart) /
+                    (float)counterFrequency.QuadPart;
+                updateMVP(vk, &uniforms, sizeof(uniforms));
                 present(vk, cmdss);
                 resetTextCommandBuffers(vk, textCmds);
             QueryPerformanceCounter(&frameEnd);
