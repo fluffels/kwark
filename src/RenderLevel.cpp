@@ -19,34 +19,20 @@ void renderLevel(
     auto& textures = *map.textures;
     vector<VulkanSampler> defaultSamplers;
     vector<VulkanSampler> skySamplers;
-    for (int idx = 0; idx < textures.textureHeaders.size(); idx++) {
-        auto texType = textures.texTypes[idx];
-        auto& header = textures.textureHeaders[idx];
-        auto texNum = textures.texNums[idx];
-        VulkanSampler* sampler = nullptr;
-        vector<uint8_t>* texture = nullptr;
-        if (texType == TEXTYPE::DEFAULT) {
-            sampler = &defaultSamplers.emplace_back();
-            texture = &textures.textures[texNum];
-        } else if (texType == TEXTYPE::SKY) {
-            sampler = &skySamplers.emplace_back();
-            texture = &textures.skyTextures[texNum];
-            header.width /= 2;
-        } else {
-            continue;
-        }
-        uint32_t size = texture->size() * sizeof(uint8_t);
+    for (auto& texture: textures.textures) {
+        auto& sampler = defaultSamplers.emplace_back();
+        uint32_t size = texture.texels.size() * sizeof(uint8_t);
         uploadTexture(
             vk.device,
             vk.memories,
             vk.queue,
             vk.queueFamily,
             vk.cmdPoolTransient,
-            header.width,
-            header.height,
-            texture->data(),
+            texture.width,
+            texture.height,
+            texture.texels.data(),
             size,
-            *sampler
+            sampler
         );
     }
     updateCombinedImageSampler(
@@ -56,6 +42,22 @@ void renderLevel(
         defaultSamplers.data(),
         defaultSamplers.size()
     );
+    for (auto& texture: textures.skyTextures) {
+        auto& sampler = skySamplers.emplace_back();
+        uint32_t size = texture.texels.size() * sizeof(uint8_t);
+        uploadTexture(
+            vk.device,
+            vk.memories,
+            vk.queue,
+            vk.queueFamily,
+            vk.cmdPoolTransient,
+            texture.width,
+            texture.height,
+            texture.texels.data(),
+            size,
+            sampler
+        );
+    }
     updateCombinedImageSampler(
         vk.device,
         pipelines[SKY].descriptorSet,

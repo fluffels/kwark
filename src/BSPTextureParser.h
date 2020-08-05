@@ -36,9 +36,15 @@ struct TextureHeader {
     uint32_t offset8;
 };
 
+struct Texture {
+    uint32_t width;
+    uint32_t height;
+    vector<uint8_t> texels;
+};
+
 struct BSPTextureParser {
-    vector<vector<uint8_t>> textures;
-    vector<vector<uint8_t>> skyTextures;
+    vector<Texture> textures;
+    vector<Texture> skyTextures;
     // NOTE(jan): Maps Quake texId to the Vulkan texture array
     map<uint32_t, uint32_t> texNums;
     vector<TEXTYPE> texTypes;
@@ -55,12 +61,12 @@ private:
 
     void parseHeader();
     void parseTextureHeaders();
-    void parseTexture(int, vector<uint8_t>&);
+    void parseTexture(int, Texture&);
     void parseTextures();
     void splitSkyTexture(
         int idx,
-        vector<uint8_t>& texture,
-        vector<uint8_t>& front,
-        vector<uint8_t>& back
+        Texture& texture,
+        Texture& front,
+        Texture& back
     );
 };

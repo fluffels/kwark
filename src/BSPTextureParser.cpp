@@ -52,9 +52,11 @@ void BSPTextureParser::parseTextureHeaders() {
     }
 }
 
-void BSPTextureParser::parseTexture(int idx, vector<uint8_t>& texture) {
+void BSPTextureParser::parseTexture(int idx, Texture& texture) {
     auto headerOffset = header.offset[idx];
     auto& header = textureHeaders[idx];
+    texture.width = header.width;
+    texture.height = header.height;
     auto size = header.width * header.height;
 
     if ((strncmp(header.name, "clip", 4) == 0) ||
@@ -72,31 +74,33 @@ void BSPTextureParser::parseTexture(int idx, vector<uint8_t>& texture) {
     seek(file, baseOffset + headerOffset + header.offset1);
     fread_s(textureColorIndices.data(), size, size, 1, file);
 
-    texture.resize(size * 4);
+    texture.texels.resize(size * 4);
 
     for (uint32_t i = 0; i < size; i++) {
         auto colorIdx = textureColorIndices[i];
         auto paletteColor = palette.colors[colorIdx];
-        texture[i*4] = paletteColor.r;
-        texture[i*4+1] = paletteColor.g;
-        texture[i*4+2] = paletteColor.b;
-        texture[i*4+3] = 255;
+        texture.texels[i*4] = paletteColor.r;
+        texture.texels[i*4+1] = paletteColor.g;
+        texture.texels[i*4+2] = paletteColor.b;
+        texture.texels[i*4+3] = 255;
     }
 }
 
 void BSPTextureParser::splitSkyTexture(
     int idx,
-    vector<uint8_t>& texture,
-    vector<uint8_t>& front,
-    vector<uint8_t>& back
+    Texture& texture,
+    Texture& front,
+    Texture& back
 ) {
     auto& header = textureHeaders[idx];
     auto halfSize = header.width * header.height * 4 / 2;
-    front.resize(halfSize);
-    back.resize(halfSize);
-    auto src = texture.data();
-    auto f = front.data();
-    auto b = back.data();
+    front.width = back.width = header.width / 2;
+    front.height = back.height = header.height;
+    front.texels.resize(halfSize);
+    back.texels.resize(halfSize);
+    auto src = texture.texels.data();
+    auto f = front.texels.data();
+    auto b = back.texels.data();
     for (uint32_t y = 0; y < header.height; y++) {
         for (uint32_t x = 0; x < header.width / 2; x++) {
             for (uint32_t c = 0; c < 4; c++) {
@@ -118,21 +122,21 @@ void BSPTextureParser::parseTextures() {
     // their indices to a large texture index so the error is obvious.
     for (int idx = 0; idx < header.numtex; idx++) {
         auto& textureHeader = textureHeaders[idx];
-        vector<uint8_t> texture = {};
+        Texture texture = {};
         parseTexture(idx, texture);
         auto texType = texTypes[idx];
         if (texType == TEXTYPE::DEBUG) {
             texNums[idx] = -1;
         } else if (texType == TEXTYPE::SKY) {
-            vector<uint8_t> front = {};
-            vector<uint8_t> back = {};
+            Texture front = {};
+            Texture back = {};
             splitSkyTexture(idx, texture, front, back);
             texNums[idx] = (uint32_t)skyTextures.size();
             skyTextures.push_back(front);
             skyTextures.push_back(back);
         } else {
+            texNums[idx] = (uint32_t)textures.size();
             textures.push_back(texture);
-            texNums[idx] = (uint32_t)textures.size() - 1;
         }
     }
 }
