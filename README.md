@@ -13,7 +13,9 @@ With this project I'm mostly trying to familiarize myself with Vulkan fundamenta
 - :white_check_mark: Level models
 - :white_check_mark: Textures
 - :white_check_mark: Light maps
-- :black_square_button: Texture animation
+- :white_check_mark: Remove debug brushes from display
+- :black_square_button: Sky textures
+- :black_square_button: Slime / lava / water textures
 - :black_square_button: Sprites
 - :black_square_button: Monster models
 - :black_square_button: View models (i.e. weapons the player may be holding)
