@@ -1,5 +1,6 @@
 #include <stdexcept>
 
+#include "util.h"
 #include "VulkanCommandBuffer.h"
 
 using std::runtime_error;
@@ -45,16 +46,25 @@ VkCommandBuffer allocateCommandBuffer(
 }
 
 void beginCommandBuffer(
-    VkCommandBuffer buffer
+    VkCommandBuffer buffer,
+    VkCommandBufferUsageFlags flags
 ) {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    beginInfo.flags = flags;
 
     auto code = vkBeginCommandBuffer(buffer, &beginInfo);
     if (code != VK_SUCCESS) {
         throw runtime_error("could not begin command buffer");
     }
+}
+
+void beginOneOffCommandBuffer(VkCommandBuffer buffer) {
+    beginCommandBuffer(buffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+}
+
+void beginFrameCommandBuffer(VkCommandBuffer buffer) {
+    beginCommandBuffer(buffer, VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
 }
 
 void endCommandBuffer(
@@ -64,4 +74,24 @@ void endCommandBuffer(
     if (code != VK_SUCCESS) {
         throw runtime_error("could not end command buffer");
     }
+}
+
+void createCommandBuffers(
+    VkDevice device,
+    VkCommandPool pool,
+    uint32_t count,
+    vector<VkCommandBuffer>& buffers
+) {
+    buffers.resize(count);
+
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = pool;
+    allocInfo.commandBufferCount = count;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    checkSuccess(vkAllocateCommandBuffers(
+        device,
+        &allocInfo,
+        buffers.data()
+    ));
 }

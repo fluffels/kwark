@@ -1,10 +1,6 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(push_constant) uniform Push {
-    vec3 color;
-} push;
-
 layout(binding=0) uniform Uniform {
     mat4x4 mvp;
 } uniforms;

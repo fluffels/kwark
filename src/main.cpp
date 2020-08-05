@@ -1,3 +1,5 @@
+#pragma warning (disable: 4267)
+
 #include <iomanip>
 
 #include <Windows.h>
@@ -10,8 +12,13 @@ INITIALIZE_EASYLOGGINGPP
 #include "Mesh.h"
 #include "Mouse.h"
 #include "PAKParser.h"
-#include "VulkanApplication.h"
+#include "Present.h"
+#include "Vulkan.h"
+#include "VulkanImage.h"
 #include "Win32.h"
+
+#include "RenderLevel.cpp"
+#include "RenderText.cpp"
 
 using std::exception;
 using std::setprecision;
@@ -28,8 +35,33 @@ const float DELTA_ROTATE_PER_S = 3.14f;
 const float MOUSE_SENSITIVITY = 0.1f;
 const float JOYSTICK_SENSITIVITY = 100;
 
-VulkanApplication* vk;
 bool keyboard[VK_OEM_CLEAR] = {};
+
+VkSurfaceKHR getSurface(
+    HWND window,
+    HINSTANCE instance,
+    const VkInstance& vkInstance
+) {
+    VkSurfaceKHR surface;
+
+    VkWin32SurfaceCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    createInfo.hinstance = instance;
+    createInfo.hwnd = window;
+
+    auto result = vkCreateWin32SurfaceKHR(
+        vkInstance,
+        &createInfo,
+        nullptr,
+        &surface
+    );
+
+    if (result != VK_SUCCESS) {
+        throw runtime_error("could not create win32 surface");
+    } else {
+        return surface;
+    }
+}
 
 LRESULT
 WindowProc(
@@ -39,9 +71,6 @@ WindowProc(
     LPARAM  lParam
 ) {
     switch (message) {
-        case WM_SIZE:
-            if (vk) vk->resize();
-            break;
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
@@ -108,119 +137,128 @@ int MainLoop(
     );
     ShowCursor(FALSE);
 
+    Win32 platform(instance, window);
+
+    Vulkan vk;
+    vk.extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+    createVKInstance(vk);
+    vk.swap.surface = getSurface(window, instance, vk.handle);
+    initVK(vk);
+
+    BSPParser* map = parser.loadMap("e1m2");
+
+    auto playerStart = map->findEntityByName("info_player_start");
+    auto origin = playerStart.origin;
+    Camera camera;
+    camera.setFOV(45);
+    camera.setAR(vk.swap.extent.width, vk.swap.extent.height);
+    camera.nearz = 1.f;
+    camera.farz = 1000000.f;
+    camera.eye = { origin.x, origin.y, origin.z };
+    camera.at = camera.eye;
+    camera.at.x += 1;
+    camera.up = { 0, 1, 0 };
+    auto angle = (float)-playerStart.angle;
+    camera.rotateY(angle);
+
+    vector<vector<VkCommandBuffer>> cmdss;
+    renderLevel(vk, *map, cmdss.emplace_back());
+    auto& textCmds = cmdss.emplace_back();
+
+    DirectInput directInput(instance);
+    Controller* controller = directInput.controller;
+    Mouse* mouse = directInput.mouse;
+
+    LARGE_INTEGER frameStart = {}, frameEnd = {};
+    int64_t frameDelta = {};
+    float fps = 0;
+    float frameTime = 0;
+
     int errorCode = 0;
-    try {
-        Win32 platform(instance, window);
 
-        LARGE_INTEGER parseStart, parseEnd;
-        int64_t parseDelta;
-        QueryPerformanceCounter(&parseStart);
-        BSPParser* map = parser.loadMap("e1m2");
-        Mesh mesh(*map);
-        QueryPerformanceCounter(&parseEnd);
-        parseDelta = parseEnd.QuadPart - parseStart.QuadPart;
-        float parseS = (float)parseDelta / counterFrequency.QuadPart;
-        LOG(INFO) << "parsing BSP took " << setprecision(6) << parseS << "s";
-
-        auto playerStart = map->findEntityByName("info_player_start");
-        auto origin = playerStart.origin;
-        Camera camera;
-        camera.eye = { origin.x, origin.y, origin.z };
-        camera.at = camera.eye;
-        camera.at.x += 1;
-
-        vk = new VulkanApplication(platform, &camera, mesh, map->textures);
-        auto angle = (float)-playerStart.angle;
-        camera.rotateY(angle);
-
-        delete map;
-        map = nullptr;
-
-        DirectInput directInput(instance);
-        Controller* controller = directInput.controller;
-        Mouse* mouse = directInput.mouse;
-
-        BOOL done = false;
-        while (!done) {
-            MSG msg;
-            BOOL messageAvailable; 
-            do {
-                messageAvailable = PeekMessage(
-                    &msg,
-                    (HWND)nullptr,
-                    0, 0,
-                    PM_REMOVE
-                );
-                TranslateMessage(&msg); 
-                if (msg.message == WM_QUIT) {
-                    done = true;
-                    errorCode = (int)msg.wParam;
-                }
-                DispatchMessage(&msg); 
-            } while(!done && messageAvailable);
-
-            if (!done) {
-                LARGE_INTEGER frameStart, frameEnd;
-                int64_t frameDelta;
-                QueryPerformanceCounter(&frameStart);
-                vk->present();
-                QueryPerformanceCounter(&frameEnd);
-                frameDelta = frameEnd.QuadPart - frameStart.QuadPart;
-                float s = (float)frameDelta / counterFrequency.QuadPart;
-                float fps = counterFrequency.QuadPart / (float)frameDelta;
-                char buffer[255];
-                sprintf_s(buffer, "%.2f FPS", fps);
-                SetWindowText(window, buffer);
-
-                float deltaMove = DELTA_MOVE_PER_S * s;
-                if (keyboard['W']) {
-                    camera.forward(deltaMove);
-                }
-                if (keyboard['S']) {
-                    camera.back(deltaMove);
-                }
-                if (keyboard['A']) {
-                    camera.left(deltaMove);
-                }
-                if (keyboard['D']) {
-                    camera.right(deltaMove);
-                }
-                if (keyboard['F']) {
-                    SetWindowPos(
-                        window,
-                        HWND_TOP,
-                        0,
-                        0,
-                        WIDTH,
-                        HEIGHT,
-                        SWP_FRAMECHANGED
-                    );
-                }
-
-                float deltaMouseRotate =
-                    MOUSE_SENSITIVITY;
-                auto mouseDelta = mouse->getDelta();
-
-                camera.rotateY((float)mouseDelta.x * deltaMouseRotate);
-                camera.rotateX((float)-mouseDelta.y * deltaMouseRotate);
-
-                float deltaJoystickRotate =
-                    DELTA_ROTATE_PER_S * s * JOYSTICK_SENSITIVITY;
-                if (controller) {
-                    auto state = controller->getState();
-
-                    camera.rotateY(state.rX * deltaJoystickRotate);
-                    camera.rotateX(-state.rY * deltaJoystickRotate);
-                    camera.right(state.x * deltaMove);
-                    camera.forward(-state.y * deltaMove);
-                }
+    BOOL done = false;
+    while (!done) {
+        MSG msg;
+        BOOL messageAvailable; 
+        do {
+            messageAvailable = PeekMessage(
+                &msg,
+                (HWND)nullptr,
+                0, 0,
+                PM_REMOVE
+            );
+            TranslateMessage(&msg); 
+            if (msg.message == WM_QUIT) {
+                done = true;
+                errorCode = (int)msg.wParam;
             }
-        } 
-    } catch (exception e) {
-        LOG(ERROR) << e.what();
-    }
+            DispatchMessage(&msg); 
+        } while(!done && messageAvailable);
 
-    delete vk;
+        if (!done) {
+            char debugString[1024];
+            snprintf(debugString, 1024, "%.2f FPS", fps);
+
+            recordTextCommandBuffers(vk, textCmds, debugString);
+
+            QueryPerformanceCounter(&frameStart);
+                auto mvp = camera.get();
+                updateMVP(vk, &mvp, sizeof(mvp));
+                present(vk, cmdss);
+                resetTextCommandBuffers(vk, textCmds);
+            QueryPerformanceCounter(&frameEnd);
+            // SetWindowText(window, buffer);
+            frameDelta = frameEnd.QuadPart - frameStart.QuadPart;
+            frameTime = (float)frameDelta / counterFrequency.QuadPart;
+            fps = counterFrequency.QuadPart / (float)frameDelta;
+
+            float deltaMove = DELTA_MOVE_PER_S * frameTime;
+            if (keyboard['W']) {
+                camera.forward(deltaMove);
+            }
+            if (keyboard['S']) {
+                camera.back(deltaMove);
+            }
+            if (keyboard['A']) {
+                camera.left(deltaMove);
+            }
+            if (keyboard['D']) {
+                camera.right(deltaMove);
+            }
+            if (keyboard['F']) {
+                SetWindowPos(
+                    window,
+                    HWND_TOP,
+                    0,
+                    0,
+                    WIDTH,
+                    HEIGHT,
+                    SWP_FRAMECHANGED
+                );
+            }
+
+            float deltaMouseRotate =
+                MOUSE_SENSITIVITY;
+            auto mouseDelta = mouse->getDelta();
+
+            camera.rotateY((float)mouseDelta.x * deltaMouseRotate);
+            camera.rotateX((float)-mouseDelta.y * deltaMouseRotate);
+
+            float deltaJoystickRotate =
+                DELTA_ROTATE_PER_S * frameTime * JOYSTICK_SENSITIVITY;
+            if (controller) {
+                auto state = controller->getState();
+
+                camera.rotateY(state.rX * deltaJoystickRotate);
+                camera.rotateX(-state.rY * deltaJoystickRotate);
+                camera.right(state.x * deltaMove);
+                camera.forward(-state.y * deltaMove);
+            }
+        }
+    } 
+
+    delete map;
+    map = nullptr;
 
     return errorCode; 
 }

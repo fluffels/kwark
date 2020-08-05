@@ -4,6 +4,15 @@
 
 using std::runtime_error;
 
+VkPhysicalDeviceMemoryProperties getMemories(VkPhysicalDevice gpu) {
+    VkPhysicalDeviceMemoryProperties memories;
+    vkGetPhysicalDeviceMemoryProperties(
+        gpu,
+        &memories
+    );
+    return memories;
+}
+
 VkMemoryRequirements getMemoryRequirements(VkDevice device, VkBuffer buffer) {
     VkMemoryRequirements requirements = {};
     vkGetBufferMemoryRequirements(

@@ -1,0 +1,9 @@
+[submodule "lib/glm"]
+	path = lib/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "lib/SPIRV-Reflect"]
+	path = lib/SPIRV-Reflect
+	url = https://github.com/chaoticbob/SPIRV-Reflect.git
+[submodule "lib/stb"]
+	path = lib/stb
+	url = https://github.com/fluffels/stb.git
