@@ -17,10 +17,12 @@ layout(location=4) in flat vec2 inExtent;
 layout(location=0) out vec4 outColor;
 
 void main() {
-    float animDelta = uniforms.elapsedS / 5.f;
-    vec2 texCoord = vec2(inTexCoord.x - animDelta, inTexCoord.y + animDelta);
-    vec3 frontColor = texture(atlas[inTexIdx], texCoord).rgb;
-    vec3 backColor = texture(atlas[inTexIdx+1], texCoord).rgb;
+    float frontAnimDelta = uniforms.elapsedS / 5.f;
+    vec2 frontTexCoord = vec2(inTexCoord.x + frontAnimDelta, inTexCoord.y - frontAnimDelta);
+    vec3 frontColor = texture(atlas[inTexIdx], frontTexCoord).rgb;
+    float backAnimDelta = uniforms.elapsedS / 10.f;
+    vec2 backTexCoord = vec2(inTexCoord.x + backAnimDelta, inTexCoord.y - backAnimDelta);
+    vec3 backColor = texture(atlas[inTexIdx+1], backTexCoord).rgb;
     vec3 color = frontColor;
     if (frontColor.x + frontColor.y + frontColor.z < .01f) {
         color = backColor;
