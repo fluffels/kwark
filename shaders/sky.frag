@@ -17,5 +17,9 @@ layout(location=0) out vec4 outColor;
 void main() {
     vec3 frontColor = texture(atlas[inTexIdx], inTexCoord).rgb;
     vec3 backColor = texture(atlas[inTexIdx+1], inTexCoord).rgb;
-    outColor = vec4(mix(frontColor, backColor, .5f), 1);
+    vec3 color = frontColor;
+    if (frontColor.x + frontColor.y + frontColor.z < .01f) {
+        color = backColor;
+    }
+    outColor = vec4(color, 1);
 }
