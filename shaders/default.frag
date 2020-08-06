@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 // TODO(jan): Somehow bind this the the number of textures in the BSP.
-layout(binding=1) uniform sampler2D atlas[59];
+layout(binding=1) uniform sampler2D atlas[200];
 
 layout(binding=2) uniform samplerBuffer lightMap;
 
