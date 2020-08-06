@@ -30,6 +30,8 @@ using std::setw;
 struct Uniforms {
     mat4 mvp;
     float elapsedS;
+    vec3 origin;
+    vec3 viewDir;
 };
 
 const int WIDTH = 800;
@@ -150,12 +152,12 @@ int MainLoop(
     vk.swap.surface = getSurface(window, instance, vk.handle);
     initVK(vk);
 
-    BSPParser* map = parser.loadMap("e1m2");
+    BSPParser* map = parser.loadMap("start");
 
     auto playerStart = map->findEntityByName("info_player_start");
     auto origin = playerStart.origin;
     Camera camera;
-    camera.setFOV(45);
+    camera.setFOV(90);
     camera.setAR(vk.swap.extent.width, vk.swap.extent.height);
     camera.nearz = 1.f;
     camera.farz = 1000000.f;
@@ -212,6 +214,8 @@ int MainLoop(
             QueryPerformanceCounter(&frameStart);
                 Uniforms uniforms = {};
                 uniforms.mvp = camera.get();
+                uniforms.origin = camera.eye;
+                uniforms.viewDir = normalize(camera.at - camera.eye);
                 uniforms.elapsedS = (frameStart.QuadPart - epoch.QuadPart) /
                     (float)counterFrequency.QuadPart;
                 updateMVP(vk, &uniforms, sizeof(uniforms));

@@ -40,10 +40,10 @@ void updateCombinedImageSampler(
 
     VkWriteDescriptorSet write = {};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.descriptorCount = (uint32_t)infos.size();
     write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     write.dstSet = descriptorSet;
     write.dstBinding = binding;
-    write.descriptorCount = (uint32_t)infos.size();
     write.pImageInfo = infos.data();
 
     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
@@ -58,10 +58,10 @@ void updateUniformTexelBuffer(
     VkWriteDescriptorSet write = {};
 
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.descriptorCount = 1;
     write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     write.dstSet = descriptorSet;
     write.dstBinding = binding;
-    write.descriptorCount = 1;
     write.pTexelBufferView = &view;
 
     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);

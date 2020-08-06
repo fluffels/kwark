@@ -97,6 +97,12 @@ void renderLevel(
         mesh.lightMap.size() * 4,
         lightMapBuffer
     );
+    updateUniformTexelBuffer(
+        vk.device,
+        pipelines[DEFAULT].descriptorSet,
+        2,
+        lightMapBuffer.view
+    );
 
     for (auto& pipeline: pipelines) {
         updateUniformBuffer(
@@ -104,12 +110,6 @@ void renderLevel(
             pipeline.descriptorSet,
             0,
             vk.mvp.handle
-        );
-        updateUniformTexelBuffer(
-            vk.device,
-            pipeline.descriptorSet,
-            2,
-            lightMapBuffer.view
         );
     }
 
