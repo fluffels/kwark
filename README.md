@@ -16,7 +16,8 @@ With this project I'm mostly trying to familiarize myself with Vulkan fundamenta
 - :white_check_mark: Remove debug brushes from display
 - :white_check_mark: Sky textures
 - :white_check_mark: Animated sky textures
-- :black_square_button: Parralax sky textures
+- :white_check_mark: Parralax sky textures
+- :black_square_button: Fix projection of sky textures
 - :black_square_button: Animated slime / lava / water textures
 - :black_square_button: Sprites
 - :black_square_button: Monster models
