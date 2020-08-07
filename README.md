@@ -33,6 +33,7 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :white_check_mark: Parralax sky textures
 - :white_check_mark: Fix projection of sky textures
 - :black_square_button: Animated slime / lava / water textures
+- :black_square_button: Use other light maps (currently only using the base)
 - :black_square_button: Gamma correction (bit dark at the moment)
 - :black_square_button: Sprites
 - :black_square_button: Monster models
