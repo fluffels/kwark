@@ -33,8 +33,10 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :white_check_mark: Parralax sky textures
 - :white_check_mark: Fix projection of sky textures
 - :black_square_button: Animated slime / lava / water textures
+- :black_square_button: Gamma correction (bit dark at the moment)
 - :black_square_button: Sprites
 - :black_square_button: Monster models
+- :black_square_button: Monster animation
 - :black_square_button: View models (i.e. weapons the player may be holding)
 - :black_square_button: Particle systems
 - :black_square_button: Level animation (triggers)
