@@ -11,7 +11,6 @@ I'm also learning a lot about how the various Quake engines work, especially the
 That's been fascinating, particularly the limitations OpenGL imposed that weren't present in the software renderer and on the other hand all the work that had to be done to make the software renderer interactive.
 
 ### Why not start with the Quake source?
-
 It would have been easier in some ways to simply copy the GLQuake source and work on a Vulkan port.
 This is the approach taken by [vkQuake](https://github.com/Novum/vkQuake).
 
@@ -21,9 +20,10 @@ I'm also not really interested in writing a complete client, since that's been d
 A side effect of this is that I'm not constrained by the approach of the old code.
 Maybe this means I can do some of the things in a more modern way and explore more of Vulkan's functionality.
 
-## Current Progress
+## Progress Screenshot
 ![](screenshot.png)
 
+## TODO
 - :white_check_mark: Level models
 - :white_check_mark: Textures
 - :white_check_mark: Light maps
@@ -40,13 +40,6 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :black_square_button: Level animation (triggers)
 
 ## Remarks
-
-Most of this was reverse-engineered from descriptions of the Quake engine and the PAK and BSP formats.
-For some things I had to check the Quake source code.
-These are mainly:
-- texture mapping
-- sky box
-
 Bindless textures in Vulkan were useful.
 Since Quake uses so few textures per level (~60) it's possible to load them all into a sampler array and pass a texture index along with the vertex data.
 
