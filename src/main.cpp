@@ -27,12 +27,13 @@ using std::setw;
 
 #define WIN32_CHECK(e, m) if (e != S_OK) throw new std::runtime_error(m)
 
+#pragma pack (push, 1)
 struct Uniforms {
     mat4 mvp;
-    float elapsedS;
     vec3 origin;
-    vec3 viewDir;
+    float elapsedS;
 };
+#pragma pack (pop)
 
 const int WIDTH = 800;
 const int HEIGHT = 800;
@@ -215,7 +216,6 @@ int MainLoop(
                 Uniforms uniforms = {};
                 uniforms.mvp = camera.get();
                 uniforms.origin = camera.eye;
-                uniforms.viewDir = normalize(camera.at - camera.eye);
                 uniforms.elapsedS = (frameStart.QuadPart - epoch.QuadPart) /
                     (float)counterFrequency.QuadPart;
                 updateMVP(vk, &uniforms, sizeof(uniforms));
