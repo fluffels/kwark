@@ -15,6 +15,7 @@ void main() {
     vec3 dir = inDir;
     dir.y *= 3;
     dir = normalize(dir) * 6*63 / 128.f;
+    
     float scroll = uniforms.elapsedS / 8.f;
     vec2 texCoordFront = vec2(scroll + dir.x, scroll - dir.z);
 
