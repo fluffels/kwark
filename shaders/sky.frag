@@ -14,18 +14,12 @@ layout(location=0) out vec4 outColor;
 void main() {
     vec3 dir = inDir;
     dir.y *= 3;
-    dir = normalize(dir) * 6*63;
-    float scroll = uniforms.elapsedS * 100 / 8.f;
-    vec2 texCoordFront = vec2(
-        (scroll + dir.x) * (1.f/128),
-        (scroll - dir.z) * (1.f/128)
-    );
+    dir = normalize(dir) * 6*63 / 128.f;
+    float scroll = uniforms.elapsedS / 8.f;
+    vec2 texCoordFront = vec2(scroll + dir.x, scroll - dir.z);
 
     scroll = scroll / 2.f;
-    vec2 texCoordBack = vec2(
-        (scroll + dir.x) * (1.f/128),
-        (scroll - dir.z) * (1.f/128)
-    );
+    vec2 texCoordBack = vec2(scroll + dir.x, scroll - dir.z);
 
     vec3 frontColor = texture(atlas[inTexIdx], texCoordFront).rgb;
     vec3 backColor = texture(atlas[inTexIdx+1], texCoordBack).rgb;
