@@ -35,7 +35,6 @@ void Mesh::buildLightMap() {
 }
 
 void Mesh::buildWireFrameModel() {
-    // TODO(jan): Don't render triggers
     for (auto& model: bsp.models) {
         auto firstFace = model.faceID;
         auto lastFace = firstFace + model.faceCount;
