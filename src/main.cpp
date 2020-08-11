@@ -1,4 +1,5 @@
 #pragma warning (disable: 4267)
+#pragma warning (disable: 4996)
 
 #include <iomanip>
 
@@ -169,6 +170,17 @@ int MainLoop(
     auto angle = (float)-playerStart.angle;
     camera.rotateY(angle);
 
+    {
+        FILE* save;
+        auto err = fopen_s(&save, "save.dat", "r");
+        if (!err) {
+            fread(&camera.eye, sizeof(camera.eye), 1, save);
+            fread(&camera.at, sizeof(camera.at), 1, save);
+            fread(&camera.up, sizeof(camera.up), 1, save);
+            fclose(save);
+        }
+    }
+
     vector<vector<VkCommandBuffer>> cmdss;
     renderLevel(vk, *map, cmdss.emplace_back());
     auto& textCmds = cmdss.emplace_back();
@@ -270,7 +282,20 @@ int MainLoop(
                 camera.forward(-state.y * deltaMove);
             }
         }
-    } 
+    }
+
+    {
+        FILE* save;
+        auto err = fopen_s(&save, "save.dat", "w");
+        if (!err) {
+            fwrite(&camera.eye, sizeof(camera.eye), 1, save);
+            fwrite(&camera.at, sizeof(camera.at), 1, save);
+            fwrite(&camera.up, sizeof(camera.up), 1, save);
+            fclose(save);
+        } else {
+            LOG(ERROR) << strerror(err);
+        }
+    }
 
     delete map;
     map = nullptr;
