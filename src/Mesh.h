@@ -16,6 +16,7 @@ struct Mesh {
     BSPParser& bsp;
     vector<Vertex> vertices;
     vector<Vertex> skyVertices;
+    vector<Vertex> fluidVertices;
     vector<float> lightMap;
 
     Mesh(BSPParser& BSPParser);

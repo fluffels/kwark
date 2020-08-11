@@ -18,6 +18,7 @@ using std::vector;
 enum TEXTYPE {
     DEFAULT = 0,
     SKY,
+    FLUID,
     DEBUG
 };
 

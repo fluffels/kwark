@@ -65,6 +65,8 @@ void BSPTextureParser::parseTexture(int idx, Texture& texture) {
         texTypes[idx] = TEXTYPE::DEBUG;
     } else if (strncmp(header.name, "sky", 3) == 0) {
         texTypes[idx] = TEXTYPE::SKY;
+    } else if (strncmp(header.name, "*", 1) == 0) {
+        texTypes[idx] = TEXTYPE::FLUID;
     } else {
         texTypes[idx] = TEXTYPE::DEFAULT;
     }

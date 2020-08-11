@@ -140,6 +140,8 @@ void Mesh::buildWireFrameModel() {
 
                 if (texType == TEXTYPE::SKY) {
                     skyVertices.push_back(v);
+                } else if (texType == TEXTYPE::FLUID) {
+                    fluidVertices.push_back(v);
                 } else {
                     vertices.push_back(v);
                 }
