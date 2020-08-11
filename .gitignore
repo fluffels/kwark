@@ -40,3 +40,5 @@ build/
 
 # Editor configs
 .vscode
+
+save.dat
