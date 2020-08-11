@@ -46,6 +46,7 @@ struct Texture {
 struct BSPTextureParser {
     vector<Texture> textures;
     vector<Texture> skyTextures;
+    vector<Texture> fluidTextures;
     // NOTE(jan): Maps Quake texId to the Vulkan texture array
     map<uint32_t, uint32_t> texNums;
     vector<TEXTYPE> texTypes;

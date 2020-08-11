@@ -12,13 +12,16 @@ void renderLevel(
 ) {
     const int DEFAULT = 0;
     const int SKY = 1;
-    vector<VulkanPipeline> pipelines(2);
+    const int FLUID = 2;
+    vector<VulkanPipeline> pipelines(3);
     initVKPipeline(vk, "default", pipelines[DEFAULT]);
     initVKPipeline(vk, "sky", pipelines[SKY]);
+    initVKPipeline(vk, "fluid", pipelines[FLUID]);
 
     auto& textures = *map.textures;
     vector<VulkanSampler> defaultSamplers;
     vector<VulkanSampler> skySamplers;
+    vector<VulkanSampler> fluidSamplers;
     for (auto& texture: textures.textures) {
         auto& sampler = defaultSamplers.emplace_back();
         uint32_t size = texture.texels.size() * sizeof(uint8_t);
@@ -65,6 +68,29 @@ void renderLevel(
         skySamplers.data(),
         skySamplers.size()
     );
+    for (auto& texture: textures.fluidTextures) {
+        auto& sampler = fluidSamplers.emplace_back();
+        uint32_t size = texture.texels.size() * sizeof(uint8_t);
+        uploadTexture(
+            vk.device,
+            vk.memories,
+            vk.queue,
+            vk.queueFamily,
+            vk.cmdPoolTransient,
+            texture.width,
+            texture.height,
+            texture.texels.data(),
+            size,
+            sampler
+        );
+    }
+    updateCombinedImageSampler(
+        vk.device,
+        pipelines[FLUID].descriptorSet,
+        1,
+        fluidSamplers.data(),
+        fluidSamplers.size()
+    );
 
     Mesh mesh(map);
     VulkanMesh defaultMesh;
@@ -87,6 +113,16 @@ void renderLevel(
         skyMesh
     );
     skyMesh.vCount = mesh.skyVertices.size();
+    VulkanMesh fluidMesh;
+    uploadMesh(
+        vk.device,
+        vk.memories,
+        vk.queueFamily,
+        mesh.fluidVertices.data(),
+        mesh.fluidVertices.size()*sizeof(Vertex),
+        fluidMesh
+    );
+    fluidMesh.vCount = mesh.fluidVertices.size();
 
     VulkanBuffer lightMapBuffer;
     uploadTexelBuffer(
@@ -191,6 +227,34 @@ void renderLevel(
         vkCmdDraw(
             cmd,
             skyMesh.vCount, 1,
+            0, 0
+        );
+
+        vkCmdBindPipeline(
+            cmd,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelines[FLUID].handle
+        );
+        vkCmdBindDescriptorSets(
+            cmd,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelines[FLUID].layout,
+            0,
+            1,
+            &pipelines[FLUID].descriptorSet,
+            0,
+            nullptr
+        );
+
+        vkCmdBindVertexBuffers(
+            cmd,
+            0, 1,
+            &fluidMesh.vBuff.handle,
+            offsets
+        );
+        vkCmdDraw(
+            cmd,
+            fluidMesh.vCount, 1,
             0, 0
         );
 

@@ -136,6 +136,9 @@ void BSPTextureParser::parseTextures() {
             texNums[idx] = (uint32_t)skyTextures.size();
             skyTextures.push_back(front);
             skyTextures.push_back(back);
+        } else if (texType == TEXTYPE::FLUID) {
+            texNums[idx] = (uint32_t)fluidTextures.size();
+            fluidTextures.push_back(texture);
         } else {
             texNums[idx] = (uint32_t)textures.size();
             textures.push_back(texture);
