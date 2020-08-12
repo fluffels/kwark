@@ -263,6 +263,13 @@ int MainLoop(
                     SWP_FRAMECHANGED
                 );
             }
+            if (keyboard['R']) {
+                camera.eye = { origin.x, origin.y, origin.z };
+                camera.at = camera.eye;
+                camera.at.x += 1;
+                camera.up = { 0, 1, 0 };
+                camera.rotateY(angle);
+            }
 
             float deltaMouseRotate =
                 MOUSE_SENSITIVITY;
