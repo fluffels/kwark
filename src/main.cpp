@@ -19,6 +19,7 @@ INITIALIZE_EASYLOGGINGPP
 #include "Win32.h"
 
 #include "RenderLevel.cpp"
+#include "RenderModel.cpp"
 #include "RenderText.cpp"
 
 using std::exception;
@@ -183,6 +184,7 @@ int MainLoop(
 
     vector<vector<VkCommandBuffer>> cmdss;
     renderLevel(vk, *map, cmdss.emplace_back());
+    renderModel(vk, parser, map->entities, cmdss.emplace_back());
     auto& textCmds = cmdss.emplace_back();
 
     DirectInput directInput(instance);
