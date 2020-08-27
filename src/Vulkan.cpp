@@ -1,10 +1,11 @@
+#pragma warning(disable: 4018)
 #pragma warning(disable: 4267)
 
 #include <stdexcept>
 
 #include "easylogging++.h"
 
-#include "util.h"
+#include "Util.h"
 #include "Vulkan.h"
 
 using std::runtime_error;
@@ -291,5 +292,12 @@ void initVK(Vulkan& vk) {
     vk.cmdPoolTransient = createCommandPool(vk.device, vk.queueFamily, true);
 }
 
+#include "VulkanBuffer.cpp"
+#include "VulkanCommandBuffer.cpp"
 #include "VulkanDescriptors.cpp"
+#include "VulkanImage.cpp"
+#include "VulkanMemory.cpp"
 #include "VulkanMesh.cpp"
+#include "VulkanPipeline.cpp"
+#include "VulkanSwapChain.cpp"
+#include "VulkanSynch.cpp"

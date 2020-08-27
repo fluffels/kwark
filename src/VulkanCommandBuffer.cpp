@@ -1,7 +1,6 @@
 #include <stdexcept>
 
-#include "util.h"
-#include "VulkanCommandBuffer.h"
+#include "Vulkan.h"
 
 using std::runtime_error;
 

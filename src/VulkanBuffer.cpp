@@ -1,6 +1,4 @@
-#include "util.h"
-#include "VulkanBuffer.h"
-#include "VulkanMemory.h"
+#include "Vulkan.h"
 
 void allocateVulkanBuffer(
     VkDevice device,
@@ -156,6 +154,20 @@ void uploadTexelBuffer(
     VulkanBuffer& buffer
 ) {
     createTexelBuffer(device, memories, queueFamily, size, buffer);
+    void* memory = mapMemory(device, buffer.handle, buffer.memory);
+        memcpy(memory, data, size);
+    unMapMemory(device, buffer.memory);
+}
+
+void uploadIndexBuffer(
+    VkDevice device,
+    VkPhysicalDeviceMemoryProperties& memories,
+    uint32_t queueFamily,
+    void* data,
+    uint32_t size,
+    VulkanBuffer& buffer
+) {
+    createIndexBuffer(device, memories, queueFamily, size, buffer);
     void* memory = mapMemory(device, buffer.handle, buffer.memory);
         memcpy(memory, data, size);
     unMapMemory(device, buffer.memory);

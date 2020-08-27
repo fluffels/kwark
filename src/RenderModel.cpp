@@ -6,8 +6,6 @@
 #include "Palette.h"
 #include "PAKParser.h"
 #include "Vulkan.h"
-#include "VulkanImage.h"
-#include "VulkanPipeline.h"
 
 #include "glm/vec3.hpp"
 

@@ -1,7 +1,4 @@
-#include "util.h"
-
 #include "Vulkan.h"
-#include "VulkanSynch.h"
 
 void findSwapFormats(Vulkan& vk) {
     checkSuccess(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
@@ -148,8 +145,7 @@ void createFramebuffers(Vulkan& vk) {
 
 void createSemaphores(Vulkan& vk) {
     vk.swap.imageReady = createSemaphore(vk.device);
-    vk.swap.cmdBufferDone[0] = createSemaphore(vk.device);
-    vk.swap.cmdBufferDone[1] = createSemaphore(vk.device);
+    vk.swap.cmdBufferDone = createSemaphore(vk.device);
 }
 
 void initVKSwapChain(Vulkan& vk) {

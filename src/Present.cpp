@@ -44,16 +44,16 @@ void present(Vulkan& vk, vector<vector<VkCommandBuffer>>& cmdss) {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
     };
     submitInfo.pWaitDstStageMask = waitStages;
-    submitInfo.signalSemaphoreCount = 2;
-    submitInfo.pSignalSemaphores = vk.swap.cmdBufferDone;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &vk.swap.cmdBufferDone;
     vkQueueSubmit(vk.queue, 1, &submitInfo, nullptr);
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &vk.swap.handle;
-    presentInfo.waitSemaphoreCount = 2;
-    presentInfo.pWaitSemaphores = vk.swap.cmdBufferDone;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &vk.swap.cmdBufferDone;
     presentInfo.pImageIndices = &imageIndex;
     checkSuccess(vkQueuePresentKHR(vk.queue, &presentInfo));
 

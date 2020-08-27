@@ -2,6 +2,8 @@
 
 #include "stb/stb_easy_font.h"
 
+#include "Vulkan.h"
+
 const float SIZE_X = 0;
 const float SIZE_Y = 0;
 const uint32_t VERTICES_PER_QUAD = 4;
@@ -79,7 +81,7 @@ recordTextCommandBuffers(Vulkan& vk, vector<VkCommandBuffer>& cmds, char* text) 
         SIZE_X, SIZE_Y, text, NULL, buffer, sizeof(buffer)
     );
 
-    initVKPipeline(vk, "text", pipeline);
+    initVKPipeline(vk, "text", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pipeline);
 
     createVertexBuffer(vk, (uint8_t*)buffer, quadCount, pipeline, mesh);
     createIndexBuffer(vk, mesh);

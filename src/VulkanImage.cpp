@@ -1,13 +1,10 @@
 #include <stdexcept>
 
-#include "VulkanBuffer.h"
-#include "VulkanCommandBuffer.h"
-#include "VulkanImage.h"
-#include "VulkanMemory.h"
+#include "Vulkan.h"
 
 using std::runtime_error;
 
-VkDeviceMemory allocate(
+VkDeviceMemory allocateVulkanImage(
     VkDevice device,
     VkDeviceSize size,
     uint32_t memoryType,
@@ -132,7 +129,7 @@ VulkanImage createVulkanImage(
     auto flags =
         hostVisible? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0;
     auto memType = selectMemoryTypeIndex(memories, reqs, flags);
-    result.memory = allocate(device, reqs.size, memType, result.handle);
+    result.memory = allocateVulkanImage(device, reqs.size, memType, result.handle);
 
     result.view = createView(
         device, result.handle, viewType, format, aspectMask

@@ -45,13 +45,6 @@ add_executable (
     src/PAKParser.cpp
     src/Present.cpp
     src/Vulkan.cpp
-    src/VulkanBuffer.cpp
-    src/VulkanCommandBuffer.cpp
-    src/VulkanImage.cpp
-    src/VulkanMemory.cpp
-    src/VulkanPipeline.cpp
-    src/VulkanSwapChain.cpp
-    src/VulkanSynch.cpp
     src/Win32.cpp
 )
 target_link_libraries(

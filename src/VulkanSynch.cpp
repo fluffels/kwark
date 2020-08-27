@@ -1,5 +1,4 @@
-#include "util.h"
-#include "VulkanSynch.h"
+#include "Vulkan.h"
 
 VkSemaphore createSemaphore(VkDevice device) {
     VkSemaphore result;

@@ -15,7 +15,6 @@ INITIALIZE_EASYLOGGINGPP
 #include "PAKParser.h"
 #include "Present.h"
 #include "Vulkan.h"
-#include "VulkanImage.h"
 #include "Win32.h"
 
 #include "RenderLevel.cpp"
