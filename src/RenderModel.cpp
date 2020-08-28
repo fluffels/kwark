@@ -38,9 +38,61 @@ struct TexCoord {
 };
 
 struct Triangle {
-    long facesfront;  // boolean
-    long vertices[3]; // vertex indices [0, numverts]
+    int32_t facesfront;  // boolean
+    int32_t vertices[3]; // vertex indices [0, numverts]
 };
+
+struct FrameVertex {
+    uint8_t packedPosition[3];
+    uint8_t lightNormalIdx;
+};
+
+struct Frame {
+    FrameVertex min;
+    FrameVertex max;
+    char name[16];
+    vector<FrameVertex> vertices;
+};
+
+struct FrameGroup {
+    FrameVertex min;
+    FrameVertex max;
+    vector<float> times;
+    vector<Frame> frames;
+};
+
+void readFrame(FILE* file, int32_t numverts, Frame& frame) {
+    readStruct(file, frame.min);
+    readStruct(file, frame.max);
+    readStruct(file, frame.name);
+    frame.vertices.resize(numverts);
+    fread(frame.vertices.data(), sizeof(FrameVertex), numverts, file);
+}
+
+void readFrameGroup(FILE* file, int32_t numverts, FrameGroup& group) {
+    int32_t groupType = -1;
+    fread(&groupType, sizeof(groupType), 1, file);
+
+    int32_t frameCount = 0;
+    fread(&frameCount, sizeof(frameCount), 1, file);
+    if (frameCount < 1) throw std::runtime_error("invalid frame count");
+
+    if (groupType == 0) {
+        Frame frame = {};
+        readFrame(file, numverts, frame);
+    } else if (groupType > 0) {
+        readStruct(file, group.min);
+        readStruct(file, group.max);
+        group.times.resize(frameCount);
+        fread(group.times.data(), sizeof(float), frameCount, file);
+        group.frames.resize(frameCount);
+        for (int i = 0; i < frameCount; i++) {
+            readFrame(file, numverts, group.frames[i]);
+        }
+    } else {
+        throw std::runtime_error("invalid frame group type");
+    }
+}
 
 void uploadMDL(Vulkan& vk, FILE* file, uint32_t offset, Palette& palette) {
     MDLHeader header;
@@ -90,6 +142,11 @@ void uploadMDL(Vulkan& vk, FILE* file, uint32_t offset, Palette& palette) {
 
     vector<Triangle> triangles(header.numtris);
     fread(triangles.data(), sizeof(Triangle), header.numtris, file);
+
+    vector<FrameGroup> groups(header.numframes);
+    for (auto& group: groups) {
+        readFrameGroup(file, header.numverts, group);
+    }
 }
 
 void renderModel(
