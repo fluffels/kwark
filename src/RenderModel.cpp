@@ -61,6 +61,10 @@ struct FrameGroup {
     vector<Frame> frames;
 };
 
+struct ModelVertex {
+    vec3 position;
+};
+
 void readFrame(FILE* file, int32_t numverts, Frame& frame) {
     readStruct(file, frame.min);
     readStruct(file, frame.max);
@@ -94,7 +98,13 @@ void readFrameGroup(FILE* file, int32_t numverts, FrameGroup& group) {
     }
 }
 
-void uploadMDL(Vulkan& vk, FILE* file, uint32_t offset, Palette& palette) {
+void uploadMDL(
+    Vulkan& vk,
+    FILE* file,
+    uint32_t offset,
+    Palette& palette,
+    VulkanMesh& mesh
+) {
     MDLHeader header;
     seek(file, offset);
     readStruct(file, header);
@@ -147,6 +157,29 @@ void uploadMDL(Vulkan& vk, FILE* file, uint32_t offset, Palette& palette) {
     for (auto& group: groups) {
         readFrameGroup(file, header.numverts, group);
     }
+
+    vector<ModelVertex> vertices;
+    for (auto& group: groups) {
+        auto& frame = group.frames[0];
+        for (auto& packedVertex: frame.vertices) {
+            auto& vertex = vertices.emplace_back();
+            vertex.position.x = packedVertex.packedPosition[0]
+                * header.scale.x + header.offsets.x;
+            vertex.position.y = -packedVertex.packedPosition[2]
+                * header.scale.z + header.offsets.z;
+            vertex.position.z = packedVertex.packedPosition[1]
+                * header.scale.y + header.offsets.y;
+        }
+    }
+
+    uploadMesh(
+        vk.device,
+        vk.memories,
+        vk.queueFamily,
+        vertices.data(),
+        vertices.size() * sizeof(ModelVertex),
+        mesh
+    );
 }
 
 void renderModel(
@@ -157,7 +190,8 @@ void renderModel(
 ) {
     auto entry = pak.findEntry("progs/flame2.mdl");
     auto palette = pak.loadPalette();
-    uploadMDL(vk, pak.file, entry.offset, *palette);
+    VulkanMesh mesh = {};
+    uploadMDL(vk, pak.file, entry.offset, *palette, mesh);
     delete palette;
 
     for (auto& entity: entities) {
