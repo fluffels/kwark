@@ -180,6 +180,7 @@ void uploadMDL(
         vertices.size() * sizeof(ModelVertex),
         mesh
     );
+    mesh.vCount = vertices.size();
 }
 
 void renderModel(
@@ -204,6 +205,9 @@ void renderModel(
         auto origin = entity.origin;
     }
 
+    VulkanPipeline pipeline = {};
+    initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pipeline);
+
     auto framebufferCount = vk.swap.framebuffers.size();
     createCommandBuffers(
         vk.device,
@@ -226,6 +230,18 @@ void renderModel(
         beginInfo.renderPass = vk.renderPassNoClear;
 
         vkCmdBeginRenderPass(cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
+        vkCmdBindDescriptorSets(
+            cmd,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipeline.layout,
+            0, 1,
+            &pipeline.descriptorSet,
+            0, nullptr
+        );
+        vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
+        vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
         vkCmdEndRenderPass(cmd);
 
         endCommandBuffer(cmd);
