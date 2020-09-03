@@ -3,12 +3,12 @@
 
 #include "uniforms.glsl"
 
-layout(push_constant) uniform pushConstants {
+layout(push_constant) uniform PushConstants {
     vec3 translate;
-} PushConstants;
+} pushConstants;
 
 layout(location=0) in vec3 inPosition;
 
 void main() {
-    gl_Position = uniforms.mvp * vec4(inPosition, 1.0);
+    gl_Position = uniforms.mvp * vec4(pushConstants.translate + inPosition, 1.0);
 }

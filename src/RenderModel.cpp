@@ -195,18 +195,23 @@ void renderModel(
     uploadMDL(vk, pak.file, entry.offset, *palette, mesh);
     delete palette;
 
+    vec3 origin;
     for (auto& entity: entities) {
         auto name = entity.className;
-
         if (strcmp(name, "light_flame_large_yellow") == 0) {
-
+            origin = entity.origin;
+            break;
         }
-
-        auto origin = entity.origin;
     }
 
     VulkanPipeline pipeline = {};
     initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pipeline);
+    updateUniformBuffer(
+        vk.device,
+        pipeline.descriptorSet,
+        0,
+        vk.mvp.handle
+    );
 
     auto framebufferCount = vk.swap.framebuffers.size();
     createCommandBuffers(
@@ -232,6 +237,15 @@ void renderModel(
         vkCmdBeginRenderPass(cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
         VkDeviceSize offsets[] = {0};
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
+/*        vkCmdPushConstants(
+            cmd,
+            pipeline.layout,
+            VK_SHADER_STAGE_VERTEX_BIT,
+            0,
+            sizeof(origin),
+            &origin
+        );
+        */
         vkCmdBindDescriptorSets(
             cmd,
             VK_PIPELINE_BIND_POINT_GRAPHICS,

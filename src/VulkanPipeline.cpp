@@ -166,6 +166,7 @@ void createPipelineLayout(Vulkan& vk, vector<VulkanShader>& shaders, VulkanPipel
         for (int i = 0; i < shader.reflect.push_constant_block_count; i++) {
             auto& block = shader.reflect.push_constant_blocks[i];
             auto& range = pushConstantRanges.emplace_back();
+            range.stageFlags = shader.reflect.shader_stage;
             range.offset = block.offset;
             range.size = block.padded_size;
         }
