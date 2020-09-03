@@ -3,6 +3,10 @@
 
 #include "uniforms.glsl"
 
+layout(push_constant) uniform pushConstants {
+    vec3 translate;
+} PushConstants;
+
 layout(location=0) in vec3 inPosition;
 
 void main() {
