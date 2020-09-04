@@ -195,12 +195,11 @@ void renderModel(
     uploadMDL(vk, pak.file, entry.offset, *palette, mesh);
     delete palette;
 
-    vec3 origin;
+    vector<vec3> origins;
     for (auto& entity: entities) {
         auto name = entity.className;
         if (strcmp(name, "light_flame_large_yellow") == 0) {
-            origin = entity.origin;
-            break;
+            origins.push_back(entity.origin);
         }
     }
 
@@ -237,15 +236,6 @@ void renderModel(
         vkCmdBeginRenderPass(cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
         VkDeviceSize offsets[] = {0};
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
-/*        vkCmdPushConstants(
-            cmd,
-            pipeline.layout,
-            VK_SHADER_STAGE_VERTEX_BIT,
-            0,
-            sizeof(origin),
-            &origin
-        );
-        */
         vkCmdBindDescriptorSets(
             cmd,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -255,7 +245,17 @@ void renderModel(
             0, nullptr
         );
         vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
-        vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
+        for (auto& origin: origins) {
+            vkCmdPushConstants(
+                cmd,
+                pipeline.layout,
+                VK_SHADER_STAGE_VERTEX_BIT,
+                0,
+                sizeof(origin),
+                &origin
+            );
+            vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
+        }
         vkCmdEndRenderPass(cmd);
 
         endCommandBuffer(cmd);
