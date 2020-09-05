@@ -172,15 +172,25 @@ void uploadMDL(
         }
     }
 
+    vector<uint32_t> indices;
+    for (auto& triangle: triangles) {
+        for (int i = 0; i < 3; i ++) {
+            indices.push_back(triangle.vertices[i]);
+        }
+    }
+
     uploadMesh(
         vk.device,
         vk.memories,
         vk.queueFamily,
         vertices.data(),
         vertices.size() * sizeof(ModelVertex),
+        indices.data(),
+        indices.size() * sizeof(uint32_t),
         mesh
     );
     mesh.vCount = vertices.size();
+    mesh.idxCount = indices.size();
 }
 
 void renderModel(
@@ -245,6 +255,7 @@ void renderModel(
             0, nullptr
         );
         vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
+        vkCmdBindIndexBuffer(cmd, mesh.iBuff.handle, 0, VK_INDEX_TYPE_UINT32);
         for (auto& origin: origins) {
             vkCmdPushConstants(
                 cmd,
@@ -254,7 +265,8 @@ void renderModel(
                 sizeof(origin),
                 &origin
             );
-            vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
+            // vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
+            vkCmdDrawIndexed(cmd, mesh.idxCount, 1, 0, 0, 0);
         }
         vkCmdEndRenderPass(cmd);
 
