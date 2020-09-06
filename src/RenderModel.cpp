@@ -1,6 +1,8 @@
 #pragma warning(disable: 4018)
 #pragma warning(disable: 4267)
 
+#include <cmath>
+
 #include "RenderModel.h"
 
 #include "FileSystem.h"
@@ -196,9 +198,10 @@ void initModels(
         readFrameGroup(file, header.numverts, group);
     }
 
-    vector<ModelVertex> vertices;
     for (auto& group: groups) {
         for (auto& frame: group.frames) {
+            vector<ModelVertex> vertices;
+
             for (auto& triangle: triangles) {
                 for (int i = 0; i < 3; i ++) {
                     auto vertIdx = triangle.vertices[i];
@@ -241,10 +244,11 @@ void recordModelCommandBuffers(
     float epoch,
     vector<VkCommandBuffer>& cmds
 ) {
-    auto framebufferCount = vk.swap.framebuffers.size();
+    auto framebufferCount = vk.swap.images.size();
+    cmds.resize(framebufferCount);
     createCommandBuffers(
         vk.device,
-        vk.cmdPool,
+        vk.cmdPoolTransient,
         framebufferCount,
         cmds
     );
@@ -273,7 +277,17 @@ void recordModelCommandBuffers(
             &pipeline.descriptorSet,
             0, nullptr
         );
-        auto& mesh = frames[0];
+        uint32_t frameIdx = 0;
+        auto& frameGroup = groups[1];
+        float maxTime = frameGroup.times[frameGroup.times.size()-1];
+        float animationTime = std::fmod(epoch, maxTime);
+        for (frameIdx = 0; frameIdx < frameGroup.times.size(); frameIdx++) {
+            float frameTime = frameGroup.times[frameIdx];
+            if (animationTime < frameTime) {
+                break;
+            }
+        }
+        auto& mesh = frames[frameIdx+6];
         vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
         for (auto& origin: origins) {
             vkCmdPushConstants(

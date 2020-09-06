@@ -180,14 +180,11 @@ int MainLoop(
         }
     }
 
-    vector<vector<VkCommandBuffer>> cmdss;
-    renderLevel(vk, *map, cmdss.emplace_back());
+    vector<VkCommandBuffer> levelCmds;
+    renderLevel(vk, *map, levelCmds);
     initModels(vk, parser, map->entities);
-    auto& modelCmds = cmdss.emplace_back();
-                recordModelCommandBuffers(
-                    vk, 0, modelCmds
-                );
-    auto& textCmds = cmdss.emplace_back();
+    vector<VkCommandBuffer> modelCmds;
+    vector<VkCommandBuffer> textCmds;
 
     DirectInput directInput(instance);
     Controller* controller = directInput.controller;
@@ -234,9 +231,22 @@ int MainLoop(
                 uniforms.origin = camera.eye;
                 uniforms.elapsedS = (frameStart.QuadPart - epoch.QuadPart) /
                     (float)counterFrequency.QuadPart;
+                recordModelCommandBuffers(
+                    vk, uniforms.elapsedS, modelCmds
+                );
                 updateMVP(vk, &uniforms, sizeof(uniforms));
+                vector<vector<VkCommandBuffer>> cmdss;
+                cmdss.push_back(levelCmds);
+                cmdss.push_back(modelCmds);
+                cmdss.push_back(textCmds);
                 present(vk, cmdss);
                 resetTextCommandBuffers(vk, textCmds);
+                vkFreeCommandBuffers(
+                    vk.device,
+                    vk.cmdPoolTransient,
+                    modelCmds.size(),
+                    modelCmds.data()
+                );
             QueryPerformanceCounter(&frameEnd);
             // SetWindowText(window, buffer);
             frameDelta = frameEnd.QuadPart - frameStart.QuadPart;
