@@ -214,22 +214,22 @@ void createRenderPass(Vulkan& vk, bool clear, VkRenderPass& renderPass) {
     VkAttachmentDescription color = {};
     color.format = vk.swap.format;
     color.samples = VK_SAMPLE_COUNT_1_BIT;
-    color.loadOp = clear? VK_ATTACHMENT_LOAD_OP_CLEAR: VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color.loadOp = clear? VK_ATTACHMENT_LOAD_OP_CLEAR: VK_ATTACHMENT_LOAD_OP_LOAD;
     color.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     color.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color.initialLayout = clear ? VK_IMAGE_LAYOUT_UNDEFINED: VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     color.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     attachments.push_back(color);
     
     VkAttachmentDescription depth = {};
     depth.format = VK_FORMAT_D32_SFLOAT;
     depth.samples = VK_SAMPLE_COUNT_1_BIT;
-    depth.loadOp = clear? VK_ATTACHMENT_LOAD_OP_CLEAR: VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depth.loadOp = clear? VK_ATTACHMENT_LOAD_OP_CLEAR: VK_ATTACHMENT_LOAD_OP_LOAD;
     depth.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depth.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color.initialLayout = clear ? VK_IMAGE_LAYOUT_UNDEFINED: VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depth.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     attachments.push_back(depth);
 
