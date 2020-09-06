@@ -226,7 +226,7 @@ void createRenderPass(Vulkan& vk, bool clear, VkRenderPass& renderPass) {
     depth.format = VK_FORMAT_D32_SFLOAT;
     depth.samples = VK_SAMPLE_COUNT_1_BIT;
     depth.loadOp = clear? VK_ATTACHMENT_LOAD_OP_CLEAR: VK_ATTACHMENT_LOAD_OP_LOAD;
-    depth.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depth.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     color.initialLayout = clear ? VK_IMAGE_LAYOUT_UNDEFINED: VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
