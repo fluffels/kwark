@@ -136,7 +136,11 @@ void uploadMDL(
         skinColors[i*4] = paletteColor.r;
         skinColors[i*4+1] = paletteColor.g;
         skinColors[i*4+2] = paletteColor.b;
-        skinColors[i*4+3] = 255;
+        if (colorIdx == 208) {
+            skinColors[i*4+3] = 0;
+        } else {
+            skinColors[i*4+3] = 255;
+        }
     }
 
     uploadTexture(
