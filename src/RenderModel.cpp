@@ -108,6 +108,7 @@ void uploadMDL(
     FILE* file,
     uint32_t offset,
     Palette& palette,
+    VulkanSampler& sampler,
     VulkanMesh& mesh
 ) {
     MDLHeader header;
@@ -138,7 +139,6 @@ void uploadMDL(
         skinColors[i*4+3] = 255;
     }
 
-    VulkanSampler sampler;
     uploadTexture(
         vk.device,
         vk.memories,
@@ -213,7 +213,8 @@ void renderModel(
     auto entry = pak.findEntry("progs/flame2.mdl");
     auto palette = pak.loadPalette();
     VulkanMesh mesh = {};
-    uploadMDL(vk, pak.file, entry.offset, *palette, mesh);
+    VulkanSampler sampler = {};
+    uploadMDL(vk, pak.file, entry.offset, *palette, sampler, mesh);
     delete palette;
 
     vector<vec3> origins;
@@ -232,6 +233,14 @@ void renderModel(
         0,
         vk.mvp.handle
     );
+    updateCombinedImageSampler(
+        vk.device,
+        pipeline.descriptorSet,
+        1,
+        &sampler,
+        1
+    );
+
 
     auto framebufferCount = vk.swap.framebuffers.size();
     createCommandBuffers(
