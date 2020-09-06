@@ -1,3 +1,4 @@
+#pragma warning(disable: 4018)
 #pragma warning(disable: 4267)
 
 #include "BSPParser.h"
@@ -7,7 +8,10 @@
 #include "PAKParser.h"
 #include "Vulkan.h"
 
+#include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
+
+using glm::vec2;
 
 typedef float scalar_t;
 typedef glm::vec3 vec3_t;
@@ -63,6 +67,7 @@ struct FrameGroup {
 
 struct ModelVertex {
     vec3 position;
+    vec2 texCoord;
 };
 
 void readFrame(FILE* file, int32_t numverts, Frame& frame) {
@@ -161,14 +166,20 @@ void uploadMDL(
     vector<ModelVertex> vertices;
     for (auto& group: groups) {
         auto& frame = group.frames[0];
-        for (auto& packedVertex: frame.vertices) {
+        for (int i = 0; i < header.numverts; i++) {
             auto& vertex = vertices.emplace_back();
+
+            auto& packedVertex = frame.vertices[i];
             vertex.position.x = packedVertex.packedPosition[0]
                 * header.scale.x + header.offsets.x;
             vertex.position.y = -packedVertex.packedPosition[2]
                 * header.scale.z + header.offsets.z;
             vertex.position.z = packedVertex.packedPosition[1]
                 * header.scale.y + header.offsets.y;
+            
+            auto& texCoord = texCoords[i];
+            vertex.texCoord.s = (float)texCoord.s / header.skinwidth;
+            vertex.texCoord.t = (float)texCoord.t / header.skinwidth;
         }
     }
 
