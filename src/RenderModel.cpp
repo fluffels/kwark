@@ -211,7 +211,7 @@ void initModels(
                     vertex.position.x = packedVertex.packedPosition[0]
                         * header.scale.x + header.offsets.x;
                     vertex.position.y = -packedVertex.packedPosition[2]
-                        * header.scale.z + header.offsets.z;
+                        * header.scale.z - header.offsets.z;
                     vertex.position.z = packedVertex.packedPosition[1]
                         * header.scale.y + header.offsets.y;
                     
