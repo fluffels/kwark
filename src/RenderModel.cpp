@@ -166,27 +166,27 @@ void uploadMDL(
     vector<ModelVertex> vertices;
     for (auto& group: groups) {
         auto& frame = group.frames[0];
-        for (int i = 0; i < header.numverts; i++) {
-            auto& vertex = vertices.emplace_back();
+        for (auto& triangle: triangles) {
+            for (int i = 0; i < 3; i ++) {
+                auto vertIdx = triangle.vertices[i];
+                auto& vertex = vertices.emplace_back();
 
-            auto& packedVertex = frame.vertices[i];
-            vertex.position.x = packedVertex.packedPosition[0]
-                * header.scale.x + header.offsets.x;
-            vertex.position.y = -packedVertex.packedPosition[2]
-                * header.scale.z + header.offsets.z;
-            vertex.position.z = packedVertex.packedPosition[1]
-                * header.scale.y + header.offsets.y;
-            
-            auto& texCoord = texCoords[i];
-            vertex.texCoord.s = (float)texCoord.s / header.skinwidth;
-            vertex.texCoord.t = (float)texCoord.t / header.skinwidth;
-        }
-    }
+                auto& packedVertex = frame.vertices[vertIdx];
+                vertex.position.x = packedVertex.packedPosition[0]
+                    * header.scale.x + header.offsets.x;
+                vertex.position.y = -packedVertex.packedPosition[2]
+                    * header.scale.z + header.offsets.z;
+                vertex.position.z = packedVertex.packedPosition[1]
+                    * header.scale.y + header.offsets.y;
+                
+                auto& texCoord = texCoords[vertIdx];
+                vertex.texCoord.s = (float)texCoord.s / header.skinwidth;
+                vertex.texCoord.t = (float)texCoord.t / header.skinwidth;
 
-    vector<uint32_t> indices;
-    for (auto& triangle: triangles) {
-        for (int i = 0; i < 3; i ++) {
-            indices.push_back(triangle.vertices[i]);
+                if ((!triangle.facesfront) && texCoord.onseam) {
+                    vertex.texCoord.s += .5f;
+                }
+            }
         }
     }
 
@@ -196,12 +196,9 @@ void uploadMDL(
         vk.queueFamily,
         vertices.data(),
         vertices.size() * sizeof(ModelVertex),
-        indices.data(),
-        indices.size() * sizeof(uint32_t),
         mesh
     );
     mesh.vCount = vertices.size();
-    mesh.idxCount = indices.size();
 }
 
 void renderModel(
@@ -275,7 +272,6 @@ void renderModel(
             0, nullptr
         );
         vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
-        vkCmdBindIndexBuffer(cmd, mesh.iBuff.handle, 0, VK_INDEX_TYPE_UINT32);
         for (auto& origin: origins) {
             vkCmdPushConstants(
                 cmd,
@@ -285,8 +281,7 @@ void renderModel(
                 sizeof(origin),
                 &origin
             );
-            // vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
-            vkCmdDrawIndexed(cmd, mesh.idxCount, 1, 0, 0, 0);
+            vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
         }
         vkCmdEndRenderPass(cmd);
 
