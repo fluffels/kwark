@@ -44,6 +44,9 @@ add_executable (
     src/Model.cpp
     src/PAKParser.cpp
     src/Present.cpp
+    src/RenderLevel.cpp
+    src/RenderModel.cpp
+    src/RenderText.cpp
     src/Vulkan.cpp
     src/Win32.cpp
 )

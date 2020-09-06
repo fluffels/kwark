@@ -14,12 +14,11 @@ INITIALIZE_EASYLOGGINGPP
 #include "Mouse.h"
 #include "PAKParser.h"
 #include "Present.h"
+#include "RenderLevel.h"
+#include "RenderModel.h"
+#include "RenderText.h"
 #include "Vulkan.h"
 #include "Win32.h"
-
-#include "RenderLevel.cpp"
-#include "RenderModel.cpp"
-#include "RenderText.cpp"
 
 using std::exception;
 using std::setprecision;
@@ -183,7 +182,11 @@ int MainLoop(
 
     vector<vector<VkCommandBuffer>> cmdss;
     renderLevel(vk, *map, cmdss.emplace_back());
-    renderModel(vk, parser, map->entities, cmdss.emplace_back());
+    initModels(vk, parser, map->entities);
+    auto& modelCmds = cmdss.emplace_back();
+                recordModelCommandBuffers(
+                    vk, 0, modelCmds
+                );
     auto& textCmds = cmdss.emplace_back();
 
     DirectInput directInput(instance);

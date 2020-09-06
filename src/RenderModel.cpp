@@ -1,12 +1,11 @@
 #pragma warning(disable: 4018)
 #pragma warning(disable: 4267)
 
-#include "BSPParser.h"
+#include "RenderModel.h"
+
 #include "FileSystem.h"
 #include "Model.h"
 #include "Palette.h"
-#include "PAKParser.h"
-#include "Vulkan.h"
 
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
@@ -70,6 +69,11 @@ struct ModelVertex {
     vec2 texCoord;
 };
 
+static vector<VulkanMesh> frames;
+static vector<FrameGroup> groups;
+static vector<vec3> origins;
+static VulkanPipeline pipeline = {};
+
 void readFrame(FILE* file, int32_t numverts, Frame& frame) {
     readStruct(file, frame.min);
     readStruct(file, frame.max);
@@ -103,16 +107,31 @@ void readFrameGroup(FILE* file, int32_t numverts, FrameGroup& group) {
     }
 }
 
-void uploadMDL(
+void initModels(
     Vulkan& vk,
-    FILE* file,
-    uint32_t offset,
-    Palette& palette,
-    VulkanSampler& sampler,
-    VulkanMesh& mesh
+    PAKParser& pak,
+    vector<Entity>& entities
 ) {
+    initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pipeline);
+    updateUniformBuffer(
+        vk.device,
+        pipeline.descriptorSet,
+        0,
+        vk.mvp.handle
+    );
+
+    for (auto& entity: entities) {
+        auto name = entity.className;
+        if (strcmp(name, "light_flame_large_yellow") == 0) {
+            origins.push_back(entity.origin);
+        }
+    }
+
+    auto palette = pak.loadPalette();
+    auto file = pak.file;
+    auto entry = pak.findEntry("progs/flame2.mdl");
     MDLHeader header;
-    seek(file, offset);
+    seek(file, entry.offset);
     readStruct(file, header);
 
     uint32_t group;
@@ -132,7 +151,7 @@ void uploadMDL(
 
     for (uint32_t i = 0; i < skinIdxsSize; i++) {
         auto colorIdx = skinIdxs[i];
-        auto paletteColor = palette.colors[colorIdx];
+        auto paletteColor = palette->colors[colorIdx];
         skinColors[i*4] = paletteColor.r;
         skinColors[i*4+1] = paletteColor.g;
         skinColors[i*4+2] = paletteColor.b;
@@ -142,7 +161,9 @@ void uploadMDL(
             skinColors[i*4+3] = 255;
         }
     }
+    delete palette;
 
+    VulkanSampler sampler = {};
     uploadTexture(
         vk.device,
         vk.memories,
@@ -156,84 +177,6 @@ void uploadMDL(
         sampler
     );
 
-    vector<TexCoord> texCoords(header.numverts);
-    fread(texCoords.data(), sizeof(TexCoord), header.numverts, file);
-
-    vector<Triangle> triangles(header.numtris);
-    fread(triangles.data(), sizeof(Triangle), header.numtris, file);
-
-    vector<FrameGroup> groups(header.numframes);
-    for (auto& group: groups) {
-        readFrameGroup(file, header.numverts, group);
-    }
-
-    vector<ModelVertex> vertices;
-    for (auto& group: groups) {
-        auto& frame = group.frames[0];
-        for (auto& triangle: triangles) {
-            for (int i = 0; i < 3; i ++) {
-                auto vertIdx = triangle.vertices[i];
-                auto& vertex = vertices.emplace_back();
-
-                auto& packedVertex = frame.vertices[vertIdx];
-                vertex.position.x = packedVertex.packedPosition[0]
-                    * header.scale.x + header.offsets.x;
-                vertex.position.y = -packedVertex.packedPosition[2]
-                    * header.scale.z + header.offsets.z;
-                vertex.position.z = packedVertex.packedPosition[1]
-                    * header.scale.y + header.offsets.y;
-                
-                auto& texCoord = texCoords[vertIdx];
-                vertex.texCoord.s = (float)texCoord.s / header.skinwidth;
-                vertex.texCoord.t = (float)texCoord.t / header.skinwidth;
-
-                if ((!triangle.facesfront) && texCoord.onseam) {
-                    vertex.texCoord.s += .5f;
-                }
-            }
-        }
-    }
-
-    uploadMesh(
-        vk.device,
-        vk.memories,
-        vk.queueFamily,
-        vertices.data(),
-        vertices.size() * sizeof(ModelVertex),
-        mesh
-    );
-    mesh.vCount = vertices.size();
-}
-
-void renderModel(
-    Vulkan& vk,
-    PAKParser& pak,
-    vector<Entity>& entities,
-    vector<VkCommandBuffer>& cmds
-) {
-    auto entry = pak.findEntry("progs/flame2.mdl");
-    auto palette = pak.loadPalette();
-    VulkanMesh mesh = {};
-    VulkanSampler sampler = {};
-    uploadMDL(vk, pak.file, entry.offset, *palette, sampler, mesh);
-    delete palette;
-
-    vector<vec3> origins;
-    for (auto& entity: entities) {
-        auto name = entity.className;
-        if (strcmp(name, "light_flame_large_yellow") == 0) {
-            origins.push_back(entity.origin);
-        }
-    }
-
-    VulkanPipeline pipeline = {};
-    initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pipeline);
-    updateUniformBuffer(
-        vk.device,
-        pipeline.descriptorSet,
-        0,
-        vk.mvp.handle
-    );
     updateCombinedImageSampler(
         vk.device,
         pipeline.descriptorSet,
@@ -242,7 +185,62 @@ void renderModel(
         1
     );
 
+    vector<TexCoord> texCoords(header.numverts);
+    fread(texCoords.data(), sizeof(TexCoord), header.numverts, file);
 
+    vector<Triangle> triangles(header.numtris);
+    fread(triangles.data(), sizeof(Triangle), header.numtris, file);
+
+    groups.resize(header.numframes);
+    for (auto& group: groups) {
+        readFrameGroup(file, header.numverts, group);
+    }
+
+    vector<ModelVertex> vertices;
+    for (auto& group: groups) {
+        for (auto& frame: group.frames) {
+            for (auto& triangle: triangles) {
+                for (int i = 0; i < 3; i ++) {
+                    auto vertIdx = triangle.vertices[i];
+                    auto& vertex = vertices.emplace_back();
+
+                    auto& packedVertex = frame.vertices[vertIdx];
+                    vertex.position.x = packedVertex.packedPosition[0]
+                        * header.scale.x + header.offsets.x;
+                    vertex.position.y = -packedVertex.packedPosition[2]
+                        * header.scale.z + header.offsets.z;
+                    vertex.position.z = packedVertex.packedPosition[1]
+                        * header.scale.y + header.offsets.y;
+                    
+                    auto& texCoord = texCoords[vertIdx];
+                    vertex.texCoord.s = (float)texCoord.s / header.skinwidth;
+                    vertex.texCoord.t = (float)texCoord.t / header.skinheight;
+
+                    if ((!triangle.facesfront) && texCoord.onseam) {
+                        vertex.texCoord.s += .5f;
+                    }
+                }
+            }
+            
+            auto& mesh = frames.emplace_back();
+            uploadMesh(
+                vk.device,
+                vk.memories,
+                vk.queueFamily,
+                vertices.data(),
+                vertices.size() * sizeof(ModelVertex),
+                mesh
+            );
+            mesh.vCount = vertices.size();
+        }
+    }
+}
+
+void recordModelCommandBuffers(
+    Vulkan& vk,
+    float epoch,
+    vector<VkCommandBuffer>& cmds
+) {
     auto framebufferCount = vk.swap.framebuffers.size();
     createCommandBuffers(
         vk.device,
@@ -275,6 +273,7 @@ void renderModel(
             &pipeline.descriptorSet,
             0, nullptr
         );
+        auto& mesh = frames[0];
         vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
         for (auto& origin: origins) {
             vkCmdPushConstants(
