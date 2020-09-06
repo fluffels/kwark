@@ -209,11 +209,11 @@ void initModels(
 
                     auto& packedVertex = frame.vertices[vertIdx];
                     vertex.position.x = packedVertex.packedPosition[0]
-                        * header.scale.x + header.offsets.x;
+                        * header.scale.x + header.origin.x;
                     vertex.position.y = -packedVertex.packedPosition[2]
-                        * header.scale.z - header.offsets.z;
+                        * header.scale.z - header.origin.z;
                     vertex.position.z = packedVertex.packedPosition[1]
-                        * header.scale.y + header.offsets.y;
+                        * header.scale.y + header.origin.y;
                     
                     auto& texCoord = texCoords[vertIdx];
                     vertex.texCoord.s = (float)texCoord.s / header.skinwidth;
