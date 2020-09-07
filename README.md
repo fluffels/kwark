@@ -36,6 +36,7 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :black_square_button: Use other light maps (currently only using the base)
 - :black_square_button: Under water effect
 - :black_square_button: Gamma correction (bit dark at the moment)
+- :white_check_mark: Alias model loading
 - :black_square_button: Scenery models
 - :black_square_button: Sprites
 - :black_square_button: Monster models
