@@ -211,7 +211,7 @@ void createDevice(Vulkan& vk) {
 
 void createRenderPass(Vulkan& vk, bool clear, VkRenderPass& renderPass) {
     vector<VkAttachmentDescription> attachments;
-    VkAttachmentDescription color = {};
+    VkAttachmentDescription& color = attachments.emplace_back();
     color.format = vk.swap.format;
     color.samples = VK_SAMPLE_COUNT_1_BIT;
     color.loadOp = clear? VK_ATTACHMENT_LOAD_OP_CLEAR: VK_ATTACHMENT_LOAD_OP_LOAD;
@@ -220,9 +220,8 @@ void createRenderPass(Vulkan& vk, bool clear, VkRenderPass& renderPass) {
     color.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     color.initialLayout = clear ? VK_IMAGE_LAYOUT_UNDEFINED: VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     color.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    attachments.push_back(color);
     
-    VkAttachmentDescription depth = {};
+    VkAttachmentDescription& depth = attachments.emplace_back();
     depth.format = VK_FORMAT_D32_SFLOAT;
     depth.samples = VK_SAMPLE_COUNT_1_BIT;
     depth.loadOp = clear? VK_ATTACHMENT_LOAD_OP_CLEAR: VK_ATTACHMENT_LOAD_OP_LOAD;
@@ -231,7 +230,6 @@ void createRenderPass(Vulkan& vk, bool clear, VkRenderPass& renderPass) {
     depth.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     color.initialLayout = clear ? VK_IMAGE_LAYOUT_UNDEFINED: VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depth.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    attachments.push_back(depth);
 
     vector<VkAttachmentReference> colorReferences;
     VkAttachmentReference colorReference = {};
