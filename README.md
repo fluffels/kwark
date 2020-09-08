@@ -41,7 +41,6 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :black_square_button: Other scenery models
 - :black_square_button: Monster models
 - :black_square_button: Monster animation
-- :black_square_button: Level animation (triggers)
 
 ## Remarks
 Bindless textures in Vulkan were useful.
