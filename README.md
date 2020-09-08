@@ -39,11 +39,8 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :white_check_mark: Alias model loading
 - :white_check_mark: Fire model
 - :black_square_button: Other scenery models
-- :black_square_button: Sprites
 - :black_square_button: Monster models
 - :black_square_button: Monster animation
-- :black_square_button: View models (i.e. weapons the player may be holding)
-- :black_square_button: Particle systems
 - :black_square_button: Level animation (triggers)
 
 ## Remarks
