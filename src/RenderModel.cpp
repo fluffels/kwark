@@ -91,14 +91,15 @@ void readFrameGroup(FILE* file, int32_t numverts, FrameGroup& group) {
     int32_t groupType = -1;
     fread(&groupType, sizeof(groupType), 1, file);
 
-    int32_t frameCount = 0;
-    fread(&frameCount, sizeof(frameCount), 1, file);
-    if (frameCount < 1) throw std::runtime_error("invalid frame count");
-
     if (groupType == 0) {
-        Frame frame = {};
+        Frame& frame = group.frames.emplace_back();
+        group.times.push_back((group.times.size() + 1) / 10.f);
         readFrame(file, numverts, frame);
     } else if (groupType > 0) {
+        int32_t frameCount = 0;
+        fread(&frameCount, sizeof(frameCount), 1, file);
+        if (frameCount < 1) throw std::runtime_error("invalid frame count");
+
         readStruct(file, group.min);
         readStruct(file, group.max);
         group.times.resize(frameCount);
@@ -118,7 +119,8 @@ void initModel(
     vector<Entity>& entities,
     const char* entityName,
     const char* mdlName,
-    int frameGroupIdx,
+    int startFrame,
+    int endFrame,
     AliasModel& model
 ) {
     initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, model.pipeline);
@@ -200,7 +202,11 @@ void initModel(
     vector<Triangle> triangles(header.numtris);
     fread(triangles.data(), sizeof(Triangle), header.numtris, file);
 
-    for (int i = 0; i <= frameGroupIdx; i++) {
+    for (int i = 0; i < startFrame; i++) {
+        FrameGroup g;
+        readFrameGroup(file, header.numverts, g);
+    }
+    for (int i = startFrame; i <= endFrame; i++) {
         readFrameGroup(file, header.numverts, model.group);
     }
 
@@ -257,6 +263,7 @@ void initModels(
             "light_flame_large_yellow",
             "progs/flame2.mdl",
             1,
+            1,
             model
         );
     }
@@ -269,6 +276,20 @@ void initModels(
             "light_torch_small_walltorch",
             "progs/flame.mdl",
             0,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_zombie",
+            "progs/zombie.mdl",
+            192,
+            197,
             model
         );
     }
