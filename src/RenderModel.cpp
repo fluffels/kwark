@@ -123,7 +123,7 @@ void initModel(
     int endFrame,
     AliasModel& model
 ) {
-    initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, model.pipeline);
+    initVKPipelineCCW(vk, "alias_model", model.pipeline);
     updateUniformBuffer(
         vk.device,
         model.pipeline.descriptorSet,
@@ -166,11 +166,7 @@ void initModel(
         skinColors[i*4] = paletteColor.r;
         skinColors[i*4+1] = paletteColor.g;
         skinColors[i*4+2] = paletteColor.b;
-        if (colorIdx == 208) {
-            skinColors[i*4+3] = 0;
-        } else {
-            skinColors[i*4+3] = 255;
-        }
+        skinColors[i*4+3] = 255;
     }
     delete palette;
 

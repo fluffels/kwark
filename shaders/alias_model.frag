@@ -9,8 +9,5 @@ layout(location=0) out vec4 outColor;
 
 void main() {
     vec4 texColor = texture(tex, inTexCoord);
-    if (texColor.a == 0) {
-        discard;
-    }
     outColor = texColor;
 }

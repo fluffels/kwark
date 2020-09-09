@@ -161,7 +161,7 @@ int MainLoop(
     camera.setFOV(90);
     camera.setAR(vk.swap.extent.width, vk.swap.extent.height);
     camera.nearz = 1.f;
-    camera.farz = 1000000.f;
+    camera.farz = 10000.f;
     camera.eye = { origin.x, origin.y, origin.z };
     camera.at = camera.eye;
     camera.at.x += 1;

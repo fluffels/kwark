@@ -12,10 +12,9 @@ void renderLevel(
     const int SKY = 1;
     const int FLUID = 2;
     vector<VulkanPipeline> pipelines(3);
-    VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    initVKPipeline(vk, "default", topology, pipelines[DEFAULT]);
-    initVKPipeline(vk, "sky", topology, pipelines[SKY]);
-    initVKPipeline(vk, "fluid", topology, pipelines[FLUID]);
+    initVKPipeline(vk, "default", pipelines[DEFAULT]);
+    initVKPipeline(vk, "sky", pipelines[SKY]);
+    initVKPipeline(vk, "fluid", pipelines[FLUID]);
 
     auto& textures = *map.textures;
     vector<VulkanSampler> defaultSamplers;

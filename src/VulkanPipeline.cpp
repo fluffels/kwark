@@ -236,6 +236,7 @@ void createPipeline(
     VulkanShader& vert,
     VulkanShader& frag,
     VkPrimitiveTopology topology,
+    VkFrontFace frontFace,
     VulkanPipeline& pipeline
 ) {
     vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -303,7 +304,7 @@ void createPipeline(
 
     VkPipelineRasterizationStateCreateInfo raster = {};
     raster.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    raster.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    raster.frontFace = frontFace;
     raster.cullMode = VK_CULL_MODE_BACK_BIT;
     raster.lineWidth = 1.f;
     raster.polygonMode = VK_POLYGON_MODE_FILL;
@@ -384,6 +385,7 @@ void initVKPipeline(
     Vulkan& vk,
     char* name,
     VkPrimitiveTopology topology,
+    VkFrontFace frontFace,
     VulkanPipeline& pipeline
 ) {
     pipeline = {};
@@ -409,6 +411,35 @@ void initVKPipeline(
     createPipeline(
         vk, shaders[0], shaders[1],
         topology,
+        frontFace,
+        pipeline
+    );
+}
+
+void initVKPipeline(
+    Vulkan& vk,
+    char* name,
+    VulkanPipeline& pipeline
+) {
+    initVKPipeline(
+        vk,
+        name,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        VK_FRONT_FACE_CLOCKWISE,
+        pipeline
+    );
+}
+
+void initVKPipelineCCW(
+    Vulkan& vk,
+    char* name,
+    VulkanPipeline& pipeline
+) {
+    initVKPipeline(
+        vk,
+        name,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        VK_FRONT_FACE_COUNTER_CLOCKWISE,
         pipeline
     );
 }

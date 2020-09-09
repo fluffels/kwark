@@ -244,10 +244,14 @@ void destroyVulkanSampler(
 );
 
 // Pipeline
+void initVKPipelineCCW(
+    Vulkan& vk,
+    char* name,
+    VulkanPipeline&
+);
 void initVKPipeline(
     Vulkan& vk,
     char* name,
-    VkPrimitiveTopology topology,
     VulkanPipeline&
 );
 

@@ -81,7 +81,7 @@ recordTextCommandBuffers(Vulkan& vk, vector<VkCommandBuffer>& cmds, char* text) 
         SIZE_X, SIZE_Y, text, NULL, buffer, sizeof(buffer)
     );
 
-    initVKPipeline(vk, "text", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pipeline);
+    initVKPipeline(vk, "text", pipeline);
 
     createVertexBuffer(vk, (uint8_t*)buffer, quadCount, pipeline, mesh);
     createIndexBuffer(vk, mesh);
