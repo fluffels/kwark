@@ -71,8 +71,13 @@ struct ModelVertex {
     vec2 texCoord;
 };
 
+struct PushConstant {
+    vec3 origin;
+    float angle;
+};
+
 struct AliasModel {
-    vector<vec3> origins;
+    vector<PushConstant> pushConstants;
     FrameGroup group;
     vector<VulkanMesh> frames;
     VulkanPipeline pipeline;
@@ -134,7 +139,9 @@ void initModel(
     for (auto& entity: entities) {
         auto name = entity.className;
         if (strcmp(name, entityName) == 0) {
-            model.origins.push_back(entity.origin);
+            auto& pushConstant = model.pushConstants.emplace_back();
+            pushConstant.angle = (float)entity.angle;
+            pushConstant.origin = entity.origin;
         }
     }
 
@@ -344,14 +351,14 @@ void recordModelCommandBuffers(
             }
             auto& mesh = model.frames[frameIdx];
             vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
-            for (auto& origin: model.origins) {
+            for (auto& pushConstant: model.pushConstants) {
                 vkCmdPushConstants(
                     cmd,
                     model.pipeline.layout,
                     VK_SHADER_STAGE_VERTEX_BIT,
                     0,
-                    sizeof(origin),
-                    &origin
+                    sizeof(pushConstant),
+                    &pushConstant
                 );
                 vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
             }
