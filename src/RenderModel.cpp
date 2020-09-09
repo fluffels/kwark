@@ -263,6 +263,19 @@ void initModels(
             vk,
             pak,
             entities,
+            "light_flame_small_yellow",
+            "progs/flame2.mdl",
+            0,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
             "light_flame_large_yellow",
             "progs/flame2.mdl",
             1,
