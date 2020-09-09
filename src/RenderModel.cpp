@@ -71,9 +71,13 @@ struct ModelVertex {
     vec2 texCoord;
 };
 
-static vector<VulkanMesh> frames;
-static vector<FrameGroup> groups;
-static vector<vec3> origins;
+struct AliasModel {
+    vector<vec3> origins;
+    FrameGroup group;
+    vector<VulkanMesh> frames;
+};
+vector<AliasModel> models;
+
 static VulkanPipeline pipeline = {};
 
 void readFrame(FILE* file, int32_t numverts, Frame& frame) {
@@ -109,10 +113,14 @@ void readFrameGroup(FILE* file, int32_t numverts, FrameGroup& group) {
     }
 }
 
-void initModels(
+void initModel(
     Vulkan& vk,
     PAKParser& pak,
-    vector<Entity>& entities
+    vector<Entity>& entities,
+    const char* entityName,
+    const char* mdlName,
+    int frameGroupIdx,
+    AliasModel& model
 ) {
     initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pipeline);
     updateUniformBuffer(
@@ -124,14 +132,14 @@ void initModels(
 
     for (auto& entity: entities) {
         auto name = entity.className;
-        if (strcmp(name, "light_flame_large_yellow") == 0) {
-            origins.push_back(entity.origin);
+        if (strcmp(name, entityName) == 0) {
+            model.origins.push_back(entity.origin);
         }
     }
 
     auto palette = pak.loadPalette();
     auto file = pak.file;
-    auto entry = pak.findEntry("progs/flame2.mdl");
+    auto entry = pak.findEntry(mdlName);
     MDLHeader header;
     seek(file, entry.offset);
     readStruct(file, header);
@@ -193,50 +201,65 @@ void initModels(
     vector<Triangle> triangles(header.numtris);
     fread(triangles.data(), sizeof(Triangle), header.numtris, file);
 
-    groups.resize(header.numframes);
-    for (auto& group: groups) {
-        readFrameGroup(file, header.numverts, group);
+    for (int i = 0; i <= frameGroupIdx; i++) {
+        readFrameGroup(file, header.numverts, model.group);
     }
 
-    for (auto& group: groups) {
-        for (auto& frame: group.frames) {
-            vector<ModelVertex> vertices;
+    for (auto& frame: model.group.frames) {
+        vector<ModelVertex> vertices;
 
-            for (auto& triangle: triangles) {
-                for (int i = 0; i < 3; i ++) {
-                    auto vertIdx = triangle.vertices[i];
-                    auto& vertex = vertices.emplace_back();
+        for (auto& triangle: triangles) {
+            for (int i = 0; i < 3; i ++) {
+                auto vertIdx = triangle.vertices[i];
+                auto& vertex = vertices.emplace_back();
 
-                    auto& packedVertex = frame.vertices[vertIdx];
-                    vertex.position.x = packedVertex.packedPosition[0]
-                        * header.scale.x + header.origin.x;
-                    vertex.position.y = -packedVertex.packedPosition[2]
-                        * header.scale.z - header.origin.z;
-                    vertex.position.z = packedVertex.packedPosition[1]
-                        * header.scale.y + header.origin.y;
-                    
-                    auto& texCoord = texCoords[vertIdx];
-                    vertex.texCoord.s = (float)texCoord.s / header.skinwidth;
-                    vertex.texCoord.t = (float)texCoord.t / header.skinheight;
+                auto& packedVertex = frame.vertices[vertIdx];
+                vertex.position.x = packedVertex.packedPosition[0]
+                    * header.scale.x + header.origin.x;
+                vertex.position.y = -packedVertex.packedPosition[2]
+                    * header.scale.z - header.origin.z;
+                vertex.position.z = packedVertex.packedPosition[1]
+                    * header.scale.y + header.origin.y;
+                
+                auto& texCoord = texCoords[vertIdx];
+                vertex.texCoord.s = (float)texCoord.s / header.skinwidth;
+                vertex.texCoord.t = (float)texCoord.t / header.skinheight;
 
-                    if ((!triangle.facesfront) && texCoord.onseam) {
-                        vertex.texCoord.s += .5f;
-                    }
+                if ((!triangle.facesfront) && texCoord.onseam) {
+                    vertex.texCoord.s += .5f;
                 }
             }
-            
-            auto& mesh = frames.emplace_back();
-            uploadMesh(
-                vk.device,
-                vk.memories,
-                vk.queueFamily,
-                vertices.data(),
-                vertices.size() * sizeof(ModelVertex),
-                mesh
-            );
-            mesh.vCount = vertices.size();
         }
+        
+        auto& mesh = model.frames.emplace_back();
+        uploadMesh(
+            vk.device,
+            vk.memories,
+            vk.queueFamily,
+            vertices.data(),
+            vertices.size() * sizeof(ModelVertex),
+            mesh
+        );
+        mesh.vCount = vertices.size();
     }
+}
+
+void initModels(
+    Vulkan& vk,
+    PAKParser& pak,
+    vector<Entity>& entities
+) {
+    AliasModel& model = models.emplace_back();
+    initModel(
+        vk,
+        pak,
+        entities,
+        "light_flame_large_yellow",
+        "progs/flame2.mdl",
+        1,
+        model
+    );
+
 }
 
 void recordModelCommandBuffers(
@@ -277,29 +300,33 @@ void recordModelCommandBuffers(
             &pipeline.descriptorSet,
             0, nullptr
         );
-        uint32_t frameIdx = 0;
-        auto& frameGroup = groups[1];
-        float maxTime = frameGroup.times[frameGroup.times.size()-1];
-        float animationTime = std::fmod(epoch, maxTime);
-        for (frameIdx = 0; frameIdx < frameGroup.times.size(); frameIdx++) {
-            float frameTime = frameGroup.times[frameIdx];
-            if (animationTime < frameTime) {
-                break;
+
+        for (auto& model: models) {
+            auto& frameGroup = model.group;
+            float maxTime = frameGroup.times[frameGroup.times.size()-1];
+            float animationTime = std::fmod(epoch, maxTime);
+            uint32_t frameIdx = 0;
+            for (frameIdx = 0; frameIdx < frameGroup.times.size(); frameIdx++) {
+                float frameTime = frameGroup.times[frameIdx];
+                if (animationTime < frameTime) {
+                    break;
+                }
+            }
+            auto& mesh = model.frames[frameIdx];
+            vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
+            for (auto& origin: model.origins) {
+                vkCmdPushConstants(
+                    cmd,
+                    pipeline.layout,
+                    VK_SHADER_STAGE_VERTEX_BIT,
+                    0,
+                    sizeof(origin),
+                    &origin
+                );
+                vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
             }
         }
-        auto& mesh = frames[frameIdx+6];
-        vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
-        for (auto& origin: origins) {
-            vkCmdPushConstants(
-                cmd,
-                pipeline.layout,
-                VK_SHADER_STAGE_VERTEX_BIT,
-                0,
-                sizeof(origin),
-                &origin
-            );
-            vkCmdDraw(cmd, mesh.vCount, 1, 0, 0);
-        }
+
         vkCmdEndRenderPass(cmd);
 
         endCommandBuffer(cmd);
