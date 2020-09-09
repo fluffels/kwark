@@ -75,10 +75,9 @@ struct AliasModel {
     vector<vec3> origins;
     FrameGroup group;
     vector<VulkanMesh> frames;
+    VulkanPipeline pipeline;
 };
 vector<AliasModel> models;
-
-static VulkanPipeline pipeline = {};
 
 void readFrame(FILE* file, int32_t numverts, Frame& frame) {
     readStruct(file, frame.min);
@@ -122,10 +121,10 @@ void initModel(
     int frameGroupIdx,
     AliasModel& model
 ) {
-    initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pipeline);
+    initVKPipeline(vk, "alias_model", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, model.pipeline);
     updateUniformBuffer(
         vk.device,
-        pipeline.descriptorSet,
+        model.pipeline.descriptorSet,
         0,
         vk.mvp.handle
     );
@@ -189,7 +188,7 @@ void initModel(
 
     updateCombinedImageSampler(
         vk.device,
-        pipeline.descriptorSet,
+        model.pipeline.descriptorSet,
         1,
         &sampler,
         1
@@ -249,17 +248,30 @@ void initModels(
     PAKParser& pak,
     vector<Entity>& entities
 ) {
-    AliasModel& model = models.emplace_back();
-    initModel(
-        vk,
-        pak,
-        entities,
-        "light_flame_large_yellow",
-        "progs/flame2.mdl",
-        1,
-        model
-    );
-
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "light_flame_large_yellow",
+            "progs/flame2.mdl",
+            1,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "light_torch_small_walltorch",
+            "progs/flame.mdl",
+            0,
+            model
+        );
+    }
 }
 
 void recordModelCommandBuffers(
@@ -291,17 +303,18 @@ void recordModelCommandBuffers(
 
         vkCmdBeginRenderPass(cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
         VkDeviceSize offsets[] = {0};
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
-        vkCmdBindDescriptorSets(
-            cmd,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipeline.layout,
-            0, 1,
-            &pipeline.descriptorSet,
-            0, nullptr
-        );
 
         for (auto& model: models) {
+            vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, model.pipeline.handle);
+            vkCmdBindDescriptorSets(
+                cmd,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                model.pipeline.layout,
+                0, 1,
+                &model.pipeline.descriptorSet,
+                0, nullptr
+            );
+
             auto& frameGroup = model.group;
             float maxTime = frameGroup.times[frameGroup.times.size()-1];
             float animationTime = std::fmod(epoch, maxTime);
@@ -317,7 +330,7 @@ void recordModelCommandBuffers(
             for (auto& origin: model.origins) {
                 vkCmdPushConstants(
                     cmd,
-                    pipeline.layout,
+                    model.pipeline.layout,
                     VK_SHADER_STAGE_VERTEX_BIT,
                     0,
                     sizeof(origin),
