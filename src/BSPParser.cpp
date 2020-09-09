@@ -61,6 +61,7 @@ void BSPParser::parseEntities() {
         CLASS_NAME,
         ORIGIN,
         ANGLE,
+        SPAWNFLAGS,
         UNKNOWN
     };
     KEY key = UNKNOWN;
@@ -107,12 +108,16 @@ void BSPParser::parseEntities() {
                         case ANGLE:
                             entity.angle = atoi(buffer);
                             break;
+                        case SPAWNFLAGS:
+                            entity.spawnflags = atoi(buffer);
+                            break;
                         default:
                             break;
                     }
                     if (strcmp("classname", buffer) == 0) key = CLASS_NAME;
                     else if (strcmp("origin", buffer) == 0) key = ORIGIN;
                     else if (strcmp("angle", buffer) == 0) key = ANGLE;
+                    else if (strcmp("spawnflags", buffer) == 0) key = SPAWNFLAGS;
                     else key = UNKNOWN;
                 } else {
                     *bPos = c;

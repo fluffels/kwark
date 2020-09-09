@@ -47,6 +47,7 @@ struct Entity {
     char className[255];
     vec3 origin;
     int angle;
+    int spawnflags;
 };
 
 struct Edge {
