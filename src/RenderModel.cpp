@@ -126,6 +126,7 @@ void initModel(
     const char* mdlName,
     int startFrame,
     int endFrame,
+    int spawnFlagFilter,
     AliasModel& model
 ) {
     initVKPipelineCCW(vk, "alias_model", model.pipeline);
@@ -139,9 +140,11 @@ void initModel(
     for (auto& entity: entities) {
         auto name = entity.className;
         if (strcmp(name, entityName) == 0) {
-            auto& pushConstant = model.pushConstants.emplace_back();
-            pushConstant.angle = (float)entity.angle;
-            pushConstant.origin = entity.origin;
+            if (entity.spawnflags & spawnFlagFilter) {
+                auto& pushConstant = model.pushConstants.emplace_back();
+                pushConstant.angle = (float)entity.angle;
+                pushConstant.origin = entity.origin;
+            }
         }
     }
 
@@ -267,6 +270,7 @@ void initModels(
             "progs/flame2.mdl",
             0,
             0,
+            0xFFFF,
             model
         );
     }
@@ -280,6 +284,7 @@ void initModels(
             "progs/flame2.mdl",
             1,
             1,
+            0xFFFF,
             model
         );
     }
@@ -293,6 +298,7 @@ void initModels(
             "progs/flame.mdl",
             0,
             0,
+            0xFFFF,
             model
         );
     }
@@ -306,6 +312,21 @@ void initModels(
             "progs/zombie.mdl",
             192,
             197,
+            0x0001,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_zombie",
+            "progs/zombie.mdl",
+            0,
+            14,
+            0xFFFF,
             model
         );
     }
