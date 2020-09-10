@@ -43,29 +43,31 @@ void renderLevel(
         defaultSamplers.data(),
         defaultSamplers.size()
     );
-    for (auto& texture: textures.skyTextures) {
-        auto& sampler = skySamplers.emplace_back();
-        uint32_t size = texture.texels.size() * sizeof(uint8_t);
-        uploadTexture(
+    if (textures.skyTextures.size()) {
+        for (auto& texture: textures.skyTextures) {
+            auto& sampler = skySamplers.emplace_back();
+            uint32_t size = texture.texels.size() * sizeof(uint8_t);
+            uploadTexture(
+                vk.device,
+                vk.memories,
+                vk.queue,
+                vk.queueFamily,
+                vk.cmdPoolTransient,
+                texture.width,
+                texture.height,
+                texture.texels.data(),
+                size,
+                sampler
+            );
+        }
+        updateCombinedImageSampler(
             vk.device,
-            vk.memories,
-            vk.queue,
-            vk.queueFamily,
-            vk.cmdPoolTransient,
-            texture.width,
-            texture.height,
-            texture.texels.data(),
-            size,
-            sampler
+            pipelines[SKY].descriptorSet,
+            1,
+            skySamplers.data(),
+            skySamplers.size()
         );
     }
-    updateCombinedImageSampler(
-        vk.device,
-        pipelines[SKY].descriptorSet,
-        1,
-        skySamplers.data(),
-        skySamplers.size()
-    );
     for (auto& texture: textures.fluidTextures) {
         auto& sampler = fluidSamplers.emplace_back();
         uint32_t size = texture.texels.size() * sizeof(uint8_t);
@@ -102,15 +104,17 @@ void renderLevel(
     );
     defaultMesh.vCount = mesh.vertices.size();
     VulkanMesh skyMesh;
-    uploadMesh(
-        vk.device,
-        vk.memories,
-        vk.queueFamily,
-        mesh.skyVertices.data(),
-        mesh.skyVertices.size()*sizeof(Vertex),
-        skyMesh
-    );
-    skyMesh.vCount = mesh.skyVertices.size();
+    if (mesh.skyVertices.size()) {
+        uploadMesh(
+            vk.device,
+            vk.memories,
+            vk.queueFamily,
+            mesh.skyVertices.data(),
+            mesh.skyVertices.size()*sizeof(Vertex),
+            skyMesh
+        );
+        skyMesh.vCount = mesh.skyVertices.size();
+    }
     VulkanMesh fluidMesh;
     uploadMesh(
         vk.device,
@@ -200,33 +204,35 @@ void renderLevel(
             0, 0
         );
 
-        vkCmdBindPipeline(
-            cmd,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipelines[SKY].handle
-        );
-        vkCmdBindDescriptorSets(
-            cmd,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipelines[SKY].layout,
-            0,
-            1,
-            &pipelines[SKY].descriptorSet,
-            0,
-            nullptr
-        );
+        if (mesh.skyVertices.size()) {
+            vkCmdBindPipeline(
+                cmd,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                pipelines[SKY].handle
+            );
+            vkCmdBindDescriptorSets(
+                cmd,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                pipelines[SKY].layout,
+                0,
+                1,
+                &pipelines[SKY].descriptorSet,
+                0,
+                nullptr
+            );
 
-        vkCmdBindVertexBuffers(
-            cmd,
-            0, 1,
-            &skyMesh.vBuff.handle,
-            offsets
-        );
-        vkCmdDraw(
-            cmd,
-            skyMesh.vCount, 1,
-            0, 0
-        );
+            vkCmdBindVertexBuffers(
+                cmd,
+                0, 1,
+                &skyMesh.vBuff.handle,
+                offsets
+            );
+            vkCmdDraw(
+                cmd,
+                skyMesh.vCount, 1,
+                0, 0
+            );
+        }
 
         vkCmdBindPipeline(
             cmd,
