@@ -140,7 +140,7 @@ void initModel(
     for (auto& entity: entities) {
         auto name = entity.className;
         if (strcmp(name, entityName) == 0) {
-            if (entity.spawnflags & spawnFlagFilter) {
+            if ((!spawnFlagFilter) || (entity.spawnflags & spawnFlagFilter)) {
                 auto& pushConstant = model.pushConstants.emplace_back();
                 pushConstant.angle = (float)entity.angle;
                 pushConstant.origin = entity.origin;
@@ -270,7 +270,7 @@ void initModels(
             "progs/flame2.mdl",
             0,
             0,
-            0xFFFF,
+            0,
             model
         );
     }
@@ -284,7 +284,7 @@ void initModels(
             "progs/flame2.mdl",
             1,
             1,
-            0xFFFF,
+            0,
             model
         );
     }
@@ -298,7 +298,7 @@ void initModels(
             "progs/flame.mdl",
             0,
             0,
-            0xFFFF,
+            0,
             model
         );
     }
@@ -326,7 +326,119 @@ void initModels(
             "progs/zombie.mdl",
             0,
             14,
-            0xFFFF,
+            0xFFFE,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_ogre",
+            "progs/ogre.mdl",
+            0,
+            8,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_army",
+            "progs/soldier.mdl",
+            0,
+            7,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_knight",
+            "progs/knight.mdl",
+            0,
+            8,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_dog",
+            "progs/dog.mdl",
+            70,
+            77,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_demon",
+            "progs/demon.mdl",
+            0,
+            8,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_shambler",
+            "progs/shambler.mdl",
+            0,
+            16,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_wizard",
+            "progs/wizard.mdl",
+            0,
+            9,
+            0,
+            model
+        );
+    }
+    {
+        AliasModel& model = models.emplace_back();
+        initModel(
+            vk,
+            pak,
+            entities,
+            "monster_boss",
+            "progs/boss.mdl",
+            0,
+            16,
+            0,
             model
         );
     }
