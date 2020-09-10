@@ -38,9 +38,9 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :black_square_button: Gamma correction (bit dark at the moment)
 - :white_check_mark: Alias model loading
 - :white_check_mark: Fire model
-- :black_square_button: Other scenery models
-- :black_square_button: Monster models
-- :black_square_button: Monster animation
+- :white_check_mark: Other scenery models
+- :white_check_mark: Monster models
+- :white_check_mark: Monster animation
 
 ## Remarks
 Bindless textures in Vulkan were useful.
