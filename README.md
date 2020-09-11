@@ -35,7 +35,6 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :white_check_mark: Animated slime / lava / water textures
 - :black_square_button: Use all four face light types
 - :black_square_button: Under water effect
-- :black_square_button: Gamma correction (bit dark at the moment)
 - :white_check_mark: Alias model loading
 - :white_check_mark: Fire model
 - :white_check_mark: Other scenery models
