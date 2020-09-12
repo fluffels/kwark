@@ -7,6 +7,19 @@ using glm::dot;
 using glm::normalize;
 using glm::vec2;
 
+Vertex::Vertex() {
+    pos = {};
+    texCoord = {};
+    texIdx = -1;
+    lightCoord = {};
+    lightIdx = -1;
+    extent = {};
+
+    for (int i = 0; i < MAX_LIGHT_STYLES; i++) {
+        lightStyles[i] = 0xFF;
+    }
+}
+
 vec2 calculateUV(
     vec3& vertex,
     TexInfo& texInfo
@@ -100,7 +113,14 @@ void Mesh::buildWireFrameModel() {
                 faceVertices.push_back(v2);
             }
 
-            if (face.typeLight == 0) {
+            for (auto& vertex: faceVertices) {
+                vertex.lightStyles[0] = face.typeLight;
+                vertex.lightStyles[1] = face.baseLight;
+                vertex.lightStyles[2] = face.light[0];
+                vertex.lightStyles[3] = face.light[1];
+            }
+
+            if (face.lightmap != -1) {
                 vec2 uvMin = faceVertices[0].texCoord;
                 vec2 uvMax = faceVertices[0].texCoord;
                 for (auto& v: faceVertices) {

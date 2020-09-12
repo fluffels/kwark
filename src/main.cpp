@@ -32,6 +32,8 @@ struct Uniforms {
     mat4 mvp;
     vec3 origin;
     float elapsedS;
+    // NOTE(jan): GLSL pads array elements to align on 4 byte boundaries
+    float light[4*12];
 };
 #pragma pack (pop)
 
@@ -180,6 +182,21 @@ int MainLoop(
         }
     }
 
+    // See progs/world.qc
+    vector<string> lightstyles;
+    lightstyles.push_back(string("m"));
+    lightstyles.push_back("mmnmmommommnonmmonqnmmo");
+    lightstyles.push_back("abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
+    lightstyles.push_back("mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
+    lightstyles.push_back("mamamamamama");
+    lightstyles.push_back("jklmnopqrstuvwxyzyxwvutsrqponmlkj");
+    lightstyles.push_back("nmonqnmomnmomomno");
+    lightstyles.push_back("mmmaaaabcdefgmmmmaaaammmaamm");
+    lightstyles.push_back("mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
+    lightstyles.push_back("aaaaaaaazzzzzzzz");
+    lightstyles.push_back("mmamammmmammamamaaamammma");
+    lightstyles.push_back("abcdefghijklmnopqrrqponmlkjihgfedcba");
+
     vector<VkCommandBuffer> levelCmds;
     renderLevel(vk, *map, levelCmds);
     initModels(vk, parser, map->entities);
@@ -231,10 +248,18 @@ int MainLoop(
                 uniforms.origin = camera.eye;
                 uniforms.elapsedS = (frameStart.QuadPart - epoch.QuadPart) /
                     (float)counterFrequency.QuadPart;
+
+                int lightFrame = (int)(uniforms.elapsedS / .1f);
+                for (int i = 0; i < 12; i++) {
+                    auto& lightstyle = lightstyles[i];
+                    int lightStyleFrame = lightFrame % lightstyle.size();
+                    uniforms.light[i*4] = (lightstyle[lightStyleFrame] - 'a') / (float)('z' - 'a');
+                }
+                updateMVP(vk, &uniforms, sizeof(uniforms));
+
                 recordModelCommandBuffers(
                     vk, uniforms.elapsedS, modelCmds
                 );
-                updateMVP(vk, &uniforms, sizeof(uniforms));
                 vector<vector<VkCommandBuffer>> cmdss;
                 cmdss.push_back(levelCmds);
                 cmdss.push_back(modelCmds);

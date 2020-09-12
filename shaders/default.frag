@@ -10,12 +10,16 @@ layout(location=0) in vec2 inTexCoord;
 layout(location=1) in flat uint inTexIdx;
 layout(location=2) in vec2 inLightCoord;
 layout(location=3) in flat int inLightIdx;
-layout(location=4) in flat vec2 inExtent;
+layout(location=4) in float inLight1;
+layout(location=5) in float inLight2;
+layout(location=6) in float inLight3;
+layout(location=7) in float inLight4;
+layout(location=8) in flat vec2 inExtent;
 
 layout(location=0) out vec4 outColor;
 
 void main() {
-    float lightValue = 1.f;
+    float lightMapValue = 0.f;
     if (inLightIdx >= 0) {
         float s = inLightCoord.x;
         int sLeft = int(s);
@@ -45,9 +49,10 @@ void main() {
 
         float bottom = mix(bottomLeft, bottomRight, sLerp);
 
-        lightValue = mix(top, bottom, tLerp);
+        lightMapValue = mix(top, bottom, tLerp);
     }
 
     vec3 texturedColor = texture(atlas[inTexIdx], inTexCoord).rgb;
-    outColor = vec4(texturedColor * lightValue, 1);
+    float lightValue = inLight1 + inLight2 + inLight3 + inLight4;
+    outColor = vec4(texturedColor * lightMapValue * lightValue, 1);
 }

@@ -32,7 +32,6 @@ add_executable (
     src/main.cpp
     src/FileSystem.cpp
     src/util.cpp
-    src/Vertex.cpp
     src/Camera.cpp
     src/DirectInput.cpp
     src/Controller.cpp
