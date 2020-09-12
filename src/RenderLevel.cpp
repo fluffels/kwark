@@ -227,6 +227,11 @@ void renderLevel(
                 &skyMesh.vBuff.handle,
                 offsets
             );
+            vkCmdDraw(
+                cmd,
+                skyMesh.vCount, 1,
+                0, 0
+            );
         }
 
         vkCmdBindPipeline(
@@ -250,6 +255,11 @@ void renderLevel(
             0, 1,
             &fluidMesh.vBuff.handle,
             offsets
+        );
+        vkCmdDraw(
+            cmd,
+            fluidMesh.vCount, 1,
+            0, 0
         );
 
         vkCmdEndRenderPass(cmd);

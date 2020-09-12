@@ -8,9 +8,11 @@ layout(location=1) in vec2 inTexCoord;
 layout(location=2) in uint inTexIdx;
 layout(location=3) in vec2 inLightCoord;
 layout(location=4) in int inLightIdx;
-layout(location=5) in int inLightIdx1;
-layout(location=6) in int inLightIdx2;
-layout(location=7) in vec2 inExtent;
+layout(location=5) in int inLightStyle1;
+layout(location=6) in int inLightStyle2;
+layout(location=7) in int inLightStyle3;
+layout(location=8) in int inLightStyle4;
+layout(location=9) in vec2 inExtent;
 
 layout(location=0) out vec2 outTexCoord;
 layout(location=1) out flat uint outTexIdx;
