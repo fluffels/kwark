@@ -28,13 +28,14 @@ Maybe this means I can do some of the things in a more modern way and explore mo
 - :white_check_mark: Textures
 - :white_check_mark: Light maps
 - :black_square_button: Handle fullbrights
+- :white_check_mark: Animate light maps
+- :black_square_button: Solve "missing" light maps
 - :white_check_mark: Remove debug brushes from display
 - :white_check_mark: Sky textures
 - :white_check_mark: Animated sky textures
 - :white_check_mark: Parralax sky textures
 - :white_check_mark: Fix projection of sky textures
 - :white_check_mark: Animated slime / lava / water textures
-- :black_square_button: Use all four face light types
 - :black_square_button: Under water effect
 - :white_check_mark: Alias model loading
 - :white_check_mark: Fire model
