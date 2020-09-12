@@ -143,8 +143,6 @@ void Mesh::buildWireFrameModel() {
 
                 for (auto& v: faceVertices) {
                     auto& uv = v.texCoord;
-                    // TODO(jan): Add base light
-                    // auto baseLight = 1.f - face.baseLight / 255.f;
                     v.lightCoord.s = (uv.x/16) - uvMin.x;
                     v.lightCoord.t = (uv.y/16) - uvMin.y;
                     v.lightIdx = face.lightmap;
