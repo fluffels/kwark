@@ -90,7 +90,6 @@ void Mesh::buildWireFrameModel() {
             auto& p0 = faceCoords[0];
             v0.pos = p0;
             v0.texCoord = calculateUV(v0.pos, texInfo);
-            // TODO(jan): What should these be if there's no lightmap?
             v0.lightCoord = {0, 0};
             v0.lightIdx = -1;
 
@@ -100,14 +99,12 @@ void Mesh::buildWireFrameModel() {
 
                 v1.pos = faceCoords[i*2];
                 v1.texCoord = calculateUV(v1.pos, texInfo);
-                // TODO(jan): What should these be if there's no lightmap?
                 v1.lightCoord = {0, 0};
                 v1.lightIdx = -1;
                 faceVertices.push_back(v1);
 
                 v2.pos = faceCoords[i*2+1];
                 v2.texCoord = calculateUV(v2.pos, texInfo);
-                // TODO(jan): What should these be if there's no lightmap?
                 v2.lightCoord = {0, 0};
                 v2.lightIdx = -1;
                 faceVertices.push_back(v2);
