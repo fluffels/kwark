@@ -7,3 +7,6 @@
 [submodule "lib/stb"]
 	path = lib/stb
 	url = https://github.com/fluffels/stb.git
+[submodule "lib/jcwk"]
+	path = lib/jcwk
+	url = https://github.com/fluffels/jcwk.git
