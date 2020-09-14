@@ -6,7 +6,6 @@
 #include "RenderModel.h"
 
 #include "FileSystem.h"
-#include "Model.h"
 #include "Palette.h"
 
 #include "glm/vec2.hpp"

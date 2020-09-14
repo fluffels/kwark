@@ -42,7 +42,6 @@ add_executable (
     src/Palette.cpp
     src/BSPTextureParser.cpp
     src/BSPParser.cpp
-    src/Model.cpp
     src/PAKParser.cpp
     src/Present.cpp
     src/RenderLevel.cpp
