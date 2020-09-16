@@ -28,11 +28,11 @@ add_executable (
     main
     WIN32
     Shaders
+    lib/jcwk/FileSystem.cpp
     lib/jcwk/Vulkan.cpp
     lib/SPIRV-Reflect/spirv_reflect.c
     src/easylogging++.cc
     src/main.cpp
-    src/FileSystem.cpp
     src/util.cpp
     src/Camera.cpp
     src/DirectInput.cpp
