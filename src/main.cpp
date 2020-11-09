@@ -13,7 +13,6 @@ INITIALIZE_EASYLOGGINGPP
 #include "Mesh.h"
 #include "Mouse.h"
 #include "PAKParser.h"
-#include "Present.h"
 #include "RenderLevel.h"
 #include "RenderModel.h"
 #include "RenderText.h"
@@ -255,7 +254,7 @@ int MainLoop(
                     int lightStyleFrame = lightFrame % lightstyle.size();
                     uniforms.light[i*4] = (lightstyle[lightStyleFrame] - 'a') / (float)('z' - 'a');
                 }
-                updateMVP(vk, &uniforms, sizeof(uniforms));
+                updateUniforms(vk, &uniforms, sizeof(uniforms));
 
                 recordModelCommandBuffers(
                     vk, uniforms.elapsedS, modelCmds

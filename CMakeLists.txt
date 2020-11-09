@@ -33,7 +33,6 @@ add_executable (
     lib/SPIRV-Reflect/spirv_reflect.c
     src/easylogging++.cc
     src/main.cpp
-    src/util.cpp
     src/Camera.cpp
     src/DirectInput.cpp
     src/Controller.cpp
@@ -43,7 +42,6 @@ add_executable (
     src/BSPTextureParser.cpp
     src/BSPParser.cpp
     src/PAKParser.cpp
-    src/Present.cpp
     src/RenderLevel.cpp
     src/RenderModel.cpp
     src/RenderText.cpp

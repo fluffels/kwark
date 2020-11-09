@@ -133,7 +133,7 @@ void initModel(
         vk.device,
         model.pipeline.descriptorSet,
         0,
-        vk.mvp.handle
+        vk.uniforms.handle
     );
 
     for (auto& entity: entities) {
