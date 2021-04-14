@@ -30,7 +30,7 @@ void createIndexBuffer(
         vk.device, vk.memories, vk.queueFamily, (uint32_t)size, mesh.iBuff
     );
 
-    void *dst = mapMemory(vk.device, mesh.iBuff.handle, mesh.iBuff.memory);
+    void *dst = mapBufferMemory(vk.device, mesh.iBuff.handle, mesh.iBuff.memory);
         memcpy(dst, data, size);
     unMapMemory(vk.device, mesh.iBuff.memory);
 }
@@ -65,7 +65,7 @@ void createVertexBuffer(
         vk.device, vk.memories, vk.queueFamily, size, mesh.vBuff
     );
 
-    void *dst = mapMemory(vk.device, mesh.vBuff.handle, mesh.vBuff.memory);
+    void *dst = mapBufferMemory(vk.device, mesh.vBuff.handle, mesh.vBuff.memory);
         memcpy(dst, data, size);
     unMapMemory(vk.device, mesh.vBuff.memory);
 
@@ -88,7 +88,7 @@ recordTextCommandBuffers(Vulkan& vk, vector<VkCommandBuffer>& cmds, char* text) 
 
     uint32_t framebufferCount = vk.swap.images.size();
     cmds.resize(framebufferCount);
-    createCommandBuffers(vk.device, vk.cmdPoolTransient, framebufferCount, cmds);
+    createCommandBuffers(vk.device, vk.cmdPoolTransient, framebufferCount, cmds.data());
     VkDeviceSize offsets[] = {0};
     for (size_t swapIdx = 0; swapIdx < framebufferCount; swapIdx++) {
         auto& cmd = cmds[swapIdx];
@@ -107,12 +107,12 @@ recordTextCommandBuffers(Vulkan& vk, vector<VkCommandBuffer>& cmds, char* text) 
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle);
         vkCmdBindIndexBuffer(cmd, mesh.iBuff.handle, 0, VK_INDEX_TYPE_UINT32);
         vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vBuff.handle, offsets);
-        for (size_t quadIdx = 0; quadIdx < quadCount; quadIdx++) {
+        for (int quadIdx = 0; quadIdx < quadCount; quadIdx++) {
             vkCmdDrawIndexed(cmd, 6, 1, 0, quadIdx * VERTICES_PER_QUAD, 0);
         }
         vkCmdEndRenderPass(cmd);
 
-        checkSuccess(vkEndCommandBuffer(cmd));
+        VKCHECK(vkEndCommandBuffer(cmd));
     }
 }
 

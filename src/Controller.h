@@ -5,8 +5,6 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
-#include "easylogging++.h"
-
 using std::vector;
 
 struct DeviceState {

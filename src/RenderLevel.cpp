@@ -153,7 +153,7 @@ void renderLevel(
 
     uint32_t framebufferCount = vk.swap.images.size();
     cmds.resize(framebufferCount);
-    createCommandBuffers(vk.device, vk.cmdPool, framebufferCount, cmds);
+    createCommandBuffers(vk.device, vk.cmdPool, framebufferCount, cmds.data());
     for (size_t swapIdx = 0; swapIdx < framebufferCount; swapIdx++) {
         auto& cmd = cmds[swapIdx];
         beginFrameCommandBuffer(cmd);
@@ -264,6 +264,6 @@ void renderLevel(
 
         vkCmdEndRenderPass(cmd);
 
-        checkSuccess(vkEndCommandBuffer(cmd));
+        VKCHECK(vkEndCommandBuffer(cmd));
     }
 }

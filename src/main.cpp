@@ -5,19 +5,23 @@
 
 #include <Windows.h>
 
-#include "easylogging++.h"
-INITIALIZE_EASYLOGGINGPP
+#include "Logging.h"
+#include "FileSystem.cpp"
+#include "Vulkan.cpp"
 
-#include "Camera.h"
-#include "DirectInput.h"
-#include "Mesh.h"
-#include "Mouse.h"
-#include "PAKParser.h"
-#include "RenderLevel.h"
-#include "RenderModel.h"
-#include "RenderText.h"
-#include "Vulkan.h"
-#include "Win32.h"
+#include "BSPParser.cpp"
+#include "BSPTextureParser.cpp"
+#include "Camera.cpp"
+#include "Controller.cpp"
+#include "DirectInput.cpp"
+#include "Mesh.cpp"
+#include "Mouse.cpp"
+#include "Palette.cpp"
+#include "PAKParser.cpp"
+#include "RenderLevel.cpp"
+#include "RenderModel.cpp"
+#include "RenderText.cpp"
+#include "Win32.cpp"
 
 using std::exception;
 using std::setprecision;
@@ -94,14 +98,15 @@ WindowProc(
     return DefWindowProc(window, message, wParam, lParam);
 }
 
-int MainLoop(
+int
+MainLoop(
     HINSTANCE instance,
     HINSTANCE prevInstance,
     LPSTR commandLine,
     int showCommand,
     PAKParser& parser
 ) {
-    LOG(INFO) << "Starting...";
+    INFO("Starting...");
 
     LARGE_INTEGER counterFrequency;
     QueryPerformanceFrequency(&counterFrequency);
@@ -109,13 +114,11 @@ int MainLoop(
     WNDCLASSEX windowClassProperties = {};
     windowClassProperties.cbSize = sizeof(windowClassProperties);
     windowClassProperties.style = CS_HREDRAW | CS_VREDRAW;
-    windowClassProperties.lpfnWndProc = WindowProc;
+    windowClassProperties.lpfnWndProc = (WNDPROC)WindowProc;
     windowClassProperties.hInstance = instance;
     windowClassProperties.lpszClassName = "MainWindowClass";
     ATOM windowClass = RegisterClassEx(&windowClassProperties);
-    if (!windowClass) {
-        LOG(ERROR) << "could not create window class";
-    }
+    CHECK(windowClass, "could not create window class");
 
     HWND window = CreateWindowEx(
         0,
@@ -126,14 +129,12 @@ int MainLoop(
         CW_USEDEFAULT,
         WIDTH,
         HEIGHT,
-        NULL,
-        NULL,
+        nullptr,
+        nullptr,
         instance,
-        NULL
+        nullptr
     );
-    if (window == NULL) {
-        LOG(ERROR) << "could not create window";
-    }
+    CHECK(window, "could not create window");
 
     SetWindowPos(
         window,
@@ -259,11 +260,14 @@ int MainLoop(
                 recordModelCommandBuffers(
                     vk, uniforms.elapsedS, modelCmds
                 );
-                vector<vector<VkCommandBuffer>> cmdss;
-                cmdss.push_back(levelCmds);
-                cmdss.push_back(modelCmds);
-                cmdss.push_back(textCmds);
-                present(vk, cmdss);
+                vector<VkCommandBuffer> cmdss;
+                auto frameBufferCount = vk.swap.framebuffers.size();
+                for (unsigned i = 0; i < frameBufferCount; i++) {
+                    cmdss.push_back(levelCmds[i]);
+                    cmdss.push_back(modelCmds[i]);
+                    cmdss.push_back(textCmds[i]);
+                }
+                present(vk, cmdss.data(), 3);
                 resetTextCommandBuffers(vk, textCmds);
                 vkFreeCommandBuffers(
                     vk.device,
@@ -338,7 +342,7 @@ int MainLoop(
             fwrite(&camera.up, sizeof(camera.up), 1, save);
             fclose(save);
         } else {
-            LOG(ERROR) << strerror(err);
+            LERROR(err);
         }
     }
 
@@ -348,15 +352,24 @@ int MainLoop(
     return errorCode; 
 }
 
-int
+int __stdcall
 WinMain(
     HINSTANCE instance,
     HINSTANCE prevInstance,
     LPSTR commandLine,
     int showCommand
 ) {
-    LPSTR pathToPAK = commandLine;
-    LOG(INFO) << "path to PAK file: " << pathToPAK;
+    // NOTE: Initialize logging.
+    {
+        auto error = fopen_s(&LOG_FILE, "LOG", "w");
+        if (error) return 1;
+
+        // QueryPerformanceCounter(&counterEpoch);
+        // QueryPerformanceFrequency(&counterFrequency);
+    }
+
+    LPSTR pathToPAK = "PAK0.PAK";
+    INFO("path to PAK file: %s", pathToPAK);
     PAKParser parser(pathToPAK);
 
     return MainLoop(

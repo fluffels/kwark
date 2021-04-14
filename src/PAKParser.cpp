@@ -1,4 +1,5 @@
 #include "FileSystem.h"
+#include "Logging.h"
 #include "PAKParser.h"
 
 #define HEADER_LENGTH 4
@@ -13,7 +14,7 @@ void PAKParser::parseHeader() {
 
 void PAKParser::parseEntries() {
     auto count = header.size / FILE_ENTRY_LENGTH;
-    LOG(INFO) << "contains " << count << " entries";
+    INFO("contains %d entries", count);
     entries.resize(count);
 
     seek(file, header.offset);
@@ -33,9 +34,7 @@ PAKParser::PAKParser(const char* path):
         file(NULL),
         palette(nullptr) {
     errno_t error = fopen_s(&file, path, "rb");
-    if (error != 0) {
-        throw runtime_error("could not open PAK file");
-    }
+    LERROR(error);
 
     parseHeader();
     parseEntries();

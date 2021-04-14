@@ -42,7 +42,7 @@ void Mesh::buildLightMap() {
     auto count = bsp.lightMap.size();
     lightMap.resize(count);
 
-    for (int i = 0; i < count; i++) {
+    for (unsigned i = 0; i < count; i++) {
         lightMap[i] = bsp.lightMap[i] / 255.f;
     }
 }

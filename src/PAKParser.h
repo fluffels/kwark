@@ -14,8 +14,6 @@ Types mentioned in the link appear to be defined as follows:
 #include <string>
 #include <vector>
 
-#include "easylogging++.h"
-
 #include "BSPParser.h"
 #include "Palette.h"
 

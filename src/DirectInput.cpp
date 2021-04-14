@@ -1,11 +1,12 @@
 #include "DirectInput.h"
+#include "Logging.h"
 
 BOOL deviceCallback(
     LPCDIDEVICEINSTANCE lpddi,
     LPVOID pvRef
 ) {
     DIDEVICEINSTANCE device = *lpddi;
-    LOG(INFO) << "found a controller: " << device.tszInstanceName;
+    INFO("found a controller: %s", device.tszInstanceName);
     ((DirectInput*)pvRef)->controllerGUID = device.guidInstance;
     ((DirectInput*)pvRef)->controllerFound = true;
     return DIENUM_STOP;
@@ -27,7 +28,7 @@ DirectInput::DirectInput(HINSTANCE instance):
 
     result = di->EnumDevices(
         DI8DEVCLASS_GAMECTRL,
-        deviceCallback,
+        (LPDIENUMDEVICESCALLBACKA)deviceCallback,
         this,
         0
     );

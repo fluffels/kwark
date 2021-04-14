@@ -1,4 +1,5 @@
 #include "Controller.h"
+#include "Logging.h"
 
 #define DI_CHECK(e, m) if (e != DI_OK) throw new std::exception(m)
 
@@ -13,7 +14,7 @@ BOOL objectCallback(
 ) {
     auto controller = (Controller*)pvRef;
     DIDEVICEOBJECTINSTANCE object = *lpddoi;
-    LOG(INFO) << "found a controller object: " << object.tszName;
+    INFO("found a controller object: %s", object.tszName);
     DIOBJECTDATAFORMAT dataFormat = {};
     if (object.guidType == GUID_XAxis) {
         dataFormat.pguid = &GUID_XAxis;
@@ -46,7 +47,7 @@ Controller::Controller(IDirectInput8* directInput, GUID guid):
     DI_CHECK(result, "could not create controller");
 
     result = device->EnumObjects(
-        objectCallback,
+        (LPDIENUMDEVICEOBJECTSCALLBACKA)objectCallback,
         this,
         0
     );

@@ -158,8 +158,7 @@ void initModel(
     readStruct(file, group);
 
     if (group != 0) {
-        LOG(ERROR) << "group skins not supported";
-        exit(-1);
+        FATAL("group skins not supported");
     }
 
     uint32_t skinIdxsSize = header.skinheight * header.skinwidth;
@@ -454,7 +453,7 @@ void recordModelCommandBuffers(
         vk.device,
         vk.cmdPoolTransient,
         framebufferCount,
-        cmds
+        cmds.data()
     );
     for (int idx = 0; idx < framebufferCount; idx++) {
         auto& cmd = cmds[idx];
