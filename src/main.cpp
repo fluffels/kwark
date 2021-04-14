@@ -360,13 +360,7 @@ WinMain(
     int showCommand
 ) {
     // NOTE: Initialize logging.
-    {
-        auto error = fopen_s(&LOG_FILE, "LOG", "w");
-        if (error) return 1;
-
-        // QueryPerformanceCounter(&counterEpoch);
-        // QueryPerformanceFrequency(&counterFrequency);
-    }
+    initLogging();
 
     LPSTR pathToPAK = "PAK0.PAK";
     INFO("path to PAK file: %s", pathToPAK);
