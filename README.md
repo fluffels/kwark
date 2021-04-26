@@ -50,6 +50,3 @@ Since Quake uses so few textures per level (~60) it's possible to load them all 
 
 Similarly, the entire light map for a level fits in a uniform texel buffer.
 So all the lighting calculations can be done in the fragment shader.
-
-21s242ms
-4s564ms
